@@ -1,0 +1,129 @@
+PyLinda 0.6 Readme
+
+By Andrew Wilkinson <aw@cs.york.ac.uk>
+
+Contents
+--------
+
+1. Introduction
+2. Installation
+3. Using Linda
+4. Known Problems
+5. Contact
+6. License
+
+1. Introduction
+---------------
+
+Linda is an widely studied distributed computing environment, centred around
+the notion of a tuple space. A tuple space is a bag (also called a multi-set) of
+tuples. A tuple is an ordered, typed chunk of data. Tuple spaces exist
+independently of processes in the system, and the data placed into a tuple space
+also exist independently. See "Generative communication in Linda" (1985) and
+"Multiple tuple spaces in Linda" both by David Gelernter for more information on
+Linda.
+
+PyLinda is a simple implementation of a linda system, however it also includes
+several of the more recently proposed extensions to Linda in the form of
+multiple tuple spaces, garbage collection, sane non-blocking primitives and bulk
+tuple operations.
+
+2. Installation
+---------------
+
+To see the changes in this version read the file ChangeLog
+
+To install simply unpack the tarball, and execute 'python setup.py install'.
+
+tar -xfz linda-0.6.tar.gz
+cd linda-0.6
+python setup.py install
+
+This will install the server program under /usr/bin. This can be run as
+'linda_server.py'
+Example files and documentation will be install under /usr/share/pylinda.
+
+PyLinda requires a Python 2.3+ and has only been tested on Windows 2000, Linux
+and Solaris, however it should be possible for it to run on other operating systems.
+
+The Windows version is largly untested, so please report any success/failure you
+have with it! Under Windows the linda_server.py file is installed in <python
+install>\Lib\site-packages\pylinda. The documentation and examples are installed
+under <python install>\pylinda. Several examples will not run under Windows as
+they require the fork syscall, which is not supported by Windows.
+
+3. Using Linda
+--------------
+
+First a server must be started - 'linda_server.py'.
+
+Then a client program must be started, the simplest is just the python
+interactive interpreter.
+
+bash$ python
+>>> import linda
+>>> linda.connect()
+>>> linda.uts._out((1,2,3))
+
+Now quit that interpreter, and start a new one...
+
+bash$ python
+>>> import linda
+>>> linda.connect()
+>>> linda.uts._in((int, int, int))
+(1, 2, 3)
+
+If you want to add a new computer to the linda network simply run
+'linda_server.py -c<ip address or dns name>' where the computer you supply is
+already running a linda server.
+
+4. Known Problems
+-----------------
+
+Serious Issues:
+ * Solaris appears in my brief testing not to support domain sockets, or maybe I
+don't have the rights on my server... further investigation is required.
+
+Other Issues:
+ * The actual implementation is quite slow. The process of storing tuples is
+slow and uses a large amount of memory, this could probably be fixed by
+rewriting that bit in C.
+ * No support for the eval primitive.
+ * Only built-in atomic types, tuples and tuplespace references can be included
+in tuples. This will change in the future, and is partly the subject of my PhD.
+
+Windows Issues:
+ * The Windows version of Python does not come with a readline module, this
+restricts the text interface to the server. A version of this module that works
+with Windows can be downloaded from
+http://newcenturycomputers.net/projects/readline.html. (Thanks to Pablo
+Grigoletti for pointing this out.)
+
+5. Contact
+----------
+
+All the latest news and information about PyLinda can be found at
+http://www-users.cs.york.ac.uk/~aw/pylinda.
+Comments, suggestions and bug reports are all welcome at aw@cs.york.ac.uk
+
+6. License
+----------
+For full details of the license see the file LICENSE.
+
+Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>.
+
+This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
+
+PyLinda is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or
+(at your option) any later version.
+
+PyLinda is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with PyLinda; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA

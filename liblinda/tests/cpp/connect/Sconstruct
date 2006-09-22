@@ -1,0 +1,4 @@
+env = Environment(CPPPATH="/usr/aw/include", LIBPATH="/usr/aw/lib")
+
+env.Program("client", "client.cpp", LIBS=["linda++", "linda", "expat"])
+env.Program("server", "server.c", LIBS=["linda-server", "expat"])

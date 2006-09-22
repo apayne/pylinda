@@ -1,0 +1,2 @@
+Program("tuple", "tuple.c", CPPPATH="/usr/aw/include")
+

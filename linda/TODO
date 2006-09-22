@@ -1,0 +1,11 @@
+Short Term
+ * Recode the TupleContainer class in C
+ * Test and enhance the domain socket and shared memory classes
+
+Medium Term
+ * Expand documentation
+ * Provide a C pre-processor to allow PyLinda programs to be coded in C
+
+Long Term
+ * Allow tuplespaces to be distributed across nodes
+ * Allow arbitrary data structures to be used in tuples

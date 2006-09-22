@@ -1,0 +1,4 @@
+env = Environment(CCFLAGS="-g", CPPPATH="/usr/aw/include", LIBPATH="/usr/aw/lib")
+
+env.Program("makexml", "makexml.c", LIBS=["linda", "expat"])
+env.Program("parsexml", "parsexml.c", LIBS=["linda", "expat"])

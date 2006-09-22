@@ -1,0 +1,5 @@
+Import("cppenv")
+
+cppclientobjs = cppenv.SharedObject(["linda.cpp", "value.cpp", "tuple.cpp", "tuplespace.cpp"])
+
+Return("cppclientobjs")

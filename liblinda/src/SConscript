@@ -1,0 +1,6 @@
+Import("env")
+
+clientobjs = env.SharedObject(["linda.c", "value.c", "tuple.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c"])
+serverobjs = env.SharedObject(["linda_server.c", "value.c", "tuple.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c"])
+
+Return("clientobjs", "serverobjs")

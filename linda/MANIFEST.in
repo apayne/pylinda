@@ -1,0 +1,6 @@
+include Doxyfile
+include gnuplot.txt
+graft examples
+graft doc/html
+graft monitor
+graft monitor/pyggy

@@ -1,0 +1,16 @@
+env = Environment(CCFLAGS="-g", CPPPATH=["#src/", "#cpp/"], LIBPATH=".")
+cppenv = Environment(CCFLAGS="-g", CPPPATH=["#src/", "#cpp/"])
+
+Export("env")
+Export("cppenv")
+
+clientobjs, serverobjs = SConscript("src/SConscript")
+cppclientobjs = SConscript("cpp/SConscript")
+pyclientobjs, pyserverobjs = SConscript("python/SConscript")
+
+env.SharedLibrary(target = "linda", source = clientobjs)
+cppenv.SharedLibrary(target = "linda++", source = cppclientobjs)
+env.SharedLibrary(target = "linda-server", source = serverobjs)
+
+env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["liblinda", "expat", "python2.4"])
+env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["liblinda-server", "expat"])

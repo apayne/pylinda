@@ -1,0 +1,77 @@
+?/?/06 - Version 0.7
+- New Features
+ * Split the monitor into a seperate application which is loaded when the server is started.
+- Bug Fixes
+ * Allow tuplespaces to contain the empty tuple
+
+6/2/06 - Version 0.6
+- Bug Fixes 
+ * The method used to determine whether to use unix domain sockets or TCP/IP sockets has been replaced.
+ * Install script changed to install documentaton in the standard location.
+ * Various minor fixes.
+- New Features 
+ * Client-side programs can now use multiple threads to access to the Linda system.
+ * Added a 'uts' alias for the universal tuplespace.
+ * Added a disconnect method which allows processes and threads to disconnect from the Linda network
+
+14/7/05 - Version 0.5.1 
+- Bug Fixes 
+ * Fixed a serious bug that would cause PyLinda to randomly deadlock when two or more servers were used. Thanks to Pablo Grigoletti for providing a test case.
+ * Made the readline module optional as Windows Python doesn't supply it by default. Thanks to Pablo Grigoletti for pointing this out 
+ * Various fixes to the install script. 
+
+21/6/05 - Version 0.5
+- New Features
+ * Renamed the server to simply 'linda_server'. Using the .py extension will no longer work.
+ * Removed the assumption that all servers can make a direct connection to every other server.
+   This will initially slow things down a bit, but hopefully this can be improved. It lets you do
+   cool stuff like linking two seperate groups of servers over an ssh tunnel.
+ * Added a simple text interface to the server, type help for a list of commands. This needs adding to the documentation.
+- Bug Fixes
+ * Various minor corrections.
+
+13/1/05 - Version 0.4
+- New Features
+ * Removed SysV shared memory and made Unix Domain Sockets the default as they are quicker.
+ * A new flashy website
+
+- Bug Fixes
+ * Fix bug where some sockets would not be in blocking mode and hence cause an exception. Thanks to Dave St.Germain for the bug report.
+ * Fix bug where Windows didn't define MSG_DONTWAIT in the socket module. Thanks to Dr Andrew Perella for the bug report.
+ * Fix bug that prevented a network of servers from being formed. Thanks to Igor Chaves Cananea for the bug report and patch.
+ 
+2/7/04 - Version 0.3
+- Efficency Updates
+ * Switched to using System V Shared Memory where available.
+ * Switched to using Unix domain sockets where available.
+ * Switched to using map instead of an explicit loop in several places.
+ * Changed main message handler to a dictionary of functions instead of a big if/elif statement.
+
+3/5/04 - Version 0.2
+- New features
+ * Patch from Andreas Kostyrka to allow the server to be bound only to localhost preventing any external connections.
+   Run as 'linda_server.py -a' to prevent any external access to the server.
+ * Patch from Andreas Kostyrka to allow limiting the server to certain IP addresses/ranges.
+   Run as 'linda_server.py --peer=<dns name/ip address/ip range>' where ip range is of the form n.n.n.n/r.
+
+- Bug Fixes
+ * Thanks to Andreas Kostyrka for spotting that printing the universal tuplespace caused an exception.
+ * Fixed bug in tuple container that could cause a type error
+
+- Efficency Updates
+ * Modify the client-side code so messages where the return message from the server is not important don't block. If another message is sent to the server before the return message is received then that message blocks.
+
+- Packaging Updates
+ * Change examples and documentation to install under /usr/share/pylinda
+ * Set example programs to be marked as executable and have the shebang lines modified to the local python install.
+
+- Documentation Updates
+ * Distributed documentation does not now contain the internal structure of PyLinda.
+ * Moved documentation to a proxy c file which is easier for Doxygen to parse.
+ * Changed "How To Install" to refer to the website, not my internal cvs tree.
+ * Added a tutorial
+ * Better code commenting + a small tidy up
+
+29/4/04 - Version 0.1
+ * Initial release
+
