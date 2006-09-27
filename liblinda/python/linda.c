@@ -10,7 +10,11 @@ PyObject* Linda_module;
 int LindaPython_is_server = 0;
 
 static PyObject* LindaPython_connect(PyObject* self, PyObject* args) {
-    int r = Linda_connect();
+    int port = Linda_port;
+    if(!PyArg_ParseTuple(args, "|i", &port)) {
+        return NULL;
+    }
+    int r = Linda_connect(port);
     if(r) {
         PyModule_AddStringConstant(Linda_module, "process_id", process_id);
 
@@ -31,7 +35,7 @@ static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
 }
 
 static PyMethodDef LindaMethods[] = {
-    {"connect",  LindaPython_connect, METH_NOARGS, "Connect to the local kernel."},
+    {"connect",  LindaPython_connect, METH_VARARGS, "Connect to the local kernel."},
     {"disconnect",  LindaPython_disconnect, METH_NOARGS, "Disconnect from the Linda network."},
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},

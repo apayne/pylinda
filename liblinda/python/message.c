@@ -90,7 +90,6 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", m->ref.ts, m->ref.tid);
             break;
         case GET_PARTITIONS:
-            printf("%s\n", m->ts);
             t = Py_BuildValue("(Osss)", msgid, "GET_PARTITIONS", m->ts);
             break;
         case DELETED_PARTITION:

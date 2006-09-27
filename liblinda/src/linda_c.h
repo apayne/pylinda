@@ -106,7 +106,8 @@ void Tuple_clear(Tuple t);
 void Tuple_free(Tuple t);
 
 #ifndef LINDA_SERVER
-unsigned char Linda_connect();
+unsigned char Linda_connect(int port);
+extern int Linda_port;
 void Linda_disconnect();
 #endif
 

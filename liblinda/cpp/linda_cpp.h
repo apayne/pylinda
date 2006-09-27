@@ -12,7 +12,7 @@ namespace Linda {
 class Tuple;
 class TupleSpace;
 
-bool connect();
+bool connect(int port=Linda_port);
 void disconnect();
 
 class Value {

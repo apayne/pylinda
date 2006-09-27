@@ -18,7 +18,7 @@ int Linda_port = 2102;
 
 int Linda_active_connections = 0;
 
-unsigned char Linda_connect() {
+unsigned char Linda_connect(int port) {
     int err;
 
 #ifdef USE_DOMAIN_SOCKETS
@@ -43,7 +43,8 @@ unsigned char Linda_connect() {
 
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = htons(Linda_port);
+    addr_in.sin_port = htons(port);
+    printf("Client connecting to %i.\n", port);
     if(inet_aton("127.0.0.1", (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) return 0;
 
     memset(&(addr_in.sin_zero), 0, 8);

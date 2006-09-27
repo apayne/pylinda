@@ -571,14 +571,29 @@ void Message_free(Message* msg) {
     case REGISTER_THREAD:
         free(msg->string);
         break;
+    case MY_NAME_IS:
+        free(msg->string);
+        break;
     case GET_NODE_ID:
         break;
-    case MY_NAME_IS:
+    case REGISTER_PARTITION:
+    case DELETED_PARTITION:
+        free(msg->ref.ts);
+        free(msg->ref.tid);
+        break;
+    case GET_PARTITIONS:
+    case GET_REQUESTS:
+        free(msg->ref.ts);
+        break;
+    case GET_NEIGHBOURS:
+        break;
+    case GET_CONNECTION_DETAILS:
         free(msg->string);
         break;
     case TUPLE_REQUEST:
         free(msg->tuple_request.ts);
         Tuple_free(msg->tuple_request.t);
+        break;
     default:
         fprintf(stderr, "Invalid message free (%i).\n", msg->type);
     }

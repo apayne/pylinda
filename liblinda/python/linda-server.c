@@ -1,3 +1,7 @@
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+
 #include "python2.4/Python.h"
 
 #define LINDA_SERVER
@@ -12,7 +16,12 @@ PyObject* LindaServer_module;
 int LindaPython_is_server = 1;
 
 static PyObject* LindaServerPython_serve(PyObject *self, PyObject* args) {
-    int r = Linda_serve();
+    int use_domain;
+    int port = Linda_port;
+    if(!PyArg_ParseTuple(args, "i|i", &use_domain, &port)) {
+        return NULL;
+    }
+    int r = Linda_serve(use_domain, port);
     if(r) {
         Py_RETURN_TRUE;
     } else {
@@ -60,6 +69,52 @@ static PyObject* LindaServerPython_connect(PyObject *self, PyObject* args) {
     }
 }
 
+static PyObject* LindaServerPython_setblocking(PyObject *self, PyObject* args) {
+    int sd;
+    int val;
+    int oval;
+    if(!PyArg_ParseTuple(args, "ii", &sd, &val)) {
+        return NULL;
+    }
+
+    oval = fcntl(sd, F_GETFL, 0);
+    if(val) {
+        oval &= O_NONBLOCK;
+    } else {
+        oval = ~(~oval & O_NONBLOCK);
+    }
+    fcntl(sd, F_GETFL, oval);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject* LindaServerPython_getsockname(PyObject *self, PyObject* args) {
+    int sd;
+    struct sockaddr addr;
+    socklen_t len = sizeof(struct sockaddr);
+    if(!PyArg_ParseTuple(args, "i", &sd)) {
+        return NULL;
+    }
+
+    getsockname(sd, &addr, &len);
+
+    return PyString_FromString(addr.sa_data);
+}
+
+static PyObject* LindaServerPython_getpeername(PyObject *self, PyObject* args) {
+    int sd;
+    struct sockaddr addr;
+    socklen_t len = sizeof(struct sockaddr);
+    if(!PyArg_ParseTuple(args, "i", &sd)) {
+        return NULL;
+    }
+
+    getpeername(sd, &addr, &len);
+
+    return PyString_FromString(addr.sa_data);
+}
+
 static PyObject* LindaServerPython_sddisconnect(PyObject *self, PyObject* args) {
     int sd;
     if(!PyArg_ParseTuple(args, "i", &sd)) {
@@ -73,14 +128,19 @@ static PyObject* LindaServerPython_sddisconnect(PyObject *self, PyObject* args) 
 }
 
 static PyMethodDef LindaServerMethods[] = {
-    {"serve",  LindaServerPython_serve, METH_NOARGS, "Create the listening sockets."},
-    {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connectings"},
+    {"serve",  LindaServerPython_serve, METH_VARARGS, "Create the listening sockets."},
+    {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connections"},
     {"accept",  LindaServerPython_accept, METH_VARARGS, "Accept a new connection."},
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
     {"server_disconnect",  LindaServerPython_disconnect, METH_NOARGS, "Stop serving."},
     {"connect",  LindaServerPython_connect, METH_VARARGS, "Connect to another server."},
-    {"disconnect",  LindaServerPython_sddisconnect, METH_VARARGS, "Disconnect a socket."},
+
+    {"setblocking",  LindaServerPython_setblocking, METH_VARARGS, "Set blocking or non-blocking mode of the socket."},
+    {"getsockname",  LindaServerPython_getsockname, METH_VARARGS, "Return the socket's own address."},
+    {"getpeername",  LindaServerPython_getpeername, METH_VARARGS, "Return the remote address to which the socket is connected."},
+    {"socket_disconnect",  LindaServerPython_sddisconnect, METH_VARARGS, "Disconnect a socket."},
+    {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

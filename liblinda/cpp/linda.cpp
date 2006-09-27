@@ -7,8 +7,8 @@ namespace Linda {
 
 TupleSpace uts("UTS");
 
-bool connect() {
-    return Linda_connect();
+bool connect(int port) {
+    return Linda_connect(port);
 }
 
 void disconnect() {

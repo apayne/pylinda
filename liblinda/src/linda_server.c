@@ -3,6 +3,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <stdio.h>
+#include <netdb.h>
 
 #define LINDA_SERVER
 #include "linda.h"
@@ -18,10 +21,11 @@ int Linda_active_connections;
 char* process_id;
 char* thread_id;
 
-unsigned char Linda_serve() {
+unsigned char Linda_serve(unsigned char use_domain, int port) {
     int err;
 
 #ifdef USE_DOMAIN_SOCKETS
+    if(use_domain) {
     Linda_udd = socket(PF_UNIX, SOCK_STREAM, 0);
     if(Linda_udd != -1) {
         struct sockaddr_un addr_in;
@@ -42,13 +46,18 @@ unsigned char Linda_serve() {
             }
         }
     }
+    } else {
+        Linda_udd = 0;
+    }
 #endif
     Linda_sd = socket(PF_INET, SOCK_STREAM, 0);
     if(Linda_sd == -1) return 0;
 
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = htons(Linda_port);
+    Linda_port = port;
+    printf("Listening on %i.\n", Linda_port);
+    addr_in.sin_port = htons(port);
     if(inet_aton("0.0.0.0", (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) return 0;
 
     memset(&(addr_in.sin_zero), 0, 8);
@@ -61,7 +70,7 @@ unsigned char Linda_serve() {
     Linda_active_connections += 1;
 
 #ifdef USE_DOMAIN_SOCKETS
-    if(Linda_udd == 0 && Linda_sd == 0) {
+    if(Linda_udd == 0 || Linda_sd == 0) {
 #else
     if(Linda_sd == 0) {
 #endif
@@ -72,7 +81,9 @@ unsigned char Linda_serve() {
 }
 
 int Linda_accept(int sd) {
-    return accept(sd, NULL, NULL);
+    int s = accept(sd, NULL, NULL);
+    if(s == -1) { fprintf(stderr, "Error in accept(%i): %s\n", sd, strerror(errno)); }
+    return s;
 }
 
 int Linda_server_disconnect() {
@@ -106,17 +117,21 @@ int Linda_connect(char* address) {
     }
 
     sd = socket(PF_INET, SOCK_STREAM, 0);
-    if(sd == -1) return 0;
+    if(sd == -1) { return 0; }
 
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_port = htons(port);
-    if(inet_aton(address, (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) return 0;
+    if(inet_aton(address, (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) {
+        struct hostent* host = gethostbyname(address);
+        if(host == NULL) { fprintf(stderr, "Unable to get hostname: %s\n", strerror(errno)); return 0; }
+        memcpy(&(addr_in.sin_addr.s_addr), host->h_addr, host->h_length);
+    }
 
     memset(&(addr_in.sin_zero), 0, 8);
 
     int err = connect(sd, (struct sockaddr*)&addr_in, sizeof(struct sockaddr));
-    if(err == -1) return 0;
+    if(err == -1) { fprintf(stderr, "Error connecting to %s: %s\n", address, strerror(errno)); return 0; }
 
     Linda_active_connections += 1;
 
