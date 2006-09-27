@@ -21,8 +21,10 @@ import thread
 import threading
 import socket
 import select
+import sys
 
 import _linda_server
+from options import getOptions
 
 from messages import *
 import thread_pool
@@ -41,10 +43,12 @@ socket_lock = threading.Lock()
 sockets = []
 close = False
 def socket_watcher():
-    _linda_server.serve()
+    _linda_server.serve(getOptions().use_domain, getOptions().port)
     for s in _linda_server.serverSockets():
-        sockets.append(Connection(socket.fromfd(s, socket.AF_INET, socket.SOCK_STREAM)))
-        sockets[-1].type = "bound"
+        if s > 0:
+            sockets.append(Connection(s))
+            print "Got listen socket", s, sockets[-1].fileno()
+            sockets[-1].type = "bound"
 
     Handler = server.LindaConnection()
     while True:
@@ -60,9 +64,9 @@ def socket_watcher():
                  ns = _linda_server.accept(s)
                  if ns == -1:
                      del sockets[sockets.index(s)]
-                     print "Error accepting connection"
+                     print "Error accepting connection on", s
                  else:
-                    ns = Connection(socket.fromfd(ns, socket.AF_INET, socket.SOCK_STREAM))
+                    ns = Connection(ns)
                     ns.type = "CLIENT"
                     print "connected", ns
                     sockets.append(ns)
@@ -73,8 +77,8 @@ def socket_watcher():
                  if s.type == "MONITOR":
                      print "Server shutting down."
                      server.cleanShutdown()
-                     return
-                 if s.type == "SERVER":
+                     return # Don't do anything else, just quit.
+                 elif s.type == "SERVER":
                     connect_lock.acquire()
                     try:
                         del neighbours[s.name]
@@ -86,6 +90,7 @@ def socket_watcher():
                      continue
                  finally:
                      socket_lock.release()
+                 return
             else:
                 msgid, msg = m[0], m[1:]
                 if msgid is not None and msgid[0] != server.node_id:
@@ -103,27 +108,30 @@ def socket_watcher():
                     thread_pool.giveJob(target=Handler.handle, args=(s, None, msg))
 
 class Connection:
-    def __init__(self, socketobj):
-        self.socket = socketobj
+    def __init__(self, sd):
+        assert isinstance(sd, int)
+        self.sd = sd
         self.lock = threading.Lock()
         self.buf = ""
+        self.name = None
     def setblocking(self, value):
-        self.socket.setblocking(value)
+        _linda_server.setblocking(self.sd, value)
     def getsockname(self):
-        return self.socket.getsockname()
+        return _linda_server.getsockname(self.sd)
     def getpeername(self):
-        return self.socket.getpeername()
+        return _linda_server.getpeername(self.sd)
     def fileno(self):
-        return self.socket.fileno()
+        return self.sd
     def __int__(self):
-        return self.socket.fileno()
+        return self.sd
     def send(self, msgid, msg):
         assert isinstance(msg, tuple), type(msg)
+        print "send", msg
         msg = utils.makeMessageXMLSafe(msg)
         if msgid:
-            _linda_server.send(self, (msgid, ) + msg)
+            _linda_server.send(self.sd, (msgid, ) + msg)
         else:
-            _linda_server.send(self, msg)
+            _linda_server.send(self.sd, msg)
     def recv(self, msgid=None):
         if msgid is None:
             return self.realrecv()
@@ -144,22 +152,26 @@ class Connection:
                 ms_lock.release()
             return utils.decode(m[1])
     def realrecv(self):
-        return _linda_server.recv(self.fileno())
+        r = _linda_server.recv(self.sd)
+        print "recieved", r
+        return r
     def sendrecv(self, msgid, msg):
         return self.recv(self.send(msgid, msg))
 
     def shutdown(self, i):
-        self.socket.shutdown(i)
+        _linda_server.socket_shutdown(self.sd, i)
     def close(self):
-        self.socket.close()
+        _linda_server.socket_close(self.sd)
     def __repr__(self):
         return "<Connection %i>" % (self.fileno(), )
 
 def getNeighbourDetails(node):
     assert isinstance(node, str), node
     if not neighbours.has_key(node):
-        connectTo(node)
-        return getNeighbourDetails(node)
+        if connectTo(node):
+            return getNeighbourDetails(node)
+        else:
+            return None
     elif type(neighbours[node]) == str:
         return getNeighbourDetails(neighbours[node])
     else:
@@ -204,12 +216,15 @@ def connectToMain(node):
     \brief Find the address of, and connect to a new server.
     """
     details = broadcast_firstreplyonly(get_connect_details, node)
+    if details == "DONT_KNOW":
+        sys.stderr.write("Failed to get connection details for %s.\n" % (node, ))
+        return False
     neighbours[node] = details[1]
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.connect(details[0])
     except socket.error, e:
-        print "failed to connect to", details
+        print "Failed to connect to", details
         neighbours[node] = details[1]
     else:
         neighbours[node] = s
@@ -218,18 +233,20 @@ def connectToMain(node):
         cnode = utils.recv(s)[1]
 
         if cnode != node:
-            print "failed to connect to", details
+            print "Failed to connect to", details
             neighbours[node] = None
             s.shutdown(1)
             s.close()
-            return
+            return False
 
         msgid = sendMessageToNode(node, None, my_name_is, server.node_id)
 
         s = Connection(s)
+        s.name = node
         neighbours[node] = s
         addr = (socket.gethostbyname(details[0][0]), details[0][1])
         server.server.process_request(s, addr)
+        return True
 
 def broadcast_message(*args):
     memo = [server.node_id]

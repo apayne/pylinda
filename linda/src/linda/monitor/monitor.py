@@ -32,13 +32,14 @@ import _linda as linda
 keyboard_interrupt = False
 
 class Thread:
-    def __init__(self):
+    def __init__(self, serverport=2102):
         self.vars = {"TupleSpace": linda.TupleSpace, "ts": linda.TupleSpace, "int": int, "float": float, "str": str}
+        self.serverport = serverport
 
     def run(self):
         start = time.time()
         while time.time() - start < 30:
-            sd = linda.connect()
+            sd = linda.connect(self.serverport)
             if sd:
                 sd = linda.getSD()
                 break

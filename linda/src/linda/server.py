@@ -549,7 +549,7 @@ def main():
         pid = os.fork()
         if pid != 0:
             from monitor import monitor
-            return monitor.Thread().run()
+            return monitor.Thread(options.port).run()
 
     if options.peer:
         options.peer.append("127.0.0.1") # always allow local connections.
@@ -584,15 +584,15 @@ def main():
         i = 0
         while True:
             svr, port = con[i]
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                s.connect((svr, port))
-            except socket.error, e:
+            print "waiting for connect"
+            s = _linda_server.connect("%s:%s" % (svr, port));
+            print "got", s
+            if s is None:
                 if i < len(con)-1:
                     i += 1
                     continue
                 else:
-                    print "Unable to connect to server %s:%i. Reason: %s" % (svr, port, e)
+                    print "Unable to connect to server %s:%i." % (svr, port)
                     sys.exit(-1)
 
             s = Connection(s)
@@ -608,6 +608,7 @@ def main():
 
             print "Connected to %s:%i (%s)" % (svr, port, node)
 
+            s.name = node
             neighbours[node] = s
             connections.sockets.append(s)
             break
