@@ -90,7 +90,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", m->ref.ts, m->ref.tid);
             break;
         case GET_PARTITIONS:
-            t = Py_BuildValue("(Osss)", msgid, "GET_PARTITIONS", m->ts);
+            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", m->ts);
             break;
         case DELETED_PARTITION:
             t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", m->ref.ts, m->ref.tid);
@@ -161,7 +161,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     if(PyTuple_Check(PyTuple_GetItem(tuple, 0))) {
         msgidobj = PyTuple_GetItem(tuple, 0);
         if(PyTuple_Size(msgidobj) != 3) {
-            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("The MsgID should be a three tuple. %s.", PyObject_Repr(msgidobj)));
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("The MsgID should be a three-tuple. %s.", PyObject_Repr(msgidobj)));
             return NULL;
         }
         msgid = (MsgID*)malloc(sizeof(MsgID));
