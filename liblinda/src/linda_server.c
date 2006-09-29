@@ -56,7 +56,6 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     Linda_port = port;
-    printf("Listening on %i.\n", Linda_port);
     addr_in.sin_port = htons(port);
     if(inet_aton("0.0.0.0", (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) return 0;
 

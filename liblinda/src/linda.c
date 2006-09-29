@@ -32,8 +32,6 @@ unsigned char Linda_connect(int port) {
         if(err == -1) {
             close(Linda_sd);
             Linda_sd = -1;
-        } else {
-            printf("Connected with domain socket.\n");
         }
     }
     if(Linda_sd == -1) {
@@ -44,15 +42,12 @@ unsigned char Linda_connect(int port) {
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_port = htons(port);
-    printf("Client connecting to %i.\n", port);
     if(inet_aton("127.0.0.1", (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) return 0;
 
     memset(&(addr_in.sin_zero), 0, 8);
 
     int err = connect(Linda_sd, (struct sockaddr*)&addr_in, sizeof(struct sockaddr));
     if(err == -1) return 0;
-
-    printf("Connected with ordinary socket.\n");
 
 #ifdef USE_DOMAIN_SOCKETS
     }

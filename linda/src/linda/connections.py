@@ -47,7 +47,6 @@ def socket_watcher():
     for s in _linda_server.serverSockets():
         if s > 0:
             sockets.append(Connection(s))
-            print "Got listen socket", s, sockets[-1].fileno()
             sockets[-1].type = "bound"
 
     Handler = server.LindaConnection()
@@ -68,12 +67,10 @@ def socket_watcher():
                  else:
                     ns = Connection(ns)
                     ns.type = "CLIENT"
-                    print "connected", ns
                     sockets.append(ns)
                  continue
             m = _linda_server.recv(s.fileno())
             if m is None:
-                 print "connection", s.type, "closing"
                  if s.type == "MONITOR":
                      print "Server shutting down."
                      server.cleanShutdown()

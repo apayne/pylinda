@@ -257,7 +257,6 @@ char* Message_getElementString(Value* v) {
         tmp = (char*)malloc(13 + strlen(Value_get_tsref(v)));
         sprintf(tmp, "<ts id=\"%s\" />", Value_get_tsref(v));
     } else if(Value_is_tuple(v)) {
-        printf("Got a tuple\n");
         tmp = Message_getTupleString(Value_get_tuple(v));
     } else {
         fprintf(stderr, "Error, invalid value type.\n");
@@ -579,6 +578,7 @@ void Message_free(Message* msg) {
         free(msg->ref.tid);
         break;
     case MONITOR:
+    case GET_ROUTES:
         break;
     case REGISTER_PROCESS:
         break;
@@ -627,7 +627,7 @@ void Message_send(int sd, MsgID* msgid, Message* msg) {
     while(sent < 4) {
         sent += send(sd, &(msglen[sent]), 4-sent, 0);
         if(sent < 0) {
-            printf("Error sending message %s to %i (%s).\n", msgstr, sd, strerror(errno));
+            fprintf(stderr, "Error sending message %s to %i (%s).\n", msgstr, sd, strerror(errno));
             free(msgstr);
             return;
         }

@@ -78,11 +78,6 @@ Message* Message_recv(int s) {
         }
         bytesread += bytesrecv;
 
-        for(i=0; i<bytesread; i++) {
-            printf("%c", buf[i]);
-        }
-        printf("\n");
-
         if(!XML_ParseBuffer(p, bytesread, bytesread == msgsize)) {
             fprintf(stderr, "XML Parser Error!\n");
             exit(-1);
@@ -213,7 +208,7 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
         }
     } else if(strcmp(name, "true") == 0 || strcmp(name, "false") == 0 || strcmp(name, "int") == 0 || strcmp(name, "string") == 0) {
     } else {
-        printf("Unknown message open tag '%s'. Ignoring.\n", name);
+        fprintf(stderr, "Unknown message open tag '%s'. Ignoring.\n", name);
     }
 }
 
@@ -367,7 +362,7 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             free(bm->text); bm->text = NULL;
         }
     } else {
-        printf("Unknown message close tag '%s'. Ignoring.\n", name);
+        fprintf(stderr, "Unknown message close tag '%s'. Ignoring.\n", name);
     }
 }
 

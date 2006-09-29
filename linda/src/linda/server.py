@@ -584,9 +584,7 @@ def main():
         i = 0
         while True:
             svr, port = con[i]
-            print "waiting for connect"
             s = _linda_server.connect("%s:%s" % (svr, port));
-            print "got", s
             if s is None:
                 if i < len(con)-1:
                     i += 1
@@ -605,8 +603,6 @@ def main():
             s.send(None, (my_name_is, node_id))
             s.recv()
             s.type = "SERVER"
-
-            print "Connected to %s:%i (%s)" % (svr, port, node)
 
             s.name = node
             neighbours[node] = s
