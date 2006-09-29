@@ -1,4 +1,4 @@
-#    Copyright 2006 Andrew Wilkinson <aw@cs.york.ac.uk>.
+#    Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>
 #
 #    This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
 #
@@ -14,7 +14,7 @@
 #
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with PyLinda; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import threading
 

@@ -1,4 +1,4 @@
-#    Copyright 2004 Andrew Wilkinson <aw@cs.york.ac.uk>.
+#    Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>
 #
 #    This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
 #
@@ -90,11 +90,13 @@ def socket_watcher():
                  return
             else:
                 msgid, msg = m[0], m[1:]
-                if msgid is not None and msgid[0] != server.node_id:
+                if msgid is None:
+                    thread_pool.giveJob(target=Handler.handle, args=(s, None, msg))
+                elif msgid[0] != server.node_id and msgid[1] != server.node_id:
                     print "Forwarding not yet implemented", m
-                elif msgid is not None and msgid[0] == server.node_id:
+                elif msgid[0] == server.node_id:
                     thread_pool.giveJob(target=Handler.handle, args=(s, msgid, msg))
-                elif msgid is not None and msgid[1] == server.node_id:
+                elif msgid[1] == server.node_id:
                     ms_lock.acquire()
                     try:
                         message_store[msgid] = (msgid, msg)
@@ -102,7 +104,7 @@ def socket_watcher():
                     finally:
                         ms_lock.release()
                 else:
-                    thread_pool.giveJob(target=Handler.handle, args=(s, None, msg))
+                    raise SystemError
 
 class Connection:
     def __init__(self, sd):
@@ -129,6 +131,7 @@ class Connection:
             _linda_server.send(self.sd, (msgid, ) + msg)
         else:
             _linda_server.send(self.sd, msg)
+        return msgid
     def recv(self, msgid=None):
         if msgid is None:
             return self.realrecv()
@@ -147,7 +150,7 @@ class Connection:
                 del message_store[msgid]
             finally:
                 ms_lock.release()
-            return utils.decode(m[1])
+            return m[1]
     def realrecv(self):
         r = _linda_server.recv(self.sd)
         print "recieved", r
@@ -179,8 +182,7 @@ def sendMessageToNode(node, msgid, *args):
     Helper function to ensure that we have connected to the server we want to talk to, and to send the message.
     """
     assert node is not None
-    if node == server.node_id:
-        raise SystemError, "Cannot send msg %s to self" % (str(args), )
+    assert node != server.node_id, "Cannot send msg %s to self" % (str(args), )
 
     if msgid is None:
         msgid = (node, server.node_id, getMsgId())
@@ -188,6 +190,7 @@ def sendMessageToNode(node, msgid, *args):
     assert isinstance(node, str), node
     assert isinstance(getNeighbourDetails(node), Connection)
     try:
+        print "sending", msgid, args, "to", node
         return getNeighbourDetails(node).sendrecv(msgid, args)
     except socket.error, e:
         if e[0] == 32:
@@ -258,14 +261,14 @@ def broadcast_message(*args):
             memo.append(node)
 
         m = sendMessageToNode(node, None, *args)
-        if m is not None and m[1] != dont_know:
-            r.append(m[2])
+        if m is not None and m[0] != dont_know:
+            r.append(m)
 
         n = sendMessageToNode(node, None, get_neighbours)
         if n is None:
             print "Broken connection to %s" % (node, )
-        elif n[1] != dont_know:
-            todo.extend(n[2])
+        elif n[0] != dont_know:
+            todo.extend(n[1])
     return r
 
 def broadcast_firstreplyonly(*args):
@@ -280,18 +283,19 @@ def broadcast_firstreplyonly(*args):
         assert utils.isNodeId(node)
         m = sendMessageToNode(node, None, *args)
 
-        if m is not None and m[1] != dont_know:
-            return m[2]
+        if m is not None and m[0] != dont_know:
+            return m
 
         n = sendMessageToNode(node, None, get_neighbours)
-        if n is not None and n[1] != dont_know:
-            todo.extend(n[2])
+        if n is not None and n[0] != dont_know:
+            todo.extend(n[1])
 
     return dont_know
 
 def broadcast_tonodes(nodes, firstreplyonly, *args):
     todo = nodes[:]
     r = []
+    print todo
     for n in todo:
         assert utils.isNodeId(n)
         m = sendMessageToNode(n, None, *args)
@@ -300,7 +304,7 @@ def broadcast_tonodes(nodes, firstreplyonly, *args):
         if m is None or m[1] == dont_know:
             pass
         elif firstreplyonly:
-            return m[2]
+            return m
         else:
             r.append(m)
     if firstreplyonly:

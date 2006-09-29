@@ -1,6 +1,6 @@
-#!/usr/local/pkg/python-2.3.3/bin/python
+#!/usr/bin/python
 
-#    Copyright 2004 Andrew Wilkinson <aw@cs.york.ac.uk>.
+#    Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>
 #
 #    This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
 #

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#    Copyright 2004 Andrew Wilkinson <aw@cs.york.ac.uk>.
+#    Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>
 #
 #    This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
 #
@@ -472,24 +472,24 @@ class LindaConnection:
             req.send(msgid, ("RESULT_TUPLE", tuple(ts.partitions + [node_id])))
 
     def register_partition(self, req, msgid, message, data):
-        tsid = data[0]
+        tsid, nid = data[0], data[1]
         try:
             ts = local_ts[tsid]
         except KeyError:
             req.send(msgid, dont_know)
         else:
-            ts.partitions.append(msgid[0])
-            req.send(msgid, done)
+            ts.partitions.append(nid)
+            req.send(msgid, (done, ))
 
     def deleted_partition(self, req, msgid, message, data):
-        tsid = data[0]
+        tsid, nid = data[0], data[1]
         try:
             ts = local_ts[tsid]
         except KeyError:
-            req.send(msgid, dont_know)
+            req.send(msgid, (dont_know, ))
         else:
-            del ts.partitions[ts.partitions.index(msgid[0])]
-            req.send(msgid, done)
+            del ts.partitions[ts.partitions.index(nid)]
+            req.send(msgid, (done, ))
 
 def removeProcess(pid, local=True):
     """\internal

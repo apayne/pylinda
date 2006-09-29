@@ -1,4 +1,4 @@
-#    Copyright 2004 Andrew Wilkinson <aw@cs.york.ac.uk>.
+#    Copyright 2004-2006 Andrew Wilkinson <aw@cs.york.ac.uk>
 #
 #    This file is part of PyLinda (http://www-users.cs.york.ac.uk/~aw/pylinda)
 #
@@ -59,8 +59,9 @@ class TupleSpace:
             broadcast_message(register_partition, self._id, server.node_id)
 
             ps = broadcast_firstreplyonly(get_partitions, self._id)
+            print ps
             if ps != dont_know:
-                self.partitions.extend([p for p in ps if p != server.node_id])
+                self.partitions.extend([p for p in ps[1] if p != server.node_id])
 
             r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
             if r != dont_know:
@@ -69,7 +70,7 @@ class TupleSpace:
             self.lock.release(msg=("start", self._id))
 
     def __del__(self):
-        broadcast_tonodes(self.partitions, False, deleted_partition, server.node_id)
+        broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id)
         if self.ts.count() > 0 and len(self.partitions) > 0:
             node = self.partitions[0]
             tups = list(self.ts.matchAllTuples())
