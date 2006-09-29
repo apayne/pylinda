@@ -450,17 +450,17 @@ class LindaConnection:
                 ts.lock.release()
 
     def get_routes(self, req, msgid, message, data):
-        routes = {}
+        routes = []
         for n in neighbours.keys():
             if n == node_id:
-                routes[n] = "Loopback"
+                routes.append((n, "Loopback"))
             else:
                 c = neighbours[n]
                 if isinstance(c, str):
-                    routes[n] = c
+                    routes.append((n, c))
                 else:
-                    routes[n] = c.getpeername()
-        req.send(msgid, routes)
+                    routes.append((n, c.getpeername()))
+        req.send(msgid, ("RESULT_TUPLE", tuple(routes)))
 
     def get_partitions(self, req, msgid, message, data):
         tsid = data[0]

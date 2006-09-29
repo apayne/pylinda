@@ -124,13 +124,17 @@ class Thread:
         elif command[0] == "details":
             print "Node Id:", server.node_id
         elif command[0] == "route":
-            ns = kernel.message(kernel.get_routes)
-            for n in ns:
-                c = ns[n]
-                if isinstance(c, tuple):
-                    print "%s -> %s:%s" % (n, c[0], c[1])
+            print "sending", ("GET_ROUTES", )
+            linda.send(sd, ("GET_ROUTES", ))
+            cons = linda.recv(sd)
+            print cons
+            for c in cons[2]:
+                if len(c) == 3:
+                    print "%s -> %s:%s" % (c[0], c[1], c[2])
                 else:
-                    print "%s -> %s" % (n, c)
+                    print "%s -> %s" % (c[0], c[1])
+            else:
+                print "No other servers connected"
         elif command[0] == "watch":
             if command[1] is None:
                 delay = 10

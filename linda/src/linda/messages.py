@@ -76,7 +76,7 @@ close_connection = "close_connection"
 monitor = "MONITOR"
 list_ts = "LIST_TS"
 inspect_ts = "INSPECT"
-get_routes = "GET_ROUTES"
+get_routes = "GET_ROUTES" # Get information on how to connect to all the other servers in the network.
 
 register_partition = "REGISTER_PARTITION"
 deleted_partition = "DELETED_PARTITION"
