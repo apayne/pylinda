@@ -1,6 +1,8 @@
-#include "stdio.h"
+#include "config.h"
 
-#include "python2.4/Python.h"
+#include <stdio.h>
+
+#include PYTHON_H
 
 #include "linda.h"
 #include "linda_python.h"

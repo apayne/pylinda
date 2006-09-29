@@ -141,6 +141,11 @@ char* Message_getString(Message* msg) {
         body = (char*)malloc(14 + strlen(msg->ts));
         sprintf(body, "<ts id=\"%s\" />", msg->ts);
         break;
+    case GET_ROUTES:
+        action = "<action>get_routes</action>";
+        body = (char*)malloc(1);
+        sprintf(body, "");
+        break;
     case REGISTER_PROCESS:
         action = "<action>register_process</action>";
         body = (char*)malloc(1);
@@ -423,6 +428,12 @@ Message* Message_inspect(const Linda_tuplespace ts) {
     m->type = INSPECT;
     m->ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->ts, ts);
+    return m;
+}
+
+Message* Message_get_routes() {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = GET_ROUTES;
     return m;
 }
 

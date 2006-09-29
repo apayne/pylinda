@@ -265,6 +265,8 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->type = LIST_TS;
         } else if(strcmp(bm->text, "inspect") == 0) {
             bm->m->type = INSPECT;
+        } else if(strcmp(bm->text, "get_routes") == 0) {
+            bm->m->type = GET_ROUTES;
         } else if(strcmp(bm->text, "register_process") == 0) {
             bm->m->type = REGISTER_PROCESS;
         } else if(strcmp(bm->text, "register_thread") == 0) {

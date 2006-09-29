@@ -1,8 +1,13 @@
+#include "config.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
-#include "python2.4/Python.h"
+#include PYTHON_H
 
 #define LINDA_SERVER
 #include "../src/linda.h"
@@ -110,9 +115,11 @@ static PyObject* LindaServerPython_getpeername(PyObject *self, PyObject* args) {
         return NULL;
     }
 
-    getpeername(sd, &addr, &len);
+    if(getpeername(sd, &addr, &len) == -1) {
+        fprintf(stderr, "GetPeerName Error: %s\n", strerror(errno));
+    }
 
-    return PyString_FromString(addr.sa_data);
+    return PyString_FromString(inet_ntoa(addr.sa_data));
 }
 
 static PyObject* LindaServerPython_sddisconnect(PyObject *self, PyObject* args) {

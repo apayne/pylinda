@@ -37,6 +37,7 @@ struct Message_t {
         MONITOR,
         LIST_TS,
         INSPECT,
+        GET_ROUTES,
 /* Monitor messages */
         REGISTER_PROCESS,
         REGISTER_THREAD,
@@ -118,6 +119,7 @@ Message* Message_deleteReference(const Linda_tuplespace ts);
 Message* Message_monitor();
 Message* Message_list_ts();
 Message* Message_inspect(const Linda_tuplespace ts);
+Message* Message_get_routes();
 
 Message* Message_register_process();
 Message* Message_register_thread();

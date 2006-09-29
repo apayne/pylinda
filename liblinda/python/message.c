@@ -1,4 +1,6 @@
-#include "python2.4/Python.h"
+#include "config.h"
+
+#include PYTHON_H
 
 #include "linda.h"
 #include "../src/linda_internal.h"
@@ -73,6 +75,9 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             break;
         case INSPECT:
             t = Py_BuildValue("(Oss)", msgid, "INSPECT", m->string);
+            break;
+        case GET_ROUTES:
+            t = Py_BuildValue("(Os)", msgid, "GET_ROUTES");
             break;
         case REGISTER_PROCESS:
             t = Py_BuildValue("(Os)", msgid, "REGISTER_PROCESS");
@@ -208,6 +213,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     PYTHON_TO_MSG_NONE("MONITOR", monitor)
     PYTHON_TO_MSG_NONE("LIST_TS", list_ts)
     PYTHON_TO_MSG_STRING("INSPECT", inspect)
+    PYTHON_TO_MSG_NONE("GET_ROUTES", get_routes)
     PYTHON_TO_MSG_STRING("MY_NAME_IS", my_name_is)
     PYTHON_TO_MSG_NONE("GET_NODE_ID", get_node_id)
     } else if(strcmp(action, "REGISTER_PARTITION") == 0) {
