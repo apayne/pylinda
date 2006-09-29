@@ -144,6 +144,16 @@ void Message_shutdown();
 
 void Linda_scanTuple(Tuple t, char* ref);
 
+struct Tuplequeue_t {
+    struct Tuplequeue_t* next;
+    Tuple tuple;
+};
+typedef struct Tuplequeue_t* Tuplequeue;
+
+Tuplequeue Tuplequeue_push(Tuplequeue tq);
+Tuplequeue Tuplequeue_pop(Tuplequeue tq);
+Tuple Tuplequeue_top(Tuplequeue tq);
+
 #ifdef USE_DOMAIN_SOCKETS
 extern int Linda_udd;
 #endif

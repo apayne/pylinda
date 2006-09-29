@@ -119,7 +119,7 @@ static PyObject* LindaServerPython_getpeername(PyObject *self, PyObject* args) {
         fprintf(stderr, "GetPeerName Error: %s\n", strerror(errno));
     }
 
-    return PyString_FromString(inet_ntoa(addr.sa_data));
+    return PyString_FromFormat("%s:%i", inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr), (int)(((struct sockaddr_in*)&addr)->sin_port));
 }
 
 static PyObject* LindaServerPython_sddisconnect(PyObject *self, PyObject* args) {

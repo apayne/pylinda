@@ -35,8 +35,9 @@ Value Value_copy(Value* v) {
         break;
     case TUPLE:
         nv.tuple = Tuple_copy(v->tuple);
+        break;
     default:
-        fprintf(stderr, "Invalid type when copying value.\n");
+        fprintf(stderr, "Invalid type (%i) when copying value.\n", v->type);
     }
     return nv;
 }

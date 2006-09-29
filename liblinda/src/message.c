@@ -256,6 +256,9 @@ char* Message_getElementString(Value* v) {
     } else if(Value_is_tsref(v)) {
         tmp = (char*)malloc(13 + strlen(Value_get_tsref(v)));
         sprintf(tmp, "<ts id=\"%s\" />", Value_get_tsref(v));
+    } else if(Value_is_tuple(v)) {
+        printf("Got a tuple\n");
+        tmp = Message_getTupleString(Value_get_tuple(v));
     } else {
         fprintf(stderr, "Error, invalid value type.\n");
         tmp = (char*)malloc(1);

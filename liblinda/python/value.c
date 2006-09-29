@@ -31,6 +31,14 @@ PyObject* Value2PyO(Value* v) {
             strcpy(ts->ts, Value_get_tsref(v));
             return (PyObject*)ts;
         }
+    } else if(Value_is_tuple(v)) {
+        int i;
+        Tuple t = Value_get_tuple(v);
+        PyObject* pyt = PyTuple_New(Tuple_get_size(t));
+        for(i=0; i<Tuple_get_size(t); i++) {
+            PyTuple_SetItem(pyt, i, Value2PyO(Tuple_get(t, i)));
+        }
+        return pyt;
     } else {
         fprintf(stderr, "Value2PyO: Invalid type (%i).\n", v->type);
         Py_INCREF(Py_None);

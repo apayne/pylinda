@@ -15,7 +15,7 @@ void CharacterDataHandler(void* userData, const XML_Char* s, int len);
 struct buildmessage_t {
     char* text;
     int tuplecount;
-    Tuple tuple;
+    Tuplequeue tq;
     Message* m;
     unsigned char in_tuple;
 };
@@ -25,15 +25,17 @@ typedef struct buildmessage_t buildmessage;
 void initbuildmessage(buildmessage* bm) {
     bm->text = NULL;
     bm->tuplecount = 0;
-    bm->tuple = NULL;
     bm->m = malloc(sizeof(Message));
     memset(bm->m, 0, sizeof(Message));
+    bm->tq = NULL;
     bm->in_tuple = 0;
 }
 
 Message* delbuildmessage(buildmessage* bm) {
     free(bm->text);
-    Tuple_free(bm->tuple);
+    if(bm->tq != NULL) {
+        fprintf(stderr, "Tuplequeue not null!\n");
+    }
     return bm->m;
 }
 
@@ -127,8 +129,8 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
             if(strcmp(*attrptr, "id") == 0) {
                 char* c = malloc(strlen(*(attrptr+1)) + 1);
                 strcpy(c, *(attrptr+1));
-                if(bm->in_tuple) {
-                    Tuple_add(bm->tuple, Value_tsref(c));
+                if(bm->in_tuple > 0) {
+                    Tuple_add(Tuplequeue_top(bm->tq), Value_tsref(c));
                 } else {
                     switch(bm->m->type) {
                     case OUT:
@@ -190,8 +192,8 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
             attrptr = attrptr + 2;
         }
     } else if(strcmp(name, "tuple") == 0) {
-        bm->tuple = Tuple_new(0);
-        bm->in_tuple = 1;
+        bm->tq = Tuplequeue_push(bm->tq);
+        bm->in_tuple += 1;
     } else if(strcmp(name, "msgid") == 0) {
         const XML_Char** attrptr = attrs;
         bm->m->msgid = (MsgID*)malloc(sizeof(MsgID));
@@ -300,45 +302,49 @@ void EndElementHandler(void* userData, const XML_Char* name) {
     } else if(strcmp(name, "msgid") == 0) {
     } else if(strcmp(name, "tid") == 0) {
     } else if(strcmp(name, "tuple") == 0) {
-        switch(bm->m->type) {
-        case RESULT_TUPLE:
-            bm->m->tuple = bm->tuple;
-            bm->tuple = NULL;
-            break;
-        case OUT:
-            bm->m->out.t = bm->tuple;
-            bm->tuple = NULL;
-            break;
-        case IN:
-        case INP:
-            bm->m->in.t = bm->tuple;
-            bm->tuple = NULL;
-            break;
-        case RD:
-        case RDP:
-            bm->m->rd.t = bm->tuple;
-            bm->tuple = NULL;
-            break;
-        case TUPLE_REQUEST:
-            bm->m->tuple_request.t = bm->tuple;
-            bm->tuple = NULL;
-            break;
-        default:
-            fprintf(stderr, "Discarding tuple due to invalid message type.\n");
-            Tuple_free(bm->tuple); bm->tuple = NULL;
+        if(bm->in_tuple > 0) {
+            Tuple t = Tuple_copy(Tuplequeue_top(bm->tq));
+            bm->tq = Tuplequeue_pop(bm->tq);
+            bm->in_tuple--;
+            if(bm->in_tuple == 0) {
+                switch(bm->m->type) {
+                case RESULT_TUPLE:
+                    bm->m->tuple = t;
+                    break;
+                case OUT:
+                    bm->m->out.t = t;
+                    break;
+                case IN:
+                case INP:
+                    bm->m->in.t = t;
+                    break;
+                case RD:
+                case RDP:
+                    bm->m->rd.t = t;
+                    break;
+                case TUPLE_REQUEST:
+                    bm->m->tuple_request.t = t;
+                    break;
+                default:
+                    fprintf(stderr, "Discarding tuple due to invalid message type.\n");
+                    Tuple_free(t);
+                }
+            } else {
+                Tuple_add(Tuplequeue_top(bm->tq), Value_tuple(t));
+                Tuple_free(t);
+            }
         }
-        bm->in_tuple = 0;
     } else if(strcmp(name, "true") == 0) {
-        Tuple_add(bm->tuple, Value_bool(1));
+        Tuple_add(Tuplequeue_top(bm->tq), Value_bool(1));
     } else if(strcmp(name, "false") == 0) {
-        Tuple_add(bm->tuple, Value_bool(0));
+        Tuple_add(Tuplequeue_top(bm->tq), Value_bool(0));
     } else if(strcmp(name, "int") == 0) {
         switch(bm->m->type) {
         case RESULT_INT:
             bm->m->i = atoi(bm->text);
             break;
         default:
-            Tuple_add(bm->tuple, Value_int(atoi(bm->text)));
+            Tuple_add(Tuplequeue_top(bm->tq), Value_int(atoi(bm->text)));
             free(bm->text); bm->text = NULL;
         }
     } else if(strcmp(name, "string") == 0) {
@@ -357,7 +363,7 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->ref.tid = bm->text; bm->text = NULL;
             break;
         default:
-            Tuple_add(bm->tuple, Value_string(bm->text));
+            Tuple_add(Tuplequeue_top(bm->tq), Value_string(bm->text));
             free(bm->text); bm->text = NULL;
         }
     } else {
