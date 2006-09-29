@@ -124,7 +124,6 @@ class Thread:
         elif command[0] == "details":
             print "Node Id:", server.node_id
         elif command[0] == "route":
-            print "sending", ("GET_ROUTES", )
             linda.send(sd, ("GET_ROUTES", ))
             cons = linda.recv(sd)
             print cons
@@ -133,7 +132,7 @@ class Thread:
                     print "%s -> %s:%s" % (c[0], c[1], c[2])
                 else:
                     print "%s -> %s" % (c[0], c[1])
-            else:
+            if len(cons[2]) == 0:
                 print "No other servers connected"
         elif command[0] == "watch":
             if command[1] is None:
