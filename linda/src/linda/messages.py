@@ -50,13 +50,13 @@ return_tuple = "RETURN_TUPLE" # Return message when a tuple is being returned
 collect = "collect" # Sent by a client process to collect tuples
 copy_collect = "copy_collect" # Sent by a client process to copy tuples
 
-multiple_in = "multiple_in" # Internal message to move a group of tuples
+multiple_in = "MULTIPLE_IN" # Internal message to move a group of tuples
 
 add_reference = "ADD_REFERENCE" # Sent to increment the reference count of a tuple space
 delete_reference = "DELETE_REFERENCE" # Sent to decrement the reference count of a tuple space
 
 tuple_request = "TUPLE_REQUEST" # Tell a server we're looking for tuples of this type
-cancel_request = "cancel_request" # Cancel a tuple request
+cancel_request = "CANCEL_REQUEST" # Cancel a tuple request
 get_requests = "GET_REQUESTS"
 
 has_tuplespace = "has_tuplespace"

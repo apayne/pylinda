@@ -132,6 +132,12 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
         case TUPLE_REQUEST:
             t = Py_BuildValue("(OssO)", msgid, "TUPLE_REQUEST", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
             break;
+        case CANCEL_REQUEST:
+            t = Py_BuildValue("(OssO)", msgid, "CANCEL_REQUEST", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
+            break;
+        case MULTIPLE_IN:
+            t = Py_BuildValue("(OssO)", msgid, "MULTIPLE_IN", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
+            break;
         default:
             PyErr_SetObject(PyExc_SystemError, PyString_FromFormat("Received invalid message (%i).", m->type));
             Message_free(m);
@@ -262,6 +268,28 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
             m = Message_tuple_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Tuple_free(t);
+        } else {
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of argument.\n", action));
+            return NULL;
+        }
+    } else if(strcmp(action, "CANCEL_REQUEST") == 0) {
+        if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
+            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
+            m = Message_cancel_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Tuple_free(t);
+        } else {
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of argument.\n", action));
+            return NULL;
+        }
+    } else if(strcmp(action, "MULTIPLE_IN") == 0) {
+        if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
+            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
+            m = Message_multiple_in(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Tuple_free(t);

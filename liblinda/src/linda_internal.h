@@ -71,6 +71,8 @@ struct Message_t {
         GET_NEIGHBOURS,
         GET_CONNECTION_DETAILS,
         TUPLE_REQUEST,
+        CANCEL_REQUEST,
+        MULTIPLE_IN
 /* Server Messages */
      } type;
      MsgID* msgid;
@@ -105,7 +107,7 @@ struct Message_t {
          struct {
             Linda_tuplespace ts;
             Tuple t;
-        } tuple_request;
+         } tuple_request;
      };
 };
 
@@ -157,6 +159,8 @@ Message* Message_get_neighbours();
 Message* Message_get_connection_details(char* id);
 
 Message* Message_tuple_request(const Linda_tuplespace ts, Tuple t);
+Message* Message_cancel_request(const Linda_tuplespace ts, Tuple t);
+Message* Message_multiple_in(const Linda_tuplespace ts, Tuple t);
 
 void Message_free(Message* m);
 

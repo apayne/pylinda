@@ -25,18 +25,6 @@
 #include "linda_c.h"
 #include "linda_internal.h"
 
-/*
-<msg>
-<action>out</action>
-
-<tuplespace
-<tuple>
-<element type="int">1</element>
-<element type="string">abc</element>
-</tuple>
-</msg>
-*/
-
 char* Message_getTupleString(Tuple t);
 char* Message_getElementString(Value* v);
 
@@ -218,6 +206,18 @@ char* Message_getString(Message* msg) {
         break;
     case TUPLE_REQUEST:
         action = "<action>tuple_request</action>";
+        tmp = Message_getTupleString(msg->tuple_request.t);
+        body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
+        sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
+        break;
+    case CANCEL_REQUEST:
+        action = "<action>cancel_request</action>";
+        tmp = Message_getTupleString(msg->tuple_request.t);
+        body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
+        sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
+        break;
+    case MULTIPLE_IN:
+        action = "<action>multiple_in</action>";
         tmp = Message_getTupleString(msg->tuple_request.t);
         body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
         sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
@@ -546,6 +546,24 @@ Message* Message_tuple_request(const Linda_tuplespace ts, Tuple t) {
     return m;
 }
 
+Message* Message_cancel_request(const Linda_tuplespace ts, Tuple t) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = CANCEL_REQUEST;
+    m->tuple_request.ts = (char*)malloc(strlen(ts)+1);
+    strcpy(m->tuple_request.ts, ts);
+    m->tuple_request.t = Tuple_copy(t);
+    return m;
+}
+
+Message* Message_multiple_in(const Linda_tuplespace ts, Tuple t) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = MULTIPLE_IN;
+    m->tuple_request.ts = (char*)malloc(strlen(ts)+1);
+    strcpy(m->tuple_request.ts, ts);
+    m->tuple_request.t = Tuple_copy(t);
+    return m;
+}
+
 void Message_free(Message* msg) {
     if(msg != NULL) {
     if(msg->msgid != NULL) {
@@ -628,6 +646,11 @@ void Message_free(Message* msg) {
         free(msg->string);
         break;
     case TUPLE_REQUEST:
+    case CANCEL_REQUEST:
+        free(msg->tuple_request.ts);
+        Tuple_free(msg->tuple_request.t);
+        break;
+    case MULTIPLE_IN:
         free(msg->tuple_request.ts);
         Tuple_free(msg->tuple_request.t);
         break;

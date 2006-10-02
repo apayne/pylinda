@@ -174,6 +174,8 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
                         bm->m->ref.ts = c;
                         break;
                     case TUPLE_REQUEST:
+                    case CANCEL_REQUEST:
+                    case MULTIPLE_IN:
                         bm->m->tuple_request.ts = c;
                         break;
                     default:
@@ -306,6 +308,10 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->type = GET_REQUESTS;
         } else if(strcmp(bm->text, "tuple_request") == 0) {
             bm->m->type = TUPLE_REQUEST;
+        } else if(strcmp(bm->text, "cancel_request") == 0) {
+            bm->m->type = CANCEL_REQUEST;
+        } else if(strcmp(bm->text, "multiple_in") == 0) {
+            bm->m->type = MULTIPLE_IN;
         } else {
             fprintf(stderr, "Unknown message type '%s'.\n", bm->text);
             exit(-1);
@@ -338,6 +344,8 @@ void EndElementHandler(void* userData, const XML_Char* name) {
                     bm->m->rd.t = t;
                     break;
                 case TUPLE_REQUEST:
+                case CANCEL_REQUEST:
+                case MULTIPLE_IN:
                     bm->m->tuple_request.t = t;
                     break;
                 default:

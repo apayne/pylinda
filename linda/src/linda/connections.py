@@ -63,7 +63,7 @@ def socket_watcher():
                  ns = _linda_server.accept(s)
                  if ns == -1:
                      del sockets[sockets.index(s)]
-                     print "Error accepting connection on", s
+                     sys.stderr.write("Error accepting connection on %s\n" % (s, ))
                  else:
                     ns = Connection(ns)
                     ns.type = "CLIENT"
@@ -190,7 +190,6 @@ def sendMessageToNode(node, msgid, *args):
     assert isinstance(node, str), node
     assert isinstance(getNeighbourDetails(node), Connection)
     try:
-        print "sending", msgid, args, "to", node
         return getNeighbourDetails(node).sendrecv(msgid, args)
     except socket.error, e:
         if e[0] == 32:
@@ -295,13 +294,12 @@ def broadcast_firstreplyonly(*args):
 def broadcast_tonodes(nodes, firstreplyonly, *args):
     todo = nodes[:]
     r = []
-    print todo
     for n in todo:
         assert utils.isNodeId(n)
         m = sendMessageToNode(n, None, *args)
-        print args, m
 
-        if m is None or m[1] == dont_know:
+        print m
+        if m is None or m[0] == dont_know:
             pass
         elif firstreplyonly:
             return m

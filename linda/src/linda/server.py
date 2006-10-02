@@ -336,7 +336,7 @@ class LindaConnection:
         ts, template = data
 
         if local_ts.has_key(ts):
-            r = local_ts[ts].tuple_request(msgid[0], template)
+            r = local_ts[ts].tuple_request(msgid[1], template)
         else:
             r = []
         req.send(msgid, ("RESULT_TUPLE", tuple(r)))
@@ -345,9 +345,9 @@ class LindaConnection:
         ts, template = data
 
         if local_ts.has_key(ts):
-            local_ts[ts].cancel_request(self.other_nid, template)
+            local_ts[ts].cancel_request(msgid[1], template)
 
-        req.send(msgid, done)
+        req.send(msgid, (done, ))
 
     def get_requests(self, req, msgid, message, data):
         ts = data[0]
@@ -374,7 +374,7 @@ class LindaConnection:
 
         [local_ts[ts]._out(t) for t in tups]
 
-        req.send(msgid, done)
+        req.send(msgid, (done, ))
 
     def add_reference(self, req, msgid, message, data):
         ts, ref = data

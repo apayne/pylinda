@@ -59,13 +59,12 @@ class TupleSpace:
             broadcast_message(register_partition, self._id, server.node_id)
 
             ps = broadcast_firstreplyonly(get_partitions, self._id)
-            print ps
             if ps != dont_know:
                 self.partitions.extend([p for p in ps[1] if p != server.node_id])
 
             r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
             if r != dont_know:
-                self.requests.extend(r)
+                self.requests.extend(r[1])
         finally:
             self.lock.release(msg=("start", self._id))
 
@@ -100,8 +99,10 @@ class TupleSpace:
                     del self.blocked_list[tid]
 
                     def do_return_tuple():
-                        utils.changeOwner(oldtup, self._id, tid)
-                        server.blocked_tids[tid].send(None, ("RETURN_TUPLE", tup))
+                        utils.changeOwner(tup, self._id, tid)
+                        req, ts = server.blocked_processes[tid]
+                        del server.blocked_processes[tid]
+                        req.send(None, ("RESULT_TUPLE", tup))
 
                         broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern)
 
@@ -119,7 +120,7 @@ class TupleSpace:
                 if doesMatch(pattern, tup):
                     def do_return_tuple():
                         utils.changeOwner(tup, self._id, self._id, node)
-                        sendMessageToNode(node, None, multiple_in, self._id, [oldtup]) # return the tuple to the process
+                        sendMessageToNode(node, None, multiple_in, self._id, (tup, )) # return the tuple to the process
 
                     threading.Thread(target=do_return_tuple).start()
 
@@ -146,9 +147,9 @@ class TupleSpace:
                 r = self.ts.matchOneTuple(pattern)
             except NoTuple:
                 def add_tuples():
-                    tuple_list = utils.flatten(broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern))
-                    for t in tuple_list:
-                        self._out(t)
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
+                        for t in server:
+                            self._out(t)
                     # check that we have created a deadlock
                     if self.isDeadLocked():
                         # if we have then unblock a random process
@@ -176,10 +177,9 @@ class TupleSpace:
                 r = self.ts.matchOneTuple(pattern)
             except NoTuple:
                 def add_tuples():
-                    tuple_list = utils.flatten(broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern))
-                    print"got tuples", tuple_list
-                    for t in tuple_list:
-                        self._out(t)
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
+                        for t in server:
+                            self._out(t)
                     # check that we have created a deadlock
                     if self.isDeadLocked():
                         # if we have then unblock a random process
