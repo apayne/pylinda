@@ -47,8 +47,8 @@ unblock = "UNBLOCK" # Return message to unblock a client process
 
 return_tuple = "RETURN_TUPLE" # Return message when a tuple is being returned
 
-collect = "collect" # Sent by a client process to collect tuples
-copy_collect = "copy_collect" # Sent by a client process to copy tuples
+collect = "COLLECT" # Sent by a client process to collect tuples
+copy_collect = "COPY_COLLECT" # Sent by a client process to copy tuples
 
 multiple_in = "MULTIPLE_IN" # Internal message to move a group of tuples
 

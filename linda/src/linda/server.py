@@ -295,7 +295,7 @@ class LindaConnection:
         if new:
             local_ts.garbage(dest_ts._id)
 
-        req.send(msgid, total)
+        req.send(msgid, ("RESULT_INT", total))
 
     def copy_collect(self, req, msgid, message, data):
         ts, dest_ts, template = data
@@ -330,7 +330,7 @@ class LindaConnection:
         if new:
             local_ts.garbage(dest_ts._id)
 
-        req.send(msgid, total)
+        req.send(msgid, ("RESULT_INT", total))
 
     def tuple_request(self, req, msgid, message, data):
         ts, template = data

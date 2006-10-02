@@ -13,6 +13,8 @@ parser linda:
     token IN:      'in'
     token RD:      'rd'
     token OUT:     'out'
+    token COLLECT: 'collect'
+    token COPYCOLLECT: 'copy collect'
     token VAR:     '[a-zA-Z]+'
     token PLUS:    '[+]'
     token SUB:     '[-]'
@@ -44,6 +46,8 @@ parser linda:
     rule _inp: INP expr {{ v1, v2 = expr, None }} ( expr {{ v2 = expr }} )?  {{ return ("inp", v1, v2) }}
     rule rdp:  RDP expr {{ v1, v2 = expr, None }} ( expr {{ v2 = expr }} )?  {{ return ("rdp", v1, v2) }}
     rule out:  OUT expr {{ v1, v2 = expr, None }} ( expr {{ v2 = expr }} )?  {{ return ("out", v1, v2) }}
+    rule collect:          COLLECT expr {{ v1, v2, v3 = expr, None, None }} expr {{ v2 = expr }} ( expr {{ v3 = expr }} )? {{ return ("collect", v1, v2, v3) }}
+    rule copycollect:  COPYCOLLECT expr {{ v1, v2, v3 = expr, None, None }} expr {{ v2 = expr }} ( expr {{ v3 = expr }} )? {{ return ("copy collect", v1, v2, v3) }}
 
     rule expr: bracket {{ v = bracket }}
                ( EQUAL expr {{ v = ("assign", v, expr) }} )?
@@ -56,6 +60,8 @@ parser linda:
               | rd        {{ return rd }}
               | _inp      {{ return _inp }}
               | rdp       {{ return rdp }}
+              | collect       {{ return collect }}
+              | copycollect       {{ return copycollect }}
               | tuple     {{ return tuple }}
 
     rule tuple: sum       {{ v = sum }}

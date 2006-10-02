@@ -19,6 +19,8 @@ class lindaScanner(yappsrt.Scanner):
         ('IN', re.compile('in')),
         ('RD', re.compile('rd')),
         ('OUT', re.compile('out')),
+        ('COLLECT', re.compile('collect')),
+        ('COPYCOLLECT', re.compile('copy collect')),
         ('VAR', re.compile('[a-zA-Z]+')),
         ('PLUS', re.compile('[+]')),
         ('SUB', re.compile('[-]')),
@@ -43,7 +45,7 @@ class linda(yappsrt.Parser):
 
     def command(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'command', [])
-        _token = self._peek("'route'", 'LIST', 'INSPECT', 'OUT', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
+        _token = self._peek("'route'", 'LIST', 'INSPECT', 'OUT', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
         if _token == 'LIST':
             list = self.list(_context)
             return list
@@ -86,7 +88,7 @@ class linda(yappsrt.Parser):
         IN = self._scan('IN')
         expr = self.expr(_context)
         v1, v2 = expr, None
-        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
             expr = self.expr(_context)
             v2 = expr
         return ("in", v1, v2)
@@ -96,7 +98,7 @@ class linda(yappsrt.Parser):
         RD = self._scan('RD')
         expr = self.expr(_context)
         v1, v2 = expr, None
-        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
             expr = self.expr(_context)
             v2 = expr
         return ("rd", v1, v2)
@@ -106,7 +108,7 @@ class linda(yappsrt.Parser):
         INP = self._scan('INP')
         expr = self.expr(_context)
         v1, v2 = expr, None
-        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
             expr = self.expr(_context)
             v2 = expr
         return ("inp", v1, v2)
@@ -116,7 +118,7 @@ class linda(yappsrt.Parser):
         RDP = self._scan('RDP')
         expr = self.expr(_context)
         v1, v2 = expr, None
-        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
             expr = self.expr(_context)
             v2 = expr
         return ("rdp", v1, v2)
@@ -126,16 +128,40 @@ class linda(yappsrt.Parser):
         OUT = self._scan('OUT')
         expr = self.expr(_context)
         v1, v2 = expr, None
-        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'END', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') != 'END':
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'END', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') != 'END':
             expr = self.expr(_context)
             v2 = expr
         return ("out", v1, v2)
+
+    def collect(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, self._pos, 'collect', [])
+        COLLECT = self._scan('COLLECT')
+        expr = self.expr(_context)
+        v1, v2, v3 = expr, None, None
+        expr = self.expr(_context)
+        v2 = expr
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+            expr = self.expr(_context)
+            v3 = expr
+        return ("collect", v1, v2, v3)
+
+    def copycollect(self, _parent=None):
+        _context = self.Context(_parent, self._scanner, self._pos, 'copycollect', [])
+        COPYCOLLECT = self._scan('COPYCOLLECT')
+        expr = self.expr(_context)
+        v1, v2, v3 = expr, None, None
+        expr = self.expr(_context)
+        v2 = expr
+        if self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA') not in ['CLOSEB', 'EQUAL', 'END', 'PLUS', 'SUB', 'COMMA']:
+            expr = self.expr(_context)
+            v3 = expr
+        return ("copy collect", v1, v2, v3)
 
     def expr(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'expr', [])
         bracket = self.bracket(_context)
         v = bracket
-        if self._peek('EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COMMA', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'EQUAL':
+        if self._peek('EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'COMMA', 'CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'EQUAL':
             EQUAL = self._scan('EQUAL')
             expr = self.expr(_context)
             v = ("assign", v, expr)
@@ -143,7 +169,7 @@ class linda(yappsrt.Parser):
 
     def bracket(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'bracket', [])
-        _token = self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
+        _token = self._peek('OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
         if _token == 'OPENB':
             OPENB = self._scan('OPENB')
             linda = self.linda(_context)
@@ -155,7 +181,7 @@ class linda(yappsrt.Parser):
 
     def linda(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'linda', [])
-        _token = self._peek('IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
+        _token = self._peek('IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE')
         if _token == 'IN':
             _in = self._in(_context)
             return _in
@@ -168,6 +194,12 @@ class linda(yappsrt.Parser):
         elif _token == 'RDP':
             rdp = self.rdp(_context)
             return rdp
+        elif _token == 'COLLECT':
+            collect = self.collect(_context)
+            return collect
+        elif _token == 'COPYCOLLECT':
+            copycollect = self.copycollect(_context)
+            return copycollect
         else: # in ['INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']
             tuple = self.tuple(_context)
             return tuple
@@ -176,25 +208,25 @@ class linda(yappsrt.Parser):
         _context = self.Context(_parent, self._scanner, self._pos, 'tuple', [])
         sum = self.sum(_context)
         v = sum
-        if self._peek('COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'COMMA':
+        if self._peek('COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'COMMA':
             COMMA = self._scan('COMMA')
             v = ("tuple", (v, ))
-            if self._peek('COMMA', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP') in ['INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
+            if self._peek('COMMA', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT') in ['INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
                 sum = self.sum(_context)
                 v = ("tuple", v[1] + (sum, ))
-                while self._peek('COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'COMMA':
+                while self._peek('COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'COMMA':
                     COMMA = self._scan('COMMA')
                     sum = self.sum(_context)
                     v = ("tuple", v[1] + (sum, ))
-                if self._peek() not in ['COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
-                    raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
+                if self._peek() not in ['COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
+                    raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'PLUS', 'SUB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
         return v
 
     def sum(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'sum', [])
         factor = self.factor(_context)
         v = factor
-        while self._peek('PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') in ['PLUS', 'SUB']:
+        while self._peek('PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') in ['PLUS', 'SUB']:
             _token = self._peek('PLUS', 'SUB')
             if _token == 'PLUS':
                 PLUS = self._scan('PLUS')
@@ -204,15 +236,15 @@ class linda(yappsrt.Parser):
                 SUB = self._scan('SUB')
                 expr = self.expr(_context)
                 v = ("-", v, expr)
-        if self._peek() not in ['PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
-            raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
+        if self._peek() not in ['PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
+            raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
         return v
 
     def factor(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'factor', [])
         funccall = self.funccall(_context)
         v = funccall
-        while self._peek('MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') in ['MUL', 'DIV']:
+        while self._peek('MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') in ['MUL', 'DIV']:
             _token = self._peek('MUL', 'DIV')
             if _token == 'MUL':
                 MUL = self._scan('MUL')
@@ -222,15 +254,15 @@ class linda(yappsrt.Parser):
                 DIV = self._scan('DIV')
                 factor = self.factor(_context)
                 v = ("/", v, factor)
-        if self._peek() not in ['MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
-            raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
+        if self._peek() not in ['MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']:
+            raise yappsrt.SyntaxError(charpos=self._scanner.get_prev_char_pos(), context=_context, msg='Need one of ' + ', '.join(['MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'OPENB', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE']))
         return v
 
     def funccall(self, _parent=None):
         _context = self.Context(_parent, self._scanner, self._pos, 'funccall', [])
         single_expr = self.single_expr(_context)
         v = single_expr
-        if self._peek('OPENB', 'MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'IN', 'RD', 'INP', 'RDP', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'OPENB':
+        if self._peek('OPENB', 'MUL', 'DIV', 'PLUS', 'SUB', 'COMMA', 'CLOSEB', 'EQUAL', 'END', 'IN', 'RD', 'INP', 'RDP', 'COLLECT', 'COPYCOLLECT', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') == 'OPENB':
             OPENB = self._scan('OPENB')
             args = ("tuple", ())
             if self._peek('CLOSEB', 'INT', 'FLOAT', 'STRING', 'TSID', 'VAR', 'USCORE') != 'CLOSEB':

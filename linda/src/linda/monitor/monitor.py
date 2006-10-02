@@ -238,6 +238,28 @@ class Thread:
                 return ts._rd(tup)
             elif val[0] == "rdp":
                 return ts._rdp(tup)
+        elif val[0] in ["collect", "copy collect"]:
+            ts1 = val[1]
+            ts2 = val[2]
+            tup = val[3]
+            if tup is None and ts2[0] != "funccall":
+                raise SystemError, "Expected '%s TS TUPLE'." % (val[0], )
+            elif tup is None:
+                tup = ts2[2]
+                ts2 = ts2[1]
+            ts1 = self.eval(ts1)
+            ts2 = self.eval(ts2)
+            tup = self.eval(tup)
+            if not isinstance(ts1, linda.TupleSpace):
+                raise SystemError, "'%s' is not a tuplespace" % (ts1, )
+            if not isinstance(ts2, linda.TupleSpace):
+                raise SystemError, "'%s' is not a tuplespace" % (ts2, )
+            if not isinstance(tup, tuple):
+                raise SystemError, "'%s' is not a tuple" % (tup, )
+            if val[0] == "collect":
+                return ts1.collect(ts2, tup)
+            elif val[0] == "copy collect":
+                return ts1.copy_collect(ts2, tup)
         elif val[0] == "+":
             a = self.eval(val[1])
             b = self.eval(val[2])
