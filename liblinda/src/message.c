@@ -619,6 +619,9 @@ void Message_free(Message* msg) {
     case GET_REQUESTS:
         free(msg->ref.ts);
         break;
+    case INSPECT:
+        free(msg->ts);
+        break;
     case GET_NEIGHBOURS:
         break;
     case GET_CONNECTION_DETAILS:
