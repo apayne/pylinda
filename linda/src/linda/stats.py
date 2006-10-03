@@ -49,6 +49,5 @@ def dec_stat(stat):
         stats[stat] = 0
 
 def getMemSize():
-    print "get mem"
     data = open("/proc/%i/stat" % (os.getpid(), ), "r").readline()
     return int(data.split(" ")[21]), int(data.split(" ")[20])

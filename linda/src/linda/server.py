@@ -92,7 +92,6 @@ class LindaConnection:
     def handle(self, req, msgid, m):
         assert isinstance(m, tuple), m
 
-        print msgid, m[0], m[1:]
         self.handle_msg(req, msgid, m[0], m[1:])
         return True
 
@@ -353,10 +352,8 @@ class LindaConnection:
         ts = data[0]
 
         if local_ts.has_key(ts):
-            print "message", data, local_ts[ts].get_requests()
             req.send(msgid, ("RESULT_TUPLE", tuple(local_ts[ts].get_requests())))
         else:
-            print "message", data, dont_know
             req.send(msgid, (dont_know,))
 
     def is_deadlocked(self, req, msgid, message, data):

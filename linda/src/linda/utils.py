@@ -148,13 +148,9 @@ class Counter:
 
 class RLock(threading._RLock):
     def acquire(self, msg=""):
-        #print "acquiring", msg
         threading._RLock.acquire(self)
-        #print "acquired", msg
     def release(self, msg=""):
-        #print "releasing", msg
         threading._RLock.release(self)
-        #print "released", msg
     def setOwner(self, o):
         self.__owner = o
 
@@ -162,8 +158,6 @@ def mask(bits):
     assert 0 <= bits <= 32
 
     return ~((1 << (32 - bits)) - 1)
-
-flatten = lambda x: reduce((lambda x, y: x+y), x, [])
 
 import connections
 import server

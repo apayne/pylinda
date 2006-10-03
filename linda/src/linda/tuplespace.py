@@ -196,7 +196,6 @@ class TupleSpace:
                 return r
         finally:
             self.lock.release(msg=("_in", self._id))
-            print "done _in"
 
     ## \brief If we encounter a deadlock this function is called to unblock a process
     def unblockRandom(self):
@@ -264,7 +263,6 @@ class TupleSpace:
         assert not utils.isThreadId(ref)
         self.lock.acquire(msg=("add ref", self._id, ref))
         try:
-            #print "add reference", self._id, ref
             self.refs.append(ref)
         finally:
             self.lock.release(msg=("add ref", self._id, ref))
@@ -280,7 +278,6 @@ class TupleSpace:
             self.lock.acquire(msg=("remove ref", self._id, ref))
             try:
                 try:
-                    #print "remove reference", self._id, ref
                     self.refs.remove(ref) # Remove the reference from the list
                 except ValueError: # if the reference doesn't exist then ValueError is raise - and something has gone badly wrong
                     print "!!!%s not in %s for %s" % (ref, str(self.refs), self._id)
@@ -402,22 +399,17 @@ class TupleSpace:
         assert node is not None
         assert isinstance(pattern, tuple)
 
-        print "tuple_request from", node, pattern
-
         self.lock.acquire()
         self.requests.append((node, pattern))
         try:
             try:
                 t = self.ts.matchOneTuple(pattern) # Create the iterator
             except NoTuple: # Stop when we get a NoTuple or a StopIteration exception
-                print "got none"
                 return []
             else:
-                print "got", t
                 self.ts.delete(t)
                 self.lock.release()
                 utils.changeOwner(t, self._id, self._id, node)
-                print "done change owner"
                 self.lock.acquire()
                 return [t] # return the list of tuples
         finally:

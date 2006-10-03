@@ -125,7 +125,6 @@ class Connection:
         return self.sd
     def send(self, msgid, msg):
         assert isinstance(msg, tuple), type(msg)
-        print "send", msg
         msg = utils.makeMessageXMLSafe(msg)
         if msgid:
             _linda_server.send(self.sd, (msgid, ) + msg)
@@ -153,7 +152,6 @@ class Connection:
             return m[1]
     def realrecv(self):
         r = _linda_server.recv(self.sd)
-        print "recieved", r
         return r
     def sendrecv(self, msgid, msg):
         return self.recv(self.send(msgid, msg))
