@@ -202,7 +202,7 @@ static PyObject* linda_TupleSpace_rdp(linda_TupleSpaceObject* self, PyObject* ar
 }
 
 static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject* args) {
-    int r;
+    long r;
     PyObject* tuple;
     PyObject* ts;
     Tuple t;
@@ -235,7 +235,7 @@ static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject
 }
 
 static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyObject* args) {
-    int r;
+    long r;
     PyObject* tuple;
     PyObject* ts;
     Tuple t;

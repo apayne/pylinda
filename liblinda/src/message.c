@@ -109,13 +109,13 @@ char* Message_getString(Message* msg) {
         break;
     case COLLECT:
         action = "<action>collect</action>";
-        tmp = Message_getTupleString(msg->out.t);
+        tmp = Message_getTupleString(msg->collect.t);
         body = (char*)malloc(26 + strlen(msg->collect.ts1) + strlen(msg->collect.ts2) + strlen(tmp));
         sprintf(body, "<ts id=\"%s\" /><ts id=\"%s\" />%s", msg->collect.ts1, msg->collect.ts2, tmp);
         break;
     case COPY_COLLECT:
         action = "<action>copy_collect</action>";
-        tmp = Message_getTupleString(msg->out.t);
+        tmp = Message_getTupleString(msg->collect.t);
         body = (char*)malloc(26 + strlen(msg->collect.ts1) + strlen(msg->collect.ts2) + strlen(tmp));
         sprintf(body, "<ts id=\"%s\" /><ts id=\"%s\" />%s", msg->collect.ts1, msg->collect.ts2, tmp);
         break;

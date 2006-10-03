@@ -159,6 +159,14 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
                     case RDP:
                         bm->m->rd.ts = c;
                         break;
+                    case COLLECT:
+                    case COPY_COLLECT:
+                        if(bm->m->collect.ts1 == NULL) {
+                            bm->m->collect.ts1 = c;
+                        } else {
+                            bm->m->collect.ts2 = c;
+                        }
+                        break;
                     case ADD_REFERENCE:
                     case DELETE_REFERENCE:
                         bm->m->ref.ts = c;
@@ -272,6 +280,16 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->type = RDP;
             bm->m->rd.ts = NULL;
             bm->m->rd.t = NULL;
+        } else if(strcmp(bm->text, "collect") == 0) {
+            bm->m->type = COLLECT;
+            bm->m->collect.ts1 = NULL;
+            bm->m->collect.ts2 = NULL;
+            bm->m->collect.t = NULL;
+        } else if(strcmp(bm->text, "copy_collect") == 0) {
+            bm->m->type = COPY_COLLECT;
+            bm->m->collect.ts1 = NULL;
+            bm->m->collect.ts2 = NULL;
+            bm->m->collect.t = NULL;
         } else if(strcmp(bm->text, "create_tuplespace") == 0) {
             bm->m->type = CREATE_TUPLESPACE;
         } else if(strcmp(bm->text, "add_reference") == 0) {
@@ -342,6 +360,10 @@ void EndElementHandler(void* userData, const XML_Char* name) {
                 case RD:
                 case RDP:
                     bm->m->rd.t = t;
+                    break;
+                case COLLECT:
+                case COPY_COLLECT:
+                    bm->m->collect.t = t;
                     break;
                 case TUPLE_REQUEST:
                 case CANCEL_REQUEST:

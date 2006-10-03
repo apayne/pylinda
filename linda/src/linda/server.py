@@ -31,7 +31,7 @@ from options import getOptions
 from tscontainer import TupleSpaceContainer
 from tuplespace import TupleSpace
 import connections
-from connections import neighbours, sendMessageToNode, connectTo, broadcast_message, broadcast_firstreplyonly, Connection, getMsgId, socket_watcher
+from connections import neighbours, sendMessageToNode, broadcast_message, broadcast_firstreplyonly, broadcast_tonodes, Connection, socket_watcher
 import stats
 import guid
 
@@ -286,14 +286,14 @@ class LindaConnection:
                 utils.changeOwner(t, ts, dest_ts._id)
                 local_ts[dest_ts._id]._out(t)
 
-        if req.type == "CLIENT":
-            r = broadcast_tonodes(collect, False, ts._id, dest_ts._id, template)
-            total = sum(r) + len(tups)
+        if req.type != "SERVER":
+            r = broadcast_tonodes(ts.partitions, False, collect, ts._id, dest_ts._id, template)
+            total = sum([x[1] for x in r]) + len(tups)
         else:
             total = len(tups)
 
         if new:
-            local_ts.garbage(dest_ts._id)
+            local_ts.garbage(dest_ts)
 
         req.send(msgid, ("RESULT_INT", total))
 
@@ -321,14 +321,14 @@ class LindaConnection:
                 utils.addReference(t, ts, dest_ts._id)
                 local_ts[dest_ts._id]._out(t)
 
-        if req.type == "CLIENT":
+        if req.type != "SERVER":
             r = broadcast_tonodes(ts.partitions, False, copy_collect, ts._id, dest_ts._id, template)
-            total = sum(r) + len(tups)
+            total = sum([x[1] for x in r]) + len(tups)
         else:
             total = len(tups)
 
         if new:
-            local_ts.garbage(dest_ts._id)
+            local_ts.garbage(dest_ts)
 
         req.send(msgid, ("RESULT_INT", total))
 
@@ -476,7 +476,7 @@ class LindaConnection:
         try:
             ts = local_ts[tsid]
         except KeyError:
-            req.send(msgid, dont_know)
+            req.send(msgid, (dont_know, ))
         else:
             ts.partitions.append(nid)
             req.send(msgid, (done, ))

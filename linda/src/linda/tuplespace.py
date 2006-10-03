@@ -74,7 +74,7 @@ class TupleSpace:
             node = self.partitions[0]
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.changeOwner(x, self._id, self._id, node), tups)
-            sendMessageToNode(node, None, multiple_in, self._id, tups)
+            sendMessageToNode(node, None, multiple_in, self._id, tuple(tups))
         else:
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.delReference(x, self._id), tups)
