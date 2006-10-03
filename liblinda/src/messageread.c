@@ -18,7 +18,9 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
 
 #include "expat.h"
 
@@ -80,7 +82,7 @@ Message* Message_recv(int s) {
     XML_SetUserData(p, (void*)&bm);
     bytesread = 0;
     while(bytesread < 4) {
-        bytesrecv = recv(s, &(((char*)&msgsize)[bytesread]), 4-bytesread, NULL);
+        bytesrecv = recv(s, &(((char*)&msgsize)[bytesread]), 4-bytesread, 0);
         if(bytesrecv <= 0) {
             free(delbuildmessage(&bm));
             return NULL;
@@ -90,7 +92,6 @@ Message* Message_recv(int s) {
     msgsize = ntohl(msgsize);
     bytesread = 0;
     while(bytesread < msgsize) {
-        int i;
         bytesrecv = recv(s, buf, ((msgsize - bytesread) < 1024 ? (msgsize - bytesread): 1024), 0);
         if(bytesrecv <= 0) {
             free(delbuildmessage(&bm));

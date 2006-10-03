@@ -19,6 +19,8 @@
 */
 
 #include "linda.h"
+#include <stdlib.h>
+#include <string.h>
 
 Tuple Tuple_new(size) {
     int i;

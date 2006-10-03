@@ -1,5 +1,5 @@
-env = Environment(CCFLAGS="-g", CPPPATH=["#src/", "#cpp/", "#"], LIBPATH=".")
-cppenv = Environment(CCFLAGS="-g", CPPPATH=["#src/", "#cpp/", "#"])
+env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#"], LIBPATH=".")
+cppenv = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#"])
 
 Export("env")
 Export("cppenv")

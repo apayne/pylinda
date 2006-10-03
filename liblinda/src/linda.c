@@ -23,6 +23,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "linda.h"
 #include "linda_internal.h"

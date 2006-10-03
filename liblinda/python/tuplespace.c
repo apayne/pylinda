@@ -269,7 +269,7 @@ static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyO
 
 static void linda_TupleSpace_dealloc(linda_TupleSpaceObject* self)
 {
-    Linda_deleteTuplespace(self->ts);
+    Linda_deleteReference(self->ts);
     self->ob_type->tp_free(self);
 }
 

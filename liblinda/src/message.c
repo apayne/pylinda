@@ -20,7 +20,9 @@
 
 #include <errno.h>
 #include <string.h>
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
 
 #include "linda_c.h"
 #include "linda_internal.h"
@@ -49,12 +51,12 @@ char* Message_getString(Message* msg) {
     case DONE:
         action = "<action>done</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case DONT_KNOW:
         action = "<action>dont_know</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case RESULT_STRING:
         action = "<action>result_string</action>";
@@ -75,7 +77,7 @@ char* Message_getString(Message* msg) {
     case UNBLOCK:
         action = "<action>unblock</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case OUT:
         action = "<action>out</action>";
@@ -137,12 +139,12 @@ char* Message_getString(Message* msg) {
     case MONITOR:
         action = "<action>monitor</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case LIST_TS:
         action = "<action>list_ts</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case INSPECT:
         action = "<action>inspect</action>";
@@ -152,12 +154,12 @@ char* Message_getString(Message* msg) {
     case GET_ROUTES:
         action = "<action>get_routes</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case REGISTER_PROCESS:
         action = "<action>register_process</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case REGISTER_THREAD:
         action = "<action>register_thread</action>";
@@ -167,7 +169,7 @@ char* Message_getString(Message* msg) {
     case GET_NODE_ID:
         action = "<action>get_node_id</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case MY_NAME_IS:
         action = "<action>my_name_is</action>";
@@ -197,7 +199,7 @@ char* Message_getString(Message* msg) {
     case GET_NEIGHBOURS:
         action = "<action>get_neighbours</action>";
         body = (char*)malloc(1);
-        sprintf(body, "");
+        body[0] = '\0';
         break;
     case GET_CONNECTION_DETAILS:
         action = "<action>get_connection_details</action>";
@@ -263,9 +265,9 @@ char* Message_getElementString(Value* v) {
             sprintf(tmp, "<false />");
         }
     } else if(Value_is_int(v)) {
-        size = snprintf(NULL, 0, "%i", Value_get_int(v));
+        size = snprintf(NULL, 0, "%li", Value_get_int(v));
         tmp = (char*)malloc(13 + size);
-        sprintf(tmp, "<int>%i</int>", Value_get_int(v));
+        sprintf(tmp, "<int>%li</int>", Value_get_int(v));
     } else if(Value_is_float(v)) {
         size = snprintf(NULL, 0, "%f", Value_get_float(v));
         tmp = (char*)malloc(17 + size);
@@ -281,7 +283,7 @@ char* Message_getElementString(Value* v) {
     } else {
         fprintf(stderr, "Error, invalid value type.\n");
         tmp = (char*)malloc(1);
-        sprintf(tmp, "");
+        tmp[0] = '\0';
     }
     return tmp;
 }

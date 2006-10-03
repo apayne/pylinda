@@ -21,6 +21,7 @@
 #ifndef LINDA_PYTHON
 
 void inittuplespace(PyObject* m);
+void inittsref(PyObject* m);
 
 Value* PyO2Value(PyObject* obj);
 Tuple PyO2Tuple(PyObject* tup);

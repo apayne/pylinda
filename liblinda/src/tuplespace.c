@@ -18,6 +18,9 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "linda.h"
 #include "linda_internal.h"
 
@@ -36,7 +39,7 @@ Linda_tuplespace Linda_createTuplespace() {
     return ts;
 }
 
-void Linda_deleteTuplespace(const Linda_tuplespace ts) {
+void Linda_deleteReference(const Linda_tuplespace ts) {
     if(strcmp(ts, "UTS") == 0) { return; }
     if(Linda_active_connections == 0) { return; } /* We've been disconnected to ignore this message. */
     Message* m = Message_deleteReference(ts);

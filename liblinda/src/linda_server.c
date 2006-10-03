@@ -26,6 +26,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <netdb.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define LINDA_SERVER
 #include "linda.h"
