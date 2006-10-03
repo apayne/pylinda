@@ -106,6 +106,13 @@ unsigned char Value_is_type(Value* v);
 Value Value_type(char* t);
 char* Value_get_type(Value* v);
 
+extern Value Value_boolType;
+extern Value Value_intType;
+extern Value Value_floatType;
+extern Value Value_stringType;
+extern Value Value_tsType;
+extern Value Value_tupleType;
+
 unsigned char Value_is_tsref(Value* v);
 Value Value_tsref(char* tsid);
 char* Value_get_tsref(Value* v);

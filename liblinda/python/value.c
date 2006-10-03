@@ -37,6 +37,27 @@ PyObject* Value2PyO(Value* v) {
         return Py_BuildValue("f", Value_get_float(v));
     } else if(Value_is_string(v)) {
         return PyString_FromStringAndSize(Value_get_string(v), Value_get_string_len(v));
+    } else if(Value_is_type(v)) {
+        if(strcmp(v->typespec, "int") == 0) {
+            Py_INCREF(&PyInt_Type);
+            return (PyObject*)&PyInt_Type;
+        } else if(strcmp(v->typespec, "float") == 0) {
+            Py_INCREF(&PyFloat_Type);
+            return (PyObject*)&PyFloat_Type;
+        } else if(strcmp(v->typespec, "bool") == 0) {
+            Py_INCREF(&PyBool_Type);
+            return (PyObject*)&PyBool_Type;
+        } else if(strcmp(v->typespec, "string") == 0) {
+            Py_INCREF(&PyString_Type);
+            return (PyObject*)&PyString_Type;
+        } else if(strcmp(v->typespec, "tuple") == 0) {
+            Py_INCREF(&PyTuple_Type);
+            return (PyObject*)&PyTuple_Type;
+        } else {
+            fprintf(stderr, "Value2PyO: Invalid type specification (%s).\n", v->typespec);
+            Py_INCREF(Py_None);
+            return Py_None;
+        }
     } else if(Value_is_tsref(v)) {
         if(LindaPython_is_server) {
             linda_TSRefObject* ts;
@@ -86,6 +107,21 @@ Value* PyO2Value(PyObject* obj) {
             free(nv);
         }
         v = Value_tuple(t);
+    } else if(PyType_Check(obj)) {
+        if(obj == (PyObject*)&PyInt_Type) {
+            v = Value_intType;
+        } else if(obj == (PyObject*)&PyFloat_Type) {
+            v = Value_floatType;
+        } else if(obj == (PyObject*)&PyString_Type) {
+            v = Value_stringType;
+        } else if(obj == (PyObject*)&PyBool_Type) {
+            v = Value_boolType;
+        } else if(obj == (PyObject*)&PyTuple_Type) {
+            v = Value_tupleType;
+        } else {
+            fprintf(stderr, "PyO2Value: Invalid type of type.\n");
+            return NULL;
+        }
     } else if(LindaPython_is_server && PyObject_IsInstance(obj, (PyObject*)&linda_TSRefType)) {
         v = Value_tsref(((linda_TSRefObject*)obj)->ts);
     } else if(!LindaPython_is_server && PyObject_TypeCheck(obj, &linda_TupleSpaceType)) {

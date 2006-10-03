@@ -120,6 +120,7 @@ Tuple Linda_in(const Linda_tuplespace ts, Tuple t) {
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return NULL; }
     r = Tuple_copy(m->tuple);
     Message_free(m);
     return r;
@@ -131,6 +132,7 @@ Tuple Linda_rd(const Linda_tuplespace ts, Tuple t) {
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return NULL; }
     r = Tuple_copy(m->tuple);
     Message_free(m);
     return r;
@@ -142,6 +144,7 @@ Tuple Linda_inp(const Linda_tuplespace ts, Tuple t) {
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return NULL; }
     if(m->type == UNBLOCK) {
         Message_free(m);
         return NULL;
@@ -158,6 +161,7 @@ Tuple Linda_rdp(const Linda_tuplespace ts, Tuple t) {
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return NULL; }
     if(m->type == UNBLOCK) {
         Message_free(m);
         return NULL;
@@ -174,6 +178,7 @@ int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple 
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return -1; }
     i = m->i;
     Message_free(m);
     return i;
@@ -185,6 +190,7 @@ int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, T
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
+    if(m == NULL) { return -1; }
     i = m->i;
     Message_free(m);
     return i;

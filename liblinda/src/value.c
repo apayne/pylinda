@@ -51,6 +51,9 @@ Value Value_copy(Value* v) {
         memcpy(nv.string, v->string, v->length+1);
         nv.length = v->length;
         break;
+    case TYPE:
+        nv.typespec = (char*)malloc(strlen(v->typespec)+1);
+        strcpy(nv.typespec, v->typespec);
     case TSREF:
         nv.tsid = (char*)malloc(strlen(v->tsid)+1);
         strcpy(nv.tsid, v->tsid);
@@ -175,6 +178,22 @@ int Value_get_string_len(Value* v) {
     return v->length;
 }
 
+unsigned char Value_is_type(Value* v) {
+    return v->type == TYPE;
+}
+
+Value Value_type(char* t) {
+    Value v;
+    v.type = TYPE;
+    v.typespec = (char*)malloc(strlen(t) + 1);
+    strcpy(v.typespec, t);
+    return v;
+}
+
+char* Value_get_type(Value* v) {
+    return v->typespec;
+}
+
 unsigned char Value_is_tsref(Value* v) {
     return v->type == TSREF;
 }
@@ -205,3 +224,10 @@ Value Value_tuple(Tuple t) {
 Tuple Value_get_tuple(Value* v) {
     return v->tuple;
 }
+
+Value Value_boolType = {TYPE, {.typespec = "bool"}};
+Value Value_intType = {TYPE, {.typespec = "int"}};
+Value Value_floatType = {TYPE, {.typespec = "float"}};
+Value Value_stringType = {TYPE, {.typespec = "string"}};
+Value Value_tsType = {TYPE, {.typespec = "ts"}};
+Value Value_tupleType = {TYPE, {.typespec = "tuple"}};

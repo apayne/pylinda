@@ -237,7 +237,7 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
             }
             attrptr = attrptr + 2;
         }
-    } else if(strcmp(name, "true") == 0 || strcmp(name, "false") == 0 || strcmp(name, "int") == 0 || strcmp(name, "string") == 0) {
+    } else if(strcmp(name, "true") == 0 || strcmp(name, "false") == 0 || strcmp(name, "int") == 0 || strcmp(name, "float") == 0 || strcmp(name, "string") == 0 || strcmp(name, "type") == 0) {
     } else {
         fprintf(stderr, "Unknown message open tag '%s'. Ignoring.\n", name);
     }
@@ -412,6 +412,12 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             Tuple_add(Tuplequeue_top(bm->tq), Value_string(bm->text));
             free(bm->text); bm->text = NULL;
         }
+    } else if(strcmp(name, "float") == 0) {
+        Tuple_add(Tuplequeue_top(bm->tq), Value_float(atof(bm->text)));
+        free(bm->text); bm->text = NULL;
+    } else if(strcmp(name, "type") == 0) {
+        Tuple_add(Tuplequeue_top(bm->tq), Value_type(bm->text));
+        free(bm->text); bm->text = NULL;
     } else {
         fprintf(stderr, "Unknown message close tag '%s'. Ignoring.\n", name);
     }

@@ -117,9 +117,6 @@ class TupleContainer:
                                 yield (t, )
                 else:
                     for t in tups_list:
-                        print ele, ele.__class__, t.__class__, t
-                        #print (ele == t.__class__)
-                        print ele == t
                         if (ele == t.__class__) or (ele == t):
                             # is the element we're looking for the base class of t, or is t then we've 
                             # found it

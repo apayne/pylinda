@@ -93,7 +93,6 @@ class Thread:
         if command is None:
             return
         elif command[0] == "quit":
-            print "Shutting down..."
             return True
         elif command[0] == "list":
             linda.send(sd, ("LIST_TS", ))

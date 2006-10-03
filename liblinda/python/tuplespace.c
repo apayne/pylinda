@@ -110,16 +110,23 @@ static PyObject* linda_TupleSpace_in(linda_TupleSpaceObject* self, PyObject* arg
 
     t2 = Linda_in(self->ts, t1);
 
-    tuple = Tuple2PyO(t2);
+    Tuple_free(t1);
 
-    Tuple_free(t1); Tuple_free(t2);
+    if(t2 == NULL) {
+        PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
+        return NULL;
+    } else {
+        tuple = Tuple2PyO(t2);
+        Tuple_free(t2);
 
-    return tuple;
+        return tuple;
+    }
 }
 
 static PyObject* linda_TupleSpace_rd(linda_TupleSpaceObject* self, PyObject* args) {
     PyObject* tuple;
-    Tuple t;
+    Tuple t1;
+    Tuple t2;
 
     if(!PyArg_ParseTuple(args, "O", &tuple)) {
         return NULL;
@@ -130,24 +137,32 @@ static PyObject* linda_TupleSpace_rd(linda_TupleSpaceObject* self, PyObject* arg
         return NULL;
     }
 
-    t = PyO2Tuple(tuple);
-    if(t == NULL) {
+    t1 = PyO2Tuple(tuple);
+    if(t1 == NULL) {
         fprintf(stderr, "Error converting tuple.\n");
         Py_INCREF(Py_None);
         return Py_None;
     }
 
-    Linda_rd(self->ts, t);
+    t2 = Linda_rd(self->ts, t1);
 
-    Tuple_free(t);
+    Tuple_free(t1);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    if(t2 == NULL) {
+        PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
+        return NULL;
+    } else {
+        tuple = Tuple2PyO(t2);
+        Tuple_free(t2);
+
+        return tuple;
+    }
 }
 
 static PyObject* linda_TupleSpace_inp(linda_TupleSpaceObject* self, PyObject* args) {
     PyObject* tuple;
-    Tuple t;
+    Tuple t1;
+    Tuple t2;
 
     if(!PyArg_ParseTuple(args, "O", &tuple)) {
         return NULL;
@@ -158,24 +173,31 @@ static PyObject* linda_TupleSpace_inp(linda_TupleSpaceObject* self, PyObject* ar
         return NULL;
     }
 
-    t = PyO2Tuple(tuple);
-    if(t == NULL) {
+    t1 = PyO2Tuple(tuple);
+    if(t1 == NULL) {
         fprintf(stderr, "Error converting tuple.\n");
         Py_INCREF(Py_None);
         return Py_None;
     }
 
-    Linda_inp(self->ts, t);
+    t2 = Linda_inp(self->ts, t1);
+    Tuple_free(t1);
 
-    Tuple_free(t);
+    if(t2 == NULL) {
+        Py_IncRef(Py_None);
+        return Py_None;
+    } else {
+        tuple = Tuple2PyO(t2);
+        Tuple_free(t2);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+        return tuple;
+    }
 }
 
 static PyObject* linda_TupleSpace_rdp(linda_TupleSpaceObject* self, PyObject* args) {
     PyObject* tuple;
-    Tuple t;
+    Tuple t1;
+    Tuple t2;
 
     if(!PyArg_ParseTuple(args, "O", &tuple)) {
         return NULL;
@@ -186,19 +208,25 @@ static PyObject* linda_TupleSpace_rdp(linda_TupleSpaceObject* self, PyObject* ar
         return NULL;
     }
 
-    t = PyO2Tuple(tuple);
-    if(t == NULL) {
+    t1 = PyO2Tuple(tuple);
+    if(t1 == NULL) {
         fprintf(stderr, "Error converting tuple.\n");
         Py_INCREF(Py_None);
         return Py_None;
     }
 
-    Linda_rdp(self->ts, t);
+    t2 = Linda_rdp(self->ts, t1);
+    Tuple_free(t1);
 
-    Tuple_free(t);
+    if(t2 == NULL) {
+        Py_IncRef(Py_None);
+        return Py_None;
+    } else {
+        tuple = Tuple2PyO(t2);
+        Tuple_free(t2);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+        return tuple;
+    }
 }
 
 static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject* args) {
@@ -228,10 +256,13 @@ static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject
     }
 
     r = Linda_collect(self->ts, ((linda_TupleSpaceObject*)ts)->ts, t);
-
     Tuple_free(t);
-
-    return PyInt_FromLong(r);
+    if(r < 0) {
+        PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
+        return NULL;
+    } else {
+        return PyInt_FromLong(r);
+    }
 }
 
 static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyObject* args) {
@@ -261,10 +292,14 @@ static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyO
     }
 
     r = Linda_copy_collect(self->ts, ((linda_TupleSpaceObject*)ts)->ts, t);
-
     Tuple_free(t);
 
-    return PyInt_FromLong(r);
+    if(r < 0) {
+        PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
+        return NULL;
+    } else {
+        return PyInt_FromLong(r);
+    }
 }
 
 static void linda_TupleSpace_dealloc(linda_TupleSpaceObject* self)

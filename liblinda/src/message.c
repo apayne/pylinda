@@ -270,11 +270,14 @@ char* Message_getElementString(Value* v) {
         sprintf(tmp, "<int>%li</int>", Value_get_int(v));
     } else if(Value_is_float(v)) {
         size = snprintf(NULL, 0, "%f", Value_get_float(v));
-        tmp = (char*)malloc(17 + size);
-        sprintf(tmp, "<float>%f</float", Value_get_float(v));
+        tmp = (char*)malloc(16 + size);
+        sprintf(tmp, "<float>%f</float>", Value_get_float(v));
     } else if(Value_is_string(v)) {
         tmp = (char*)malloc(18 + Value_get_string_len(v));
         sprintf(tmp, "<string>%s</string>", Value_get_string(v));
+    } else if(Value_is_type(v)) {
+        tmp = (char*)malloc(14 + strlen(Value_get_type(v)));
+        sprintf(tmp, "<type>%s</type>", Value_get_type(v));
     } else if(Value_is_tsref(v)) {
         tmp = (char*)malloc(13 + strlen(Value_get_tsref(v)));
         sprintf(tmp, "<ts id=\"%s\" />", Value_get_tsref(v));
