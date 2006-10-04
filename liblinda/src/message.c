@@ -400,6 +400,12 @@ Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace
     return m;
 }
 
+Message* Message_unblock() {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = UNBLOCK;
+    return m;
+}
+
 Message* Message_createTuplespace() {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = CREATE_TUPLESPACE;

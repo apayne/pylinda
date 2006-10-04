@@ -291,6 +291,8 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->collect.ts1 = NULL;
             bm->m->collect.ts2 = NULL;
             bm->m->collect.t = NULL;
+        } else if(strcmp(bm->text, "unblock") == 0) {
+            bm->m->type = UNBLOCK;
         } else if(strcmp(bm->text, "create_tuplespace") == 0) {
             bm->m->type = CREATE_TUPLESPACE;
         } else if(strcmp(bm->text, "add_reference") == 0) {

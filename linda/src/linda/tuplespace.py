@@ -98,7 +98,7 @@ class TupleSpace:
                     del self.blocked_list[tid]
 
                     def do_return_tuple():
-                        utils.changeOwner(tup, self._id, tid)
+                        utils.changeOwner(tup, self._id, utils.getProcessIdFromThreadId(tid))
                         req, ts = server.blocked_processes[tid]
                         del server.blocked_processes[tid]
                         req.send(None, ("RESULT_TUPLE", tup))
@@ -214,7 +214,7 @@ class TupleSpace:
 
             # Delete the process we're unblocking from the blocked list and send it an unblock message
             del self.blocked_list[p]
-            kernel.message(unblock, p)
+            server.unblock_process(p)
         finally:
             self.lock.release()
 

@@ -84,6 +84,9 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
         case COPY_COLLECT:
             t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", m->collect.ts1, m->collect.ts2, Tuple2PyO(m->collect.t));
             break;
+        case UNBLOCK:
+            t = Py_BuildValue("(Os)", msgid, "UNBLOCK");
+            break;
         case CREATE_TUPLESPACE:
             t = Py_BuildValue("(Oss)", msgid, "CREATE_TUPLESPACE", m->string);
             break;
@@ -296,6 +299,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
+    PYTHON_TO_MSG_NONE("UNBLOCK", unblock)
     } else if(strcmp(action, "TUPLE_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));

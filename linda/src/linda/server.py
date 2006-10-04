@@ -66,7 +66,6 @@ class LindaConnection:
             rdp_tuple: self.read_tuple,
             inp_tuple: self.in_tuple,
             out_tuple: self.out_tuple,
-            unblock: self.unblock,
             return_tuple: self.return_tuple,
             collect: self.collect,
             copy_collect: self.copy_collect,
@@ -247,18 +246,6 @@ class LindaConnection:
         s.lock.acquire()
         s.send(tup)
         s.lock.release()
-        req.send(msgid, done)
-
-    def unblock(self, req, msgid, message, data):
-        tid = data[0]
-
-        assert tid in blocked_processes.keys()
-
-        s, semaphore, ts = blocked_processes[tid]
-        del blocked_processes[tid]
-        semaphore.acquire()
-        s.send(unblock)
-        semaphore.release()
         req.send(msgid, done)
 
     def collect(self, req, msgid, message, data):
@@ -530,6 +517,13 @@ def cleanShutdown():
         s.close()
 
     sys.exit()
+
+def unblock_process(tid):
+    assert tid in blocked_processes.keys()
+
+    s, ts = blocked_processes[tid]
+    del blocked_processes[tid]
+    s.send(None, (unblock, ))
 
 server = None
 domain_server = None

@@ -132,6 +132,7 @@ Message* Message_inp(const Linda_tuplespace ts, Tuple t);
 Message* Message_rdp(const Linda_tuplespace ts, Tuple t);
 Message* Message_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t);
 Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t);
+Message* Message_unblock();
 
 Message* Message_createTuplespace();
 Message* Message_addReference(const Linda_tuplespace ts);
