@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-#include "linda_c.h"
+#include "linda.h"
 #include "linda_internal.h"
 
 void Linda_scanTuple(Tuple t, char* ref) {
@@ -42,8 +42,12 @@ void Linda_scanTuple(Tuple t, char* ref) {
             Message_free(m);
             m = Message_recv(Linda_sd);
             Message_free(m);
+            break;
+        case TUPLE:
+            Linda_scanTuple(Value_get_tuple(v), ref);
+            break;
         default:
-            fprintf(stderr, "Unknown value found when scanning tuple.\n");
+            fprintf(stderr, "Unknown value (%i) found when scanning tuple.\n", v->type);
         }
     }
 }

@@ -53,6 +53,14 @@ PyObject* Value2PyO(Value* v) {
         } else if(strcmp(v->typespec, "tuple") == 0) {
             Py_INCREF(&PyTuple_Type);
             return (PyObject*)&PyTuple_Type;
+        } else if(strcmp(v->typespec, "tuplespace") == 0) {
+            if(LindaPython_is_server) {
+                Py_INCREF(&linda_TSRefType);
+                return (PyObject*)&linda_TSRefType;
+            } else {
+                Py_INCREF(&linda_TupleSpaceType);
+                return (PyObject*)&linda_TupleSpaceType;
+            }
         } else {
             fprintf(stderr, "Value2PyO: Invalid type specification (%s).\n", v->typespec);
             Py_INCREF(Py_None);
@@ -109,15 +117,17 @@ Value* PyO2Value(PyObject* obj) {
         v = Value_tuple(t);
     } else if(PyType_Check(obj)) {
         if(obj == (PyObject*)&PyInt_Type) {
-            v = Value_intType;
+            v = Value_copy(&Value_intType);
         } else if(obj == (PyObject*)&PyFloat_Type) {
-            v = Value_floatType;
+            v = Value_copy(&Value_floatType);
         } else if(obj == (PyObject*)&PyString_Type) {
-            v = Value_stringType;
+            v = Value_copy(&Value_stringType);
         } else if(obj == (PyObject*)&PyBool_Type) {
-            v = Value_boolType;
+            v = Value_copy(&Value_boolType);
         } else if(obj == (PyObject*)&PyTuple_Type) {
-            v = Value_tupleType;
+            v = Value_copy(&Value_tupleType);
+        } else if(obj == (PyObject*)&linda_TupleSpaceType) {
+            v = Value_copy(&Value_tuplespaceType);
         } else {
             fprintf(stderr, "PyO2Value: Invalid type of type.\n");
             return NULL;

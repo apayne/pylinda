@@ -88,26 +88,26 @@ char* Message_getString(Message* msg) {
     case IN:
         action = "<action>in</action>";
         tmp = Message_getTupleString(msg->in.t);
-        body = (char*)malloc(30 + strlen(tmp) + strlen(thread_id));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, thread_id);
+        body = (char*)malloc(26 + strlen(msg->in.ts) + strlen(tmp) + strlen(msg->in.tid));
+        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, msg->in.tid);
         break;
     case RD:
         action = "<action>rd</action>";
         tmp = Message_getTupleString(msg->rd.t);
-        body = (char*)malloc(30 + strlen(tmp) + strlen(thread_id));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, thread_id);
+        body = (char*)malloc(26 + strlen(msg->rd.ts) + strlen(tmp) + strlen(msg->rd.tid));
+        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, msg->rd.tid);
         break;
     case INP:
         action = "<action>inp</action>";
         tmp = Message_getTupleString(msg->in.t);
-        body = (char*)malloc(30 + strlen(tmp) + strlen(thread_id));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, thread_id);
+        body = (char*)malloc(26 + strlen(msg->in.ts) + strlen(tmp) + strlen(msg->in.tid));
+        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, msg->in.tid);
         break;
     case RDP:
         action = "<action>rdp</action>";
         tmp = Message_getTupleString(msg->rd.t);
-        body = (char*)malloc(30 + strlen(tmp) + strlen(thread_id));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, thread_id);
+        body = (char*)malloc(26 + strlen(msg->rd.ts) + strlen(tmp) + strlen(msg->rd.tid));
+        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, msg->rd.tid);
         break;
     case COLLECT:
         action = "<action>collect</action>";

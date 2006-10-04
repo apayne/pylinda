@@ -231,3 +231,4 @@ Value Value_floatType = {TYPE, {.typespec = "float"}};
 Value Value_stringType = {TYPE, {.typespec = "string"}};
 Value Value_tsType = {TYPE, {.typespec = "ts"}};
 Value Value_tupleType = {TYPE, {.typespec = "tuple"}};
+Value Value_tuplespaceType = {TYPE, {.typespec = "tuplespace"}};

@@ -47,7 +47,7 @@ def addReference(tup, new, node=None):
     def do_replace(e):
         if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
             if node is None:
-                server.local_ts[e._id].addReference(new)
+                server.local_ts.addReference(e._id, new)
             else:
                 connections.sendMessageToNode(node, None, messages.increment_ref, e._id, new)
         return e
@@ -56,7 +56,7 @@ def addReference(tup, new, node=None):
 def delReference(tup, cur):
     def do_replace(e):
         if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
-            server.local_ts[e._id].delReference(cur)
+            server.local_ts.deleteReference(e._id, cur)
         return e
     [do_replace(x) for x in tup]
 
@@ -64,10 +64,10 @@ def changeOwner(tup, cur, new, node=None):
     def do_replace(e):
         if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
             if node is None:
-                server.local_ts[e._id].addReference(new)
+                server.local_ts.addReference(e._id, new)
             else:
                 connections.sendMessageToNode(node, None, messages.increment_ref, e._id, new)
-            server.local_ts[e._id].delReference(cur)
+            server.local_ts.deleteReference(e._id, cur)
         return e
     [do_replace(x) for x in tup]
 
@@ -96,10 +96,7 @@ def isProcessId(id):
     This function does not check that a process exists with this id, only the id is of the correct format
     \param id The id to be checked
     """
-    if not isinstance(id, str) or len(id) != 41 or id[0] != "P":
-        return False
-    else:
-        return True
+    return isinstance(id, str) and len(id) == 41 and id[0] == "P"
 
 def isThreadId(id):
     """\internal

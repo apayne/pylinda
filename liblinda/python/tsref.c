@@ -76,7 +76,6 @@ static long linda_TSRef_compare(linda_TSRefObject* self, linda_TSRefObject* othe
         PyErr_SetString(PyExc_TypeError, "Got null string in TSRef.");
         return -1;
     } else {
-        printf("cmp %s %s\n", self->ts, other->ts);
         return strcmp(self->ts, other->ts);
     }
 }

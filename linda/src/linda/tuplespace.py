@@ -82,7 +82,6 @@ class TupleSpace:
     ## \brief This function is called to put a tuple into the tuplespace
     def _out(self, tup):
         assert tup is not None
-        tup = tup
 
         self.lock.acquire(msg=("out", self._id, tup))
         try:
@@ -160,7 +159,7 @@ class TupleSpace:
                 self.blocked_list[tid] = (pattern, unblockable, False)
             else:
                 # we found a tuple so update the references and return it
-                utils.addReference(r, self._id, tid)
+                utils.addReference(r, self._id, utils.getProcessIdFromThreadId(tid))
                 return r
         finally:
             self.lock.release(msg=("rd", self._id, pattern))
@@ -192,7 +191,7 @@ class TupleSpace:
             else:
                 # we found a tuple so update the references and return it
                 self.ts.delete(r) # since this is destructive delete the tuple from the tuplespace
-                utils.changeOwner(r, self._id, tid)
+                utils.changeOwner(r, self._id, utils.getProcessIdFromThreadId(tid))
                 return r
         finally:
             self.lock.release(msg=("_in", self._id))
@@ -260,7 +259,7 @@ class TupleSpace:
     def addreference(self, ref):
         if self._id == "UTS": # Check we're not the universal tuplespace, which is excluded from garbage collection
             return
-        assert not utils.isThreadId(ref)
+        assert not utils.isThreadId(ref), ref
         self.lock.acquire(msg=("add ref", self._id, ref))
         try:
             self.refs.append(ref)
@@ -273,7 +272,7 @@ class TupleSpace:
         try:
             if self._id == "UTS": # Check we're not the universal tuplespace, which is excluded from garbage collection
                 return
-            assert not utils.isThreadId(ref)
+            assert not utils.isThreadId(ref), ref
 
             self.lock.acquire(msg=("remove ref", self._id, ref))
             try:

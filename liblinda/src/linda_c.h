@@ -112,6 +112,7 @@ extern Value Value_floatType;
 extern Value Value_stringType;
 extern Value Value_tsType;
 extern Value Value_tupleType;
+extern Value Value_tuplespaceType;
 
 unsigned char Value_is_tsref(Value* v);
 Value Value_tsref(char* tsid);
