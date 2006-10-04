@@ -178,8 +178,6 @@ class Thread:
             if not utils.isTupleSpaceId(val[1]):
                 raise SystemError, "'%s' is not a valid Tuple Space Id" % (val[1], )
             ts = linda.TupleSpace(val[1])
-            if val[1] != "UTS":
-                ts._addreference(linda.process_id)
             return ts
         elif val[0] == "var":
             if not self.vars.has_key(val[1]):

@@ -522,8 +522,10 @@ def unblock_process(tid):
     assert tid in blocked_processes.keys()
 
     s, ts = blocked_processes[tid]
+    s.lock.acquire()
     del blocked_processes[tid]
     s.send(None, (unblock, ))
+    s.lock.release()
 
 server = None
 domain_server = None

@@ -72,12 +72,14 @@ PyObject* Value2PyO(Value* v) {
             ts = (linda_TSRefObject*)linda_TSRefType.tp_alloc(&linda_TSRefType, 0);
             ts->ts = (char*)malloc(strlen(Value_get_tsref(v))+1);
             strcpy(ts->ts, Value_get_tsref(v));
+            Py_INCREF(ts);
             return (PyObject*)ts;
         } else {
             linda_TupleSpaceObject* ts;
             ts = (linda_TupleSpaceObject*)linda_TupleSpaceType.tp_alloc(&linda_TupleSpaceType, 0);
             ts->ts = (char*)malloc(strlen(Value_get_tsref(v))+1);
             strcpy(ts->ts, Value_get_tsref(v));
+            Py_INCREF(ts);
             return (PyObject*)ts;
         }
     } else if(Value_is_tuple(v)) {

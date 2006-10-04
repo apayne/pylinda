@@ -66,9 +66,10 @@ class TupleSpace:
             if r != dont_know:
                 self.requests.extend(r[1])
         finally:
-            self.lock.release(msg=("start", self._id))
+            self.lock.release(msg=("end start", self._id))
 
     def __del__(self):
+        print "Delete", self._id
         broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id)
         if self.ts.count() > 0 and len(self.partitions) > 0:
             node = self.partitions[0]
@@ -101,7 +102,9 @@ class TupleSpace:
                         utils.changeOwner(tup, self._id, utils.getProcessIdFromThreadId(tid))
                         req, ts = server.blocked_processes[tid]
                         del server.blocked_processes[tid]
+                        req.lock.acquire()
                         req.send(None, ("RESULT_TUPLE", tup))
+                        req.lock.release()
 
                         broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern)
 
@@ -260,11 +263,11 @@ class TupleSpace:
         if self._id == "UTS": # Check we're not the universal tuplespace, which is excluded from garbage collection
             return
         assert not utils.isThreadId(ref), ref
-        self.lock.acquire(msg=("add ref", self._id, ref))
+        self.lock.acquire(msg=("add ref", self._id, ref, len(self.refs)))
         try:
             self.refs.append(ref)
         finally:
-            self.lock.release(msg=("add ref", self._id, ref))
+            self.lock.release(msg=("add ref", self._id, ref, len(self.refs)))
 
     ## \brief Remove a reference from the given object to this tuplespace
     ## \param ref The object with the reference
@@ -274,7 +277,7 @@ class TupleSpace:
                 return
             assert not utils.isThreadId(ref), ref
 
-            self.lock.acquire(msg=("remove ref", self._id, ref))
+            self.lock.acquire(msg=("remove ref", self._id, ref, len(self.refs)))
             try:
                 try:
                     self.refs.remove(ref) # Remove the reference from the list
@@ -282,7 +285,7 @@ class TupleSpace:
                     print "!!!%s not in %s for %s" % (ref, str(self.refs), self._id)
                     raise SystemError, "Internal reference counting error"
             finally:
-                self.lock.release(msg=("remove ref", self._id, ref))
+                self.lock.release(msg=("remove ref", self._id, ref, len(self.refs)))
         finally:
             self.killlock.release()
 
@@ -316,7 +319,7 @@ class TupleSpace:
             assert utils.isProcessId(ref)
 
             # This is just a sanity check to make sure something hasn't gone horribly wrong...
-            self.lock.acquire()
+            self.lock.acquire(msg=("remove all", self._id))
             try:
                 if ref in self.blocked_list.keys():
                     print "ERROR : Deleting references for a blocked process %s" % (str(self.blocked_list.keys()), )
@@ -327,7 +330,7 @@ class TupleSpace:
                 except ValueError: # ... until there are none left and a ValueError is raised.
                     pass
             finally:
-                self.lock.release()
+                self.lock.release(msg=("done remove all", self._id))
         finally:
             self.killlock.release()
 

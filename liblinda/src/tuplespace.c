@@ -39,9 +39,19 @@ Linda_tuplespace Linda_createTuplespace() {
     return ts;
 }
 
+void Linda_addReference(const Linda_tuplespace ts) {
+    if(strcmp(ts, "UTS") == 0) { return; }
+    if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
+    Message* m = Message_addReference(ts);
+    Message_send(Linda_sd, NULL, m);
+    Message_free(m);
+    m = Message_recv(Linda_sd);
+    Message_free(m);
+}
+
 void Linda_deleteReference(const Linda_tuplespace ts) {
     if(strcmp(ts, "UTS") == 0) { return; }
-    if(Linda_active_connections == 0) { return; } /* We've been disconnected to ignore this message. */
+    if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
     Message* m = Message_deleteReference(ts);
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
