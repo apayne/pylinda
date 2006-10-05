@@ -125,14 +125,14 @@ class Thread:
         elif command[0] == "route":
             linda.send(sd, ("GET_ROUTES", ))
             cons = linda.recv(sd)
-            print cons
-            for c in cons[2]:
-                if len(c) == 3:
-                    print "%s -> %s:%s" % (c[0], c[1], c[2])
-                else:
-                    print "%s -> %s" % (c[0], c[1])
             if len(cons[2]) == 0:
                 print "No other servers connected"
+            else:
+                for c in cons[2]:
+                    if len(c) == 3:
+                        print "%s -> %s:%s" % (c[0], c[1], c[2])
+                    else:
+                        print "%s -> %s" % (c[0], c[1])
         elif command[0] == "watch":
             if command[1] is None:
                 delay = 10
