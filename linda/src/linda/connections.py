@@ -87,13 +87,12 @@ def socket_watcher():
                      continue
                  finally:
                      socket_lock.release()
-                 return
             else:
                 msgid, msg = m[0], m[1:]
                 if msgid is None:
                     thread_pool.giveJob(target=Handler.handle, args=(s, None, msg))
                 elif msgid[0] != server.node_id and msgid[1] != server.node_id:
-                    print "Forwarding not yet implemented", m
+                    sendMessageToNode(msgid[0], msgid, *msg)
                 elif msgid[0] == server.node_id:
                     thread_pool.giveJob(target=Handler.handle, args=(s, msgid, msg))
                 elif msgid[1] == server.node_id:
