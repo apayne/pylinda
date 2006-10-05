@@ -171,7 +171,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
 #define PYTHON_TO_MSG_STRING(name, func) \
     } else if(strcmp(action, name) == 0) { \
         if(PyTuple_Size(tuple) != (offset+2)) { \
-            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments (%li not %i).\n", action, PyTuple_Size(tuple), offset+2)); \
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments (%i not %i).\n", action, (int)PyTuple_Size(tuple), offset+2)); \
             return NULL; \
         } else if(!PyString_Check(PyTuple_GetItem(tuple, offset+1))) { \
             PyObject* repr = PyObject_Repr(PyTuple_GetItem(tuple, offset+1)); \
