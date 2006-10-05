@@ -627,6 +627,7 @@ void Message_free(Message* msg) {
         free(msg->ref.tid);
         break;
     case MONITOR:
+    case LIST_TS:
     case GET_ROUTES:
         break;
     case REGISTER_PROCESS:

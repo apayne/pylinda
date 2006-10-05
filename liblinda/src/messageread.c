@@ -77,8 +77,6 @@ Message* Message_recv(int s) {
     XML_SetElementHandler(p, StartElementHandler, EndElementHandler);
     XML_SetCharacterDataHandler(p, CharacterDataHandler);
 
-    buf = XML_GetBuffer(p, 1024);
-
     XML_SetUserData(p, (void*)&bm);
     bytesread = 0;
     while(bytesread < 4) {
@@ -92,6 +90,7 @@ Message* Message_recv(int s) {
     msgsize = ntohl(msgsize);
     bytesread = 0;
     while(bytesread < msgsize) {
+        buf = XML_GetBuffer(p, 1024);
         bytesrecv = recv(s, buf, ((msgsize - bytesread) < 1024 ? (msgsize - bytesread): 1024), 0);
         if(bytesrecv <= 0) {
             free(delbuildmessage(&bm));
@@ -99,7 +98,7 @@ Message* Message_recv(int s) {
         }
         bytesread += bytesrecv;
 
-        if(!XML_ParseBuffer(p, bytesread, bytesread == msgsize)) {
+        if(!XML_ParseBuffer(p, bytesrecv, bytesread == msgsize)) {
             fprintf(stderr, "XML Parser Error!\n");
             exit(-1);
         }
