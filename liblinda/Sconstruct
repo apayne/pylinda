@@ -1,3 +1,10 @@
+import sys
+
+defines = {"PYTHON_VERSION": "%s.%s" % (sys.version_info[0], sys.version_info[1])}
+
+text = open(str("config.h.in"), "r").read() % defines
+open(str("config.h"), "w").write(text)
+
 env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#"], LIBPATH=".")
 cppenv = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#"])
 
