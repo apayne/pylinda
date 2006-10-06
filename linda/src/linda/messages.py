@@ -26,7 +26,6 @@ dont_know = "DONT_KNOW" # Don't know the answer
 
 register_process = "REGISTER_PROCESS" # Sent by a client process to get an id
 register_thread = "REGISTER_THREAD" # Sent by a client thread to get an id
-unregister_thread = "unregister_thread" # Sent by a client thread which is shuttind down
 
 unregister_server = "unregister_server"
 

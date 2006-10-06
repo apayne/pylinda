@@ -582,6 +582,7 @@ void Message_free(Message* msg) {
     }
     switch(msg->type) {
     case DONE:
+    case DONT_KNOW:
         break;
     case RESULT_STRING:
         free(msg->string);

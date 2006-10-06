@@ -56,7 +56,6 @@ class LindaConnection:
         self.messages = {
             register_process: self.register_process,
             register_thread: self.register_thread,
-            unregister_thread: self.unregister_thread,
             my_name_is: self.my_name_is,
             create_tuplespace: self.create_tuplespace,
             get_connect_details: self.get_connect_details,
@@ -126,6 +125,7 @@ class LindaConnection:
         p_id = "P%s" % (guid.generate(), )
         processes[p_id] = req
         req.type = "CLIENT"
+        req.name = p_id
 
         pthreads[p_id] = []
         pthread_count[p_id] = utils.Counter()
@@ -139,6 +139,7 @@ class LindaConnection:
         pthreads[p_id].append(t_id)
         threads[t_id] = req
         req.type = "CLIENT"
+        req.name = t_id
 
         req.send(msgid, ("RESULT_STRING", t_id))
 
@@ -151,11 +152,10 @@ class LindaConnection:
 
         pid, tid = data
 
-        p_id = utils.getProcessIdFromThreadId(tid)
-        del pthreads[pid][pthreads[pid].index(tid)]
+        pthreads[pid].remove(tid)
         del threads[tid]
 
-        req.send(msgid, done)
+        req.send(msgid, (done, ))
 
     def unregister_server(self, req, msgid, message, data):
         nid, local = data
@@ -475,13 +475,20 @@ class LindaConnection:
             del ts.partitions[ts.partitions.index(nid)]
             req.send(msgid, (done, ))
 
-def removeProcess(pid, local=True):
+def removeProcess(pid):
     """\internal
     \brief Called if a process leaves the system to ensure that no references that the process had remain in the system.
 
     If a process exits normally then all this should be unnessicary, however we can't trust user processes.
     """
     # check it actually is a process and not another node
+    if utils.isThreadId(pid):
+        tid = pid
+        pid = utils.getProcessIdFromThreadId(pid)
+        del threads[tid]
+        pthreads[pid].remove(tid)
+        if len(pthreads[pid]) > 0:
+            return
     if not utils.isProcessId(pid):
         return
 
@@ -490,13 +497,9 @@ def removeProcess(pid, local=True):
         if utils.getProcessIdFromThreadId(tid) == pid:
             del blocked_processes[tid]
 
-    # remove any references the process may have had to our processes
+    # remove any references the process may have had to our tuplespaces
     for ts in local_ts:
         local_ts.deleteAllReferences(ts, pid)
-
-    # if the process was connected to us then broadcast the fact that it has left the system
-    if local:
-        broadcast_message(unregister_process, pid, False)
 
 def cleanShutdown():
     # Stop accepting new connections

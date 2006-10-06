@@ -148,6 +148,8 @@ class TupleSpaceContainer:
     ## \brief Test if the given tuplespace should be deleted.
     ## \internal
     def garbage(self, ts):
+        if ts._id == "UTS":
+            return
         if len(ts.refs) == 0:
             # The function returns the number of reference remaining, if it returns 0 then there are no references
             # and we can delete the tuplespace

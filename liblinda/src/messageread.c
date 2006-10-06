@@ -90,8 +90,9 @@ Message* Message_recv(int s) {
     msgsize = ntohl(msgsize);
     bytesread = 0;
     while(bytesread < msgsize) {
-        buf = XML_GetBuffer(p, 1024);
-        bytesrecv = recv(s, buf, ((msgsize - bytesread) < 1024 ? (msgsize - bytesread): 1024), 0);
+        int buf_size = (102400 < (msgsize - bytesread) ? 102400 : (msgsize - bytesread));
+        buf = XML_GetBuffer(p, buf_size);
+        bytesrecv = recv(s, buf, buf_size, 0);
         if(bytesrecv <= 0) {
             free(delbuildmessage(&bm));
             return NULL;

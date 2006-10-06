@@ -71,22 +71,25 @@ def socket_watcher():
                  continue
             m = _linda_server.recv(s.fileno())
             if m is None:
-                 if s.type == "MONITOR":
-                     print "Server shutting down."
-                     server.cleanShutdown()
-                     return # Don't do anything else, just quit.
-                 elif s.type == "SERVER":
+                if s.type == "MONITOR":
+                    print "Server shutting down."
+                    server.cleanShutdown()
+                    return # Don't do anything else, just quit.
+                elif s.type == "SERVER":
+                    server.removeServer(s.name)
                     connect_lock.acquire()
                     try:
                         del neighbours[s.name]
                     finally:
                         connect_lock.release()
-                 socket_lock.acquire()
-                 try:
-                     del sockets[sockets.index(s)]
-                     continue
-                 finally:
-                     socket_lock.release()
+                elif s.type == "CLIENT":
+                    server.removeProcess(s.name)
+                socket_lock.acquire()
+                try:
+                    del sockets[sockets.index(s)]
+                    continue
+                finally:
+                    socket_lock.release()
             else:
                 msgid, msg = m[0], m[1:]
                 if msgid is None:

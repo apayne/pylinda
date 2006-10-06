@@ -69,7 +69,6 @@ class TupleSpace:
             self.lock.release(msg=("end start", self._id))
 
     def __del__(self):
-        print "Delete", self._id
         broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id)
         if self.ts.count() > 0 and len(self.partitions) > 0:
             node = self.partitions[0]
@@ -142,7 +141,7 @@ class TupleSpace:
     ## If a matching tuple is immediatly found then it is returned, otherwise <b>None</b> is returned and
     ## the process is added to the list of blocked processes
     def _rd(self, tid, pattern, unblockable):
-        self.lock.acquire(msg=("rd", self._id, pattern))
+        self.lock.acquire()
         try:
             try:
                 # try to match a tuple
@@ -165,14 +164,14 @@ class TupleSpace:
                 utils.addReference(r, self._id, utils.getProcessIdFromThreadId(tid))
                 return r
         finally:
-            self.lock.release(msg=("rd", self._id, pattern))
+            self.lock.release()
 
     ## \brief This function is called when a process ins from the tuplespace
     ##
     ## If a matching tuple is immediatly found then it is returned, otherwise <b>None</b> is returned and
     ## the process is added to the list of blocked processes
     def _in(self, tid, pattern, unblockable):
-        self.lock.acquire(msg=("_in", self._id))
+        self.lock.acquire()
         try:
             try:
                 # try to match a tuple
@@ -197,7 +196,7 @@ class TupleSpace:
                 utils.changeOwner(r, self._id, utils.getProcessIdFromThreadId(tid))
                 return r
         finally:
-            self.lock.release(msg=("_in", self._id))
+            self.lock.release()
 
     ## \brief If we encounter a deadlock this function is called to unblock a process
     def unblockRandom(self):
@@ -263,11 +262,11 @@ class TupleSpace:
         if self._id == "UTS": # Check we're not the universal tuplespace, which is excluded from garbage collection
             return
         assert not utils.isThreadId(ref), ref
-        self.lock.acquire(msg=("add ref", self._id, ref, len(self.refs)))
+        self.lock.acquire()
         try:
             self.refs.append(ref)
         finally:
-            self.lock.release(msg=("add ref", self._id, ref, len(self.refs)))
+            self.lock.release()
 
     ## \brief Remove a reference from the given object to this tuplespace
     ## \param ref The object with the reference
@@ -277,7 +276,7 @@ class TupleSpace:
                 return
             assert not utils.isThreadId(ref), ref
 
-            self.lock.acquire(msg=("remove ref", self._id, ref, len(self.refs)))
+            self.lock.acquire()
             try:
                 try:
                     self.refs.remove(ref) # Remove the reference from the list
@@ -285,7 +284,7 @@ class TupleSpace:
                     print "!!!%s not in %s for %s" % (ref, str(self.refs), self._id)
                     raise SystemError, "Internal reference counting error"
             finally:
-                self.lock.release(msg=("remove ref", self._id, ref, len(self.refs)))
+                self.lock.release()
         finally:
             self.killlock.release()
 
