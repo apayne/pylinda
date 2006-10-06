@@ -102,7 +102,6 @@ static PyObject* linda_TupleSpace_in(linda_TupleSpaceObject* self, PyObject* arg
     }
 
     t1 = PyO2Tuple(tuple);
-    Py_DECREF(tuple);
     if(t1 == NULL) {
         fprintf(stderr, "Error converting tuple.\n");
         Py_INCREF(Py_None);

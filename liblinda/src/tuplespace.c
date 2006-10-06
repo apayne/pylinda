@@ -30,7 +30,8 @@ Linda_tuplespace Linda_createTuplespace() {
     Message_send(Linda_sd, NULL, m);
     Message_free(m);
     m = Message_recv(Linda_sd);
-    if(m->type != RESULT_STRING) {
+    if(m == NULL) { return NULL; }
+    else if(m->type != RESULT_STRING) {
         return NULL;
     }
     ts = (char*)malloc(strlen(m->string)+1);
