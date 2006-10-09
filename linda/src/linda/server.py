@@ -49,7 +49,7 @@ pthreads = {}
 pthread_count = {}
 
 local_ts = TupleSpaceContainer()
-blocked_processes = {}
+blocked_threads = {}
 
 class LindaConnection:
     def __init__(self):
@@ -204,7 +204,7 @@ class LindaConnection:
         ts, template, tid = data
         unblockable = message == inp_tuple
 
-        blocked_processes[tid] = (req, ts)
+        blocked_threads[tid] = (req, ts)
 
         assert utils.isTupleSpaceId(ts)
         assert local_ts.has_key(ts)
@@ -213,7 +213,7 @@ class LindaConnection:
         stats.inc_stat("message_rd_total")
 
         if r is not None:
-            del blocked_processes[tid]
+            del blocked_threads[tid]
             req.send(msgid, ("RESULT_TUPLE", r))
         else:
             pass # this thread is now blocked
@@ -222,7 +222,7 @@ class LindaConnection:
         ts, template, tid = data
         unblockable = message == inp_tuple
 
-        blocked_processes[tid] = (req, ts)
+        blocked_threads[tid] = (req, ts)
 
         assert utils.isTupleSpaceId(ts)
         assert local_ts.has_key(ts)
@@ -231,7 +231,7 @@ class LindaConnection:
         stats.inc_stat("message_in_total")
 
         if r is not None:
-            del blocked_processes[tid]
+            del blocked_threads[tid]
             req.send(msgid, ("RESULT_TUPLE", r))
         else:
             pass # this thread is now blocked
@@ -239,10 +239,10 @@ class LindaConnection:
     def return_tuple(self, req, msgid, message, data):
         tid, tup = data
 
-        assert tid in blocked_processes.keys()
+        assert tid in blocked_threads.keys()
 
-        s, ts = blocked_processes[tid]
-        del blocked_processes[tid]
+        s, ts = blocked_threads[tid]
+        del blocked_threads[tid]
         s.lock.acquire()
         s.send(tup)
         s.lock.release()
@@ -488,14 +488,19 @@ def removeProcess(pid):
         del threads[tid]
         pthreads[pid].remove(tid)
         if len(pthreads[pid]) > 0:
+            for ts in local_ts:
+                if local_ts[ts].isDeadLocked():
+                    local_ts[ts].unblockRandom()
             return
     if not utils.isProcessId(pid):
         return
 
     # check that it wasn't blocked when the connection was lost
-    for tid in blocked_processes.keys():
+    for tid in blocked_threads.keys():
         if utils.getProcessIdFromThreadId(tid) == pid:
-            del blocked_processes[tid]
+            del blocked_threads[tid]
+
+    del pthreads[pid]
 
     # remove any references the process may have had to our tuplespaces
     for ts in local_ts:
@@ -521,12 +526,12 @@ def cleanShutdown():
 
     sys.exit()
 
-def unblock_process(tid):
-    assert tid in blocked_processes.keys()
+def unblock_thread(tid):
+    assert tid in blocked_threads.keys()
 
-    s, ts = blocked_processes[tid]
+    s, ts = blocked_threads[tid]
     s.lock.acquire()
-    del blocked_processes[tid]
+    del blocked_threads[tid]
     s.send(None, (unblock, ))
     s.lock.release()
 

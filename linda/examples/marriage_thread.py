@@ -71,7 +71,6 @@ class Man(threading.Thread):
                 break
 
         print "%s ended with %s (%i)" % (self.name, w, order.index(w) + 1)
-        linda.disconnect()
 
 # Function that represents a Woman
 class Woman(threading.Thread):
@@ -124,7 +123,6 @@ class Woman(threading.Thread):
                 print "%s accepting %s" % (self.name, fiance)
 
         print "%s ended with %s (%i)" % (self.name, fiance, order.index(fiance) + 1)
-        linda.disconnect()
 
 if args[0] == "men":
     print "create tuplespace"

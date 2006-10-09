@@ -99,8 +99,8 @@ class TupleSpace:
 
                     def do_return_tuple():
                         utils.changeOwner(tup, self._id, utils.getProcessIdFromThreadId(tid))
-                        req, ts = server.blocked_processes[tid]
-                        del server.blocked_processes[tid]
+                        req, ts = server.blocked_threads[tid]
+                        del server.blocked_threads[tid]
                         req.lock.acquire()
                         req.send(None, ("RESULT_TUPLE", tup))
                         req.lock.release()
@@ -216,7 +216,7 @@ class TupleSpace:
 
             # Delete the process we're unblocking from the blocked list and send it an unblock message
             del self.blocked_list[p]
-            server.unblock_process(p)
+            server.unblock_thread(p)
         finally:
             self.lock.release()
 
@@ -333,7 +333,7 @@ class TupleSpace:
         finally:
             self.killlock.release()
 
-        # if a reference is removed this may mean the remaining processes are deadlocked - check if that is the case
+        # if a reference is removed this may mean the remaining processes are deadlocked - check if that is the caseoved this may mean the remaining processes are deadlocked - check if that is the case
         if self.isDeadLocked():
             self.unblockRandom()
         # check to see if we're now garbage
@@ -380,7 +380,7 @@ class TupleSpace:
                 refs.extend(server.pthreads[r])
             elif utils.isThreadId(r):
                 if not threads.has_key(r):
-                    if server.blocked_processes.has_key(r):
+                    if server.blocked_threads.has_key(r):
                         threads[r] = True
                     else:
                         return False
