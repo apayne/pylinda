@@ -26,6 +26,8 @@
 void Linda_scanTuple(Tuple t, char* ref) {
     int i;
     Message* m;
+    Linda_thread_data* tdata;
+
     for(i=0; i<Tuple_get_size(t); i++) {
         Value* v = Tuple_get(t, i);
         switch(v->type) {
@@ -37,10 +39,11 @@ void Linda_scanTuple(Tuple t, char* ref) {
         case TYPE:
             break;
         case TSREF:
+            tdata = Linda_get_thread_data();
             m = Message_addReference2(v->tsid, ref);
-            Message_send(Linda_sd, NULL, m);
+            Message_send(tdata->sd, NULL, m);
             Message_free(m);
-            m = Message_recv(Linda_sd);
+            m = Message_recv(tdata->sd);
             Message_free(m);
             break;
         case TUPLE:

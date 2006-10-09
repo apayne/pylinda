@@ -115,9 +115,6 @@ int Linda_server_disconnect() {
 #endif
     shutdown(Linda_sd, SHUT_RDWR);
     Linda_active_connections -= 1;
-    if(Linda_active_connections == 0) {
-        Message_shutdown();
-    }
     return 1;
 }
 

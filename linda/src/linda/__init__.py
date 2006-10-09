@@ -22,8 +22,6 @@
 ## The elements in the module are actually imported from \ref kernel
 ## \author Andrew Wilkinson <aw@cs.york.ac.uk>
 
-version = "0.7a1"
-
-from _linda import connect, uts, TupleSpace
+from _linda import connect, disconnect, uts, TupleSpace, version
 
 import utils

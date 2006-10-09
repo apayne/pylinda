@@ -335,46 +335,50 @@ Message* Message_out(const Linda_tuplespace ts, Tuple t) {
 }
 
 Message* Message_in(const Linda_tuplespace ts, Tuple t) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = IN;
     m->in.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->in.ts, ts);
     m->in.t = Tuple_copy(t);
-    m->in.tid = (char*)malloc(strlen(thread_id)+1);
-    strcpy(m->in.tid, thread_id);
+    m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
+    strcpy(m->in.tid, tdata->thread_id);
     return m;
 }
 
 Message* Message_rd(const Linda_tuplespace ts, Tuple t) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = RD;
     m->rd.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->rd.ts, ts);
     m->rd.t = Tuple_copy(t);
-    m->rd.tid = (char*)malloc(strlen(thread_id)+1);
-    strcpy(m->rd.tid, thread_id);
+    m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
+    strcpy(m->rd.tid, tdata->thread_id);
     return m;
 }
 
 Message* Message_inp(const Linda_tuplespace ts, Tuple t) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = INP;
     m->in.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->in.ts, ts);
     m->in.t = Tuple_copy(t);
-    m->in.tid = (char*)malloc(strlen(thread_id)+1);
-    strcpy(m->in.tid, thread_id);
+    m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
+    strcpy(m->in.tid, tdata->thread_id);
     return m;
 }
 
 Message* Message_rdp(const Linda_tuplespace ts, Tuple t) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = RDP;
     m->rd.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->rd.ts, ts);
     m->rd.t = Tuple_copy(t);
-    m->rd.tid = (char*)malloc(strlen(thread_id)+1);
-    strcpy(m->rd.tid, thread_id);
+    m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
+    strcpy(m->rd.tid, tdata->thread_id);
     return m;
 }
 
@@ -407,20 +411,22 @@ Message* Message_unblock() {
 }
 
 Message* Message_createTuplespace() {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = CREATE_TUPLESPACE;
-    m->string = (char*)malloc(strlen(thread_id)+1);
-    strcpy(m->string, thread_id);
+    m->string = (char*)malloc(strlen(tdata->thread_id)+1);
+    strcpy(m->string, tdata->thread_id);
     return m;
 }
 
 Message* Message_addReference(const Linda_tuplespace ts) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = ADD_REFERENCE;
     m->ref.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->ref.ts, ts);
-    m->ref.tid = (char*)malloc(strlen(thread_id) + 1);
-    strcpy(m->ref.tid, thread_id);
+    m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
+    strcpy(m->ref.tid, tdata->thread_id);
     return m;
 }
 
@@ -435,12 +441,13 @@ Message* Message_addReference2(const Linda_tuplespace ts, char* id) {
 }
 
 Message* Message_deleteReference(const Linda_tuplespace ts) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = DELETE_REFERENCE;
     m->ref.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
     strcpy(m->ref.ts, ts);
-    m->ref.tid = (char*)malloc(strlen(thread_id) + 1);
-    strcpy(m->ref.tid, thread_id);
+    m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
+    strcpy(m->ref.tid, tdata->thread_id);
     return m;
 }
 

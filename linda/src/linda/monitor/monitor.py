@@ -105,7 +105,6 @@ class Thread:
                 return
             linda.send(sd, ("INSPECT", ts._id))
             r = linda.recv(sd)
-            print r
             if r[1] == "DONT_KNOW":
                 print "The local server does not have a partition of %s" % (ts._id, )
                 return
@@ -113,7 +112,6 @@ class Thread:
                 print "Invalid reply: '%s'" % (r, )
                 return
             r = r[2]
-            print r
             print "References:", [x for x in eval(r[0]) if x != linda.process_id] + ["Monitor" for x in eval(r[0]) if x == linda.process_id]
             print "Threads Blocked:", eval(r[1])
             print "Servers Blocked:", eval(r[4])

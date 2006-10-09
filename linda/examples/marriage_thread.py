@@ -51,8 +51,10 @@ class Man(threading.Thread):
         self.name = name
 
     def run(self):
+        linda.connect()
+
         # Get the tuplespace we're working in
-        ts = linda.universe._in(("ts", linda.TupleSpace))[1]
+        ts = linda.uts._in(("ts", linda.TupleSpace))[1]
 
         # Randomize the order we want to propose to people in
         order = women[:]
@@ -69,6 +71,7 @@ class Man(threading.Thread):
                 break
 
         print "%s ended with %s (%i)" % (self.name, w, order.index(w) + 1)
+        linda.disconnect()
 
 # Function that represents a Woman
 class Woman(threading.Thread):
@@ -77,6 +80,8 @@ class Woman(threading.Thread):
         self.name = name
 
     def run(self):
+        linda.connect()
+
         # Returns the person we'd rather marry
         def BestOf(fiance, suitor):
             if fiance is None:
@@ -93,7 +98,7 @@ class Woman(threading.Thread):
                 return fiance
 
         # Get the tuplespace we're working in
-        ts = linda.universe._in(("ts", linda.TupleSpace))[1]
+        ts = linda.uts._in(("ts", linda.TupleSpace))[1]
 
         # Randomize the order we want to marry people in
         order = men[:]
@@ -119,12 +124,13 @@ class Woman(threading.Thread):
                 print "%s accepting %s" % (self.name, fiance)
 
         print "%s ended with %s (%i)" % (self.name, fiance, order.index(fiance) + 1)
+        linda.disconnect()
 
 if args[0] == "men":
     print "create tuplespace"
     ts = linda.TupleSpace()
     for i in range(len(men) + len(women)):
-        linda.universe._out(("ts", ts))
+        linda.uts._out(("ts", ts))
     del ts
 
     for i in men:

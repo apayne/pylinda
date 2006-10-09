@@ -108,8 +108,9 @@ static PyObject* linda_TupleSpace_in(linda_TupleSpaceObject* self, PyObject* arg
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     t2 = Linda_in(self->ts, t1);
-
+    Py_END_ALLOW_THREADS
     Tuple_free(t1);
 
     if(t2 == NULL) {
@@ -144,8 +145,9 @@ static PyObject* linda_TupleSpace_rd(linda_TupleSpaceObject* self, PyObject* arg
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     t2 = Linda_rd(self->ts, t1);
-
+    Py_END_ALLOW_THREADS
     Tuple_free(t1);
 
     if(t2 == NULL) {
@@ -180,7 +182,9 @@ static PyObject* linda_TupleSpace_inp(linda_TupleSpaceObject* self, PyObject* ar
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     t2 = Linda_inp(self->ts, t1);
+    Py_END_ALLOW_THREADS
     Tuple_free(t1);
 
     if(t2 == NULL) {
@@ -215,7 +219,9 @@ static PyObject* linda_TupleSpace_rdp(linda_TupleSpaceObject* self, PyObject* ar
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     t2 = Linda_rdp(self->ts, t1);
+    Py_END_ALLOW_THREADS
     Tuple_free(t1);
 
     if(t2 == NULL) {
@@ -255,8 +261,11 @@ static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     r = Linda_collect(self->ts, ((linda_TupleSpaceObject*)ts)->ts, t);
+    Py_END_ALLOW_THREADS
     Tuple_free(t);
+
     if(r < 0) {
         PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
         return NULL;
@@ -291,7 +300,9 @@ static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyO
         return Py_None;
     }
 
+    Py_BEGIN_ALLOW_THREADS
     r = Linda_copy_collect(self->ts, ((linda_TupleSpaceObject*)ts)->ts, t);
+    Py_END_ALLOW_THREADS
     Tuple_free(t);
 
     if(r < 0) {

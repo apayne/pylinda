@@ -23,9 +23,8 @@
 #include PYTHON_H
 
 #include "linda.h"
+#include "linda_internal.h"
 #include "linda_python.h"
-
-extern int Linda_sd;
 
 PyObject* Linda_module;
 
@@ -53,7 +52,8 @@ static PyObject* LindaPython_disconnect(PyObject* self, PyObject* args) {
 }
 
 static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
-    return PyInt_FromLong(Linda_sd);
+    Linda_thread_data* tdata = Linda_get_thread_data();
+    return PyInt_FromLong(tdata->sd);
 }
 
 static PyMethodDef LindaMethods[] = {
@@ -61,7 +61,7 @@ static PyMethodDef LindaMethods[] = {
     {"disconnect",  LindaPython_disconnect, METH_NOARGS, "Disconnect from the Linda network."},
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
-    {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the serve."},
+    {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the server."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

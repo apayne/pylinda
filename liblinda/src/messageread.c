@@ -27,14 +27,12 @@
 #include "linda.h"
 #include "linda_internal.h"
 
-unsigned char Linda_XML_init = 0;
-XML_Parser p;
-
 void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** atts);
 void EndElementHandler(void* userData, const XML_Char* name);
 void CharacterDataHandler(void* userData, const XML_Char* s, int len);
 
 struct buildmessage_t {
+    XML_Parser p;
     char* text;
     int tuplecount;
     Tuplequeue tq;
@@ -51,6 +49,7 @@ void initbuildmessage(buildmessage* bm) {
     memset(bm->m, 0, sizeof(Message));
     bm->tq = NULL;
     bm->in_tuple = 0;
+    bm->p = XML_ParserCreate("UTF-8");
 }
 
 Message* delbuildmessage(buildmessage* bm) {
@@ -58,6 +57,7 @@ Message* delbuildmessage(buildmessage* bm) {
     if(bm->tq != NULL) {
         fprintf(stderr, "Tuplequeue not null!\n");
     }
+    XML_ParserFree(bm->p);
     return bm->m;
 }
 
@@ -69,15 +69,10 @@ Message* Message_recv(int s) {
     buildmessage bm;
     initbuildmessage(&bm);
 
-    if(!Linda_XML_init) {
-        p = XML_ParserCreate("UTF-8");
-        Linda_XML_init = 1;
-    }
+    XML_SetElementHandler(bm.p, StartElementHandler, EndElementHandler);
+    XML_SetCharacterDataHandler(bm.p, CharacterDataHandler);
 
-    XML_SetElementHandler(p, StartElementHandler, EndElementHandler);
-    XML_SetCharacterDataHandler(p, CharacterDataHandler);
-
-    XML_SetUserData(p, (void*)&bm);
+    XML_SetUserData(bm.p, (void*)&bm);
     bytesread = 0;
     while(bytesread < 4) {
         bytesrecv = recv(s, &(((char*)&msgsize)[bytesread]), 4-bytesread, 0);
@@ -91,7 +86,7 @@ Message* Message_recv(int s) {
     bytesread = 0;
     while(bytesread < msgsize) {
         int buf_size = (102400 < (msgsize - bytesread) ? 102400 : (msgsize - bytesread));
-        buf = XML_GetBuffer(p, buf_size);
+        buf = XML_GetBuffer(bm.p, buf_size);
         bytesrecv = recv(s, buf, buf_size, 0);
         if(bytesrecv <= 0) {
             free(delbuildmessage(&bm));
@@ -99,38 +94,13 @@ Message* Message_recv(int s) {
         }
         bytesread += bytesrecv;
 
-        if(!XML_ParseBuffer(p, bytesrecv, bytesread == msgsize)) {
+        if(!XML_ParseBuffer(bm.p, bytesrecv, bytesread == msgsize)) {
             fprintf(stderr, "XML Parser Error!\n");
             exit(-1);
         }
     }
 
-    XML_ParserReset(p, "UTF-8");
     return delbuildmessage(&bm);
-}
-
-Message* Message_parse(char* text, int len, unsigned char final) {
-    buildmessage bm;
-    initbuildmessage(&bm);
-
-    if(!Linda_XML_init) {
-        p = XML_ParserCreate("UTF-8");
-        XML_SetElementHandler(p, StartElementHandler, EndElementHandler);
-        XML_SetCharacterDataHandler(p, CharacterDataHandler);
-        Linda_XML_init = 1;
-    }
-
-    XML_SetUserData(p, (void*)&bm);
-    XML_Parse(p, text, len, final);
-
-    return delbuildmessage(&bm);
-}
-
-void Message_shutdown() {
-    if(Linda_XML_init) {
-        XML_ParserFree(p);
-        Linda_XML_init = 0;
-    }
 }
 
 void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** attrs) {

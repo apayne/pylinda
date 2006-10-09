@@ -165,8 +165,6 @@ Message* Message_multiple_in(const Linda_tuplespace ts, Tuple t);
 
 void Message_free(Message* m);
 
-void Message_shutdown();
-
 void Linda_scanTuple(Tuple t, char* ref);
 
 struct Tuplequeue_t {
@@ -179,10 +177,19 @@ Tuplequeue Tuplequeue_push(Tuplequeue tq);
 Tuplequeue Tuplequeue_pop(Tuplequeue tq);
 Tuple Tuplequeue_top(Tuplequeue tq);
 
+struct Linda_thread_data_t {
+    int sd;
+    char* thread_id;
+};
+typedef struct Linda_thread_data_t Linda_thread_data;
+Linda_thread_data* Linda_get_thread_data();
+
+#ifdef LINDA_SERVER
 #ifdef USE_DOMAIN_SOCKETS
 extern int Linda_udd;
 #endif
 extern int Linda_sd;
+#endif
 extern int Linda_active_connections;
 
 #ifdef __cplusplus

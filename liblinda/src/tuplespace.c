@@ -26,10 +26,11 @@
 
 Linda_tuplespace Linda_createTuplespace() {
     Linda_tuplespace ts;
+    Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_createTuplespace();
-    Message_send(Linda_sd, NULL, m);
+    Message_send(tdata->sd, NULL, m);
     Message_free(m);
-    m = Message_recv(Linda_sd);
+    m = Message_recv(tdata->sd);
     if(m == NULL) { return NULL; }
     else if(m->type != RESULT_STRING) {
         return NULL;
@@ -41,21 +42,23 @@ Linda_tuplespace Linda_createTuplespace() {
 }
 
 void Linda_addReference(const Linda_tuplespace ts) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     if(strcmp(ts, "UTS") == 0) { return; }
     if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
     Message* m = Message_addReference(ts);
-    Message_send(Linda_sd, NULL, m);
+    Message_send(tdata->sd, NULL, m);
     Message_free(m);
-    m = Message_recv(Linda_sd);
+    m = Message_recv(tdata->sd);
     Message_free(m);
 }
 
 void Linda_deleteReference(const Linda_tuplespace ts) {
+    Linda_thread_data* tdata = Linda_get_thread_data();
     if(strcmp(ts, "UTS") == 0) { return; }
     if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
     Message* m = Message_deleteReference(ts);
-    Message_send(Linda_sd, NULL, m);
+    Message_send(tdata->sd, NULL, m);
     Message_free(m);
-    m = Message_recv(Linda_sd);
+    m = Message_recv(tdata->sd);
     Message_free(m);
 }
