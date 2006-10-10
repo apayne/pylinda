@@ -161,7 +161,7 @@ class TupleSpace:
                 self.blocked_list[tid] = (pattern, unblockable, False)
             else:
                 # we found a tuple so update the references and return it
-                utils.addReference(r, self._id, utils.getProcessIdFromThreadId(tid))
+                utils.addReference(r, utils.getProcessIdFromThreadId(tid))
                 return r
         finally:
             self.lock.release()

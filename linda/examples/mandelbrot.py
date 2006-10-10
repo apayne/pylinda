@@ -29,23 +29,23 @@ if len(sys.argv) > 1 and sys.argv[1] == "master":
     out = linda.TupleSpace()
     pix = linda.TupleSpace()
 
-    linda.universe._out(("out", out))
-    linda.universe._out(("pix", pix))
+    linda.uts._out(("out", out))
+    linda.uts._out(("pix", pix))
 
     width, height = 80, 80
     left, right, top, bottom = -2.0, 1.0, -1.0, 1.0
 
     rls = (right - left) / width
     bts = (bottom - top) / height
-    
+
     ylist = range(height) * width
     xlist = range(width) * height
-    
+
     xlist.sort()
-        
+
     map(lambda (x,y): out._out((x,y, left + x * rls, top + y * bts)), zip(xlist, ylist))
-    
-    import Image
+
+    from PIL import Image
     im = Image.new("RGB", (width, height))
 
     for i in range(height * width):
@@ -63,12 +63,12 @@ if len(sys.argv) > 1 and sys.argv[1] == "master":
 
     im.save("fractal.png")
 
-    out = linda.universe._in(("out", linda.TupleSpace))[1]
-    pix = linda.universe._in(("pix", linda.TupleSpace))[1]
+    out = linda.uts._in(("out", linda.TupleSpace))[1]
+    pix = linda.uts._in(("pix", linda.TupleSpace))[1]
 
 else:
-    out = linda.universe._rd(("out", linda.TupleSpace))[1]
-    pix = linda.universe._rd(("pix", linda.TupleSpace))[1]
+    out = linda.uts._rd(("out", linda.TupleSpace))[1]
+    pix = linda.uts._rd(("pix", linda.TupleSpace))[1]
 
     col_mul = (2**24-1)/float(MaxIters)
 

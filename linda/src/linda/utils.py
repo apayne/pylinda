@@ -49,7 +49,7 @@ def addReference(tup, new, node=None):
             if node is None:
                 server.local_ts.addReference(e._id, new)
             else:
-                connections.sendMessageToNode(node, None, messages.increment_ref, e._id, new)
+                connections.sendMessageToNode(node, None, messages.add_reference, e._id, new)
         return e
     [do_replace(x) for x in tup]
 
@@ -66,7 +66,7 @@ def changeOwner(tup, cur, new, node=None):
             if node is None:
                 server.local_ts.addReference(e._id, new)
             else:
-                connections.sendMessageToNode(node, None, messages.increment_ref, e._id, new)
+                connections.sendMessageToNode(node, None, messages.add_reference, e._id, new)
             server.local_ts.deleteReference(e._id, cur)
         return e
     [do_replace(x) for x in tup]

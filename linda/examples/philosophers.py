@@ -28,16 +28,16 @@ number = 5
 
 def Philosopher(i):
     while 1:
-	think(i)
+        think(i)
         if random.random() < 0.3: # have they eaten enough?
             break
-	ts._in(("room ticket", ))
-	ts._in(("chopstick", i))
-	ts._in(("chopstick", (i+1)%number))
-	ts._out(("room ticket", ))
-	eat(i)
-	ts._out(("chopstick", i))
-	ts._out(("chopstick", (i+1)%number))
+        ts._in(("room ticket", ))
+        ts._in(("chopstick", i))
+        ts._in(("chopstick", (i+1)%number))
+        ts._out(("room ticket", ))
+        eat(i)
+        ts._out(("chopstick", i))
+        ts._out(("chopstick", (i+1)%number))
     print "Philosopher %i leaving" % (i, )
 
 def think(i):
@@ -59,14 +59,14 @@ if len(sys.argv) == 1:
     import os
     for i in range(number):
         if os.fork() == 0:
-            os.execlp("philosophers.py", "philosophers.py", str(i))
-        linda.universe._out((ts, ))
+            os.execlp("./philosophers.py", "./philosophers.py", str(i))
+        linda.uts._out((ts, ))
         ts._out(("chopstick", i))
 
     ts._out(("room ticket", ))
 
 else:
-    ts = linda.universe._in((linda.TupleSpace, ))[0]
+    ts = linda.uts._in((linda.TupleSpace, ))[0]
 
     Philosopher(int(sys.argv[1]))
 
