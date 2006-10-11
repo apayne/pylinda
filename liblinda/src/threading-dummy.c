@@ -18,36 +18,15 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "linda.h"
+#include "linda_internal.h"
 
-#define FORCE_C
-#include "linda.h"
+Linda_thread_data Linda_main_thread = {0, NULL};
 
-namespace Linda {
-
-Tuple::Tuple(int size) {
-    this->values = Tuple_new(size);
-}
-
-Tuple::Tuple(const Tuple& t) {
-    this->values = Tuple_copy((struct Tuple_t*)t.values);
-}
-
-Tuple::Tuple(struct Tuple_t* t) {
-    this->values = Tuple_copy(t);
-}
-
-Tuple::~Tuple() {
-    Tuple_free((struct Tuple_t*)this->values);
-}
-
-void Tuple::set(int i, const Value& v) {
-    Tuple_set((struct Tuple_t*)this->values, i, *((struct Value_t*)v.value));
-}
-
-Value Tuple::get(int i) {
-    return Tuple_get(this->values, i);
-}
-
+Linda_thread_data* Linda_get_thread_data() {
+    return &Linda_main_thread;
 }
 

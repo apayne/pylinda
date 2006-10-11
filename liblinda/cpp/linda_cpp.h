@@ -46,14 +46,16 @@ public:
     Value(char* s);
     Value(char* s, int len);
     Value(const Value& v);
+    Value(const struct Value_t& t);
 
     ~Value();
 
+    void makeStringIntoType();
+
     template<typename T> T get();
 protected:
-    void* value;
+    struct Value_t* value;
 };
-
 
 class Tuple {
     friend class TupleSpace;
@@ -67,29 +69,44 @@ public:
     void set(int i, const Value& v);
     Value get(int i);
 protected:
-    void* values;
+    struct Tuple_t* values;
 };
 
 class TupleSpace {
 public:
     TupleSpace();
     TupleSpace(std::string tsid);
+    TupleSpace(const TupleSpace& ts);
     ~TupleSpace();
 
     void out(Tuple& t);
     Tuple in(Tuple& t);
     Tuple rd(Tuple& t);
-    Tuple inp(Tuple& t);
-    Tuple rdp(Tuple& t);
+    Tuple* inp(Tuple& t);
+    Tuple* rdp(Tuple& t);
 
     int collect(TupleSpace& ts, Tuple& t);
     int copy_collect(TupleSpace& ts, Tuple& t);
+
+    TupleSpace& operator=(const TupleSpace& ts);
 
 private:
     std::string tsid;
 };
 
 extern TupleSpace uts;
+
+extern Value boolType;
+extern Value intType;
+extern Value floatType;
+extern Value stringType;
+extern Value tsType;
+extern Value tupleType;
+extern Value tuplespaceType;
+
+template<> int Value::get();
+template<> double Value::get();
+template<> TupleSpace Value::get();
 
 }
 

@@ -38,6 +38,8 @@ int Linda_port = 2102;
 
 int Linda_active_connections = 0;
 
+Linda_tuplespace Linda_uts = "UTS";
+
 unsigned char Linda_connect(int port) {
     int err;
     Message* m;

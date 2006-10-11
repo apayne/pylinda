@@ -31,7 +31,7 @@ Value Value_new() {
     return v;
 }
 
-Value Value_copy(Value* v) {
+Value Value_copy(const Value* v) {
     Value nv;
     nv.type = v->type;
     switch(v->type) {
@@ -67,7 +67,7 @@ Value Value_copy(Value* v) {
     return nv;
 }
 
-Value* Value_copyptr(Value* v) {
+Value* Value_copyptr(const Value* v) {
     Value* nv = (Value*)malloc(sizeof(Value));
     *nv = Value_copy(v);
     return nv;

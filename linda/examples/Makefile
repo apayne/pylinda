@@ -1,7 +1,10 @@
-all: mandelbrot
+all: mandelbrot mandelbrot++
 
 mandelbrot: mandelbrot.c
-	gcc -g -O3 -ltcl8.3 -ltk8.3 -L/usr/lib/python2.3/ -lpython2.3 -I/usr/include/python2.3/ -o mandelbrot mandelbrot.c
+	gcc -g -O3 -llinda -lexpat -lpthread -o mandelbrot mandelbrot.c
+
+mandelbrot++: mandelbrot.cpp
+	g++ -g -O3 -llinda++ -llinda -lexpat -lpthread -o mandelbrot++ mandelbrot.cpp
 
 clean:
 	rm -f mandelbrot

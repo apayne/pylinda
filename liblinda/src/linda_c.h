@@ -27,7 +27,6 @@ extern "C" {
 
 extern char* version;
 extern char* process_id;
-extern char* thread_id;
 
 #ifndef NULL
 #define NULL (void*)0
@@ -71,8 +70,8 @@ struct Tuple_t {
 };
 
 Value Value_new();
-Value Value_copy(Value* v);
-Value* Value_copyptr(Value* v);
+Value Value_copy(const Value* v);
+Value* Value_copyptr(const Value* v);
 void Value_clear(Value* v);
 void Value_free(Value* v);
 
@@ -154,6 +153,8 @@ struct Tuple_t* Linda_rdp(const Linda_tuplespace ts, struct Tuple_t* t);
 
 int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, struct Tuple_t* t);
 int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, struct Tuple_t* t);
+
+extern Linda_tuplespace Linda_uts;
 
 #ifdef __cplusplus
 }

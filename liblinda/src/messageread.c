@@ -95,6 +95,11 @@ Message* Message_recv(int s) {
         bytesread += bytesrecv;
 
         if(!XML_ParseBuffer(bm.p, bytesrecv, bytesread == msgsize)) {
+            int i;
+            for(i = 0; i < bytesrecv; i++) {
+                printf("%c", buf[i]);
+            }
+            printf("\n");
             fprintf(stderr, "XML Parser Error!\n");
             exit(-1);
         }
@@ -207,7 +212,7 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
             }
             attrptr = attrptr + 2;
         }
-    } else if(strcmp(name, "true") == 0 || strcmp(name, "false") == 0 || strcmp(name, "int") == 0 || strcmp(name, "float") == 0 || strcmp(name, "string") == 0 || strcmp(name, "type") == 0) {
+    } else if(strcmp(name, "true") == 0 || strcmp(name, "false") == 0|| strcmp(name, "nil") == 0 || strcmp(name, "int") == 0 || strcmp(name, "float") == 0 || strcmp(name, "string") == 0 || strcmp(name, "type") == 0) {
     } else {
         fprintf(stderr, "Unknown message open tag '%s'. Ignoring.\n", name);
     }
@@ -352,6 +357,8 @@ void EndElementHandler(void* userData, const XML_Char* name) {
                 Tuple_free(t);
             }
         }
+    } else if(strcmp(name, "nil") == 0) {
+        Tuple_add(Tuplequeue_top(bm->tq), Value_nil());
     } else if(strcmp(name, "true") == 0) {
         Tuple_add(Tuplequeue_top(bm->tq), Value_bool(1));
     } else if(strcmp(name, "false") == 0) {

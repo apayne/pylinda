@@ -59,12 +59,26 @@ Tuple TupleSpace::rd(Tuple& t) {
     return Linda_rd((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
-Tuple TupleSpace::inp(Tuple& t) {
-    return Linda_inp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
+Tuple* TupleSpace::inp(Tuple& t) {
+    struct Tuple_t* rt = Linda_inp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
+    if(rt == NULL) {
+        return NULL;
+    } else {
+        Tuple* tp = new Tuple(rt);
+        Tuple_free(rt);
+        return tp;
+    }
 }
 
-Tuple TupleSpace::rdp(Tuple& t) {
-    return Linda_rdp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
+Tuple* TupleSpace::rdp(Tuple& t) {
+    struct Tuple_t* rt = Linda_rdp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
+    if(rt == NULL) {
+        return NULL;
+    } else {
+        Tuple* tp = new Tuple(rt);
+        Tuple_free(rt);
+        return tp;
+    }
 }
 
 int TupleSpace::collect(TupleSpace& ts, Tuple& t) {
@@ -73,6 +87,15 @@ int TupleSpace::collect(TupleSpace& ts, Tuple& t) {
 
 int TupleSpace::copy_collect(TupleSpace& ts, Tuple& t) {
     return Linda_copy_collect((const Linda_tuplespace)ts.tsid.c_str(), (char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
+}
+
+TupleSpace& TupleSpace::operator=(const TupleSpace& ts) {
+    Linda_addReference((const Linda_tuplespace)ts.tsid.c_str());
+    Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+
+    this->tsid = ts.tsid;
+
+    return *this;
 }
 
 }

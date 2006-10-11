@@ -256,7 +256,10 @@ char* Message_getTupleString(Tuple t) {
 char* Message_getElementString(Value* v) {
     int size;
     char* tmp;
-    if(Value_is_bool(v)) {
+    if(Value_is_nil(v)) {
+        tmp = (char*)malloc(8);
+        sprintf(tmp, "<nil />");
+    } else if(Value_is_bool(v)) {
         if(Value_get_bool(v)) {
             tmp = (char*)malloc(9);
             sprintf(tmp, "<true />");
@@ -284,7 +287,7 @@ char* Message_getElementString(Value* v) {
     } else if(Value_is_tuple(v)) {
         tmp = Message_getTupleString(Value_get_tuple(v));
     } else {
-        fprintf(stderr, "Error, invalid value type.\n");
+        fprintf(stderr, "Error, invalid value type (%i).\n", v->type);
         tmp = (char*)malloc(1);
         tmp[0] = '\0';
     }

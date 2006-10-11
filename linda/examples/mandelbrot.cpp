@@ -19,6 +19,7 @@
 */
 
 #include <stdio.h>
+#include <math.h>
 #include <linda.h>
 
 #define MaxIters 256*256
@@ -26,60 +27,56 @@
 int main(int argc, char* argv[]) {
     double col_mul;
     col_mul = (pow(2, 24)-1)/((double)MaxIters);
-    Tuple template;
-    Tuple t;
-    Linda_tuplespace out;
-    Linda_tuplespace pix;
+    Linda::Tuple templat;
+    Linda::Tuple t;
+    Linda::Tuple* tp;
+    Linda::TupleSpace out;
+    Linda::TupleSpace pix;
 
-    Linda_connect(Linda_port);
+    Linda::connect(Linda_port);
 
-    template = Tuple_new(2);
-    Tuple_set(template, 0, Value_string("out"));
-    Tuple_set(template, 1, Value_tuplespaceType);
-    t = Linda_rd(Linda_uts, template);
-    Tuple_free(template);
+    templat = Linda::Tuple(2);
+    templat.set(0, "out");
+    templat.set(0, Linda::tuplespaceType);
+    t = Linda::uts.rd(templat);
 
-    out = (Linda_tuplespace)malloc(strlen(Value_get_tsref(Tuple_get(t, 1))));
-    strcpy(out, Value_get_tsref(Tuple_get(t, 1)));
-    Tuple_free(t);
+    out = t.get(1).get<Linda::TupleSpace>();
 
-    template = Tuple_new(2);
-    Tuple_set(template, 0, Value_string("pix"));
-    Tuple_set(template, 1, Value_tuplespaceType);
-    t = Linda_rd(Linda_uts, template);
-    Tuple_free(template);
+    templat = Linda::Tuple(2);
+    templat.set(0, "pix");
+    templat.set(0, Linda::tuplespaceType);
+    t = Linda::uts.rd(templat);
 
-    pix = (Linda_tuplespace)malloc(strlen(Value_get_tsref(Tuple_get(t, 1))));
-    strcpy(pix, Value_get_tsref(Tuple_get(t, 1)));
+    pix = t.get(1).get<Linda::TupleSpace>();
 
-    template = Tuple_new(4);
-    Tuple_set(template, 0, Value_intType);
-    Tuple_set(template, 1, Value_intType);
-    Tuple_set(template, 2, Value_floatType);
-    Tuple_set(template, 3, Value_floatType);
+    templat = Linda::Tuple(4);
+    templat.set(0, Linda::intType);
+    templat.set(1, Linda::intType);
+    templat.set(2, Linda::intType);
+    templat.set(3, Linda::intType);
 
     int i = 0;
-    while(1) {
+    while(true) {
         int x; int y;
         double cr; double ci;
         double zr; double zi;
         double rsquared; double isquared;
         int count;
 
-        t = Linda_inp(out, template);
-        if(t == NULL) {
+        tp = out.inp(templat);
+        if(tp == NULL) {
             break;
         }
 
-        x = Value_get_int(Tuple_get(t, 0));
-        y = Value_get_int(Tuple_get(t, 1));
+        x = tp->get(0).get<int>();
+        y = tp->get(1).get<int>();
         printf("%i\r", i);
         i++;
 
-        cr = Value_get_float(Tuple_get(t, 2));
-        ci = Value_get_float(Tuple_get(t, 3));
+        cr = tp->get(2).get<double>();
+        ci = tp->get(3).get<double>();
 
-        Tuple_free(t);
+        free(tp);
 
         zr = 0.0; zi = 0.0;
         rsquared = zr * zr;
@@ -97,21 +94,15 @@ int main(int argc, char* argv[]) {
 
         count = (int)(count * col_mul);
 
-        t = Tuple_new(5);
-        Tuple_set(t, 0, Value_int(x));
-        Tuple_set(t, 1, Value_int(y));
-        Tuple_set(t, 2, Value_int((count)%256));
-        Tuple_set(t, 3, Value_int((count>>8)%256));
-        Tuple_set(t, 4, Value_int((count>>16)%256));
+        t = Linda::Tuple(5);
+        t.set(0, x);
+        t.set(1, y);
+        t.set(2, (count)%256);
+        t.set(3, (count>>8)%256);
+        t.set(4, (count>>16)%256);
 
-        Linda_out(pix, t);
-        Tuple_free(t);
+        pix.out(t);
     }
-
-    Tuple_free(template);
-
-    Linda_deleteReference(out); free(out);
-    Linda_deleteReference(pix); free(pix);
 
     Linda_disconnect();
 

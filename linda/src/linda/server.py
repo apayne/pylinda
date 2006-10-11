@@ -527,7 +527,7 @@ def cleanShutdown():
     sys.exit()
 
 def unblock_thread(tid):
-    assert tid in blocked_threads.keys()
+    assert tid in blocked_threads.keys(), (tid, blocked_threads.keys())
 
     s, ts = blocked_threads[tid]
     s.lock.acquire()

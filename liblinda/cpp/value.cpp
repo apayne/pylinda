@@ -26,18 +26,48 @@
 
 namespace Linda {
 
+Value::Value(bool b) {
+    this->value = new struct Value_t;
+    *(this->value) = Value_bool(b);
+}
+
 Value::Value(int i) {
-    this->value = malloc(sizeof(struct Value_t));
-    *((struct Value_t*)this->value) = Value_int(i);
+    this->value = new struct Value_t;
+    *(this->value) = Value_int(i);
+}
+
+Value::Value(char* s) {
+    this->value = new struct Value_t;
+    *(this->value) = Value_string(s);
 }
 
 Value::Value(const Value& v) {
     this->value = Value_copyptr((struct Value_t*)v.value);
 }
 
+Value::Value(const struct Value_t& v) {
+    this->value = Value_copyptr(&v);
+}
+
 Value::~Value() {
     Value_free((struct Value_t*)this->value);
 }
+
+template<> int Value::get() {
+    return Value_get_int(this->value);
+}
+template<> double Value::get() {
+    return (double)Value_get_float(this->value);
+}
+template<> TupleSpace Value::get() {
+    return TupleSpace(Value_get_tsref(this->value));
+}
+
+Value boolType(Value_boolType);
+Value intType(Value_intType);
+Value floatType(Value_floatType);
+Value stringType(Value_stringType);
+Value tuplespaceType(Value_tuplespaceType);
 
 }
 

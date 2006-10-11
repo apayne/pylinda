@@ -140,15 +140,15 @@ class TupleSpaceContainer:
             for ts in self.ts.keys():
                 self.ts[ts].refs = []
                 self.semaphore.release()
-                self.garbage(self.ts[ts])
+                self.garbage(self.ts[ts], True)
                 self.semaphore.acquire()
         finally:
             self.semaphore.release()
 
     ## \brief Test if the given tuplespace should be deleted.
     ## \internal
-    def garbage(self, ts):
-        if ts._id == "UTS":
+    def garbage(self, ts, final = False):
+        if ts._id == "UTS" and not final:
             return
         if len(ts.refs) == 0:
             # The function returns the number of reference remaining, if it returns 0 then there are no references
