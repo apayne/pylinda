@@ -20,20 +20,22 @@
 
 #include "linda.h"
 
-#define FORCE_C
-#include "linda.h"
-
 namespace Linda {
 
 TupleSpace uts("UTS");
 
 bool connect(int port) {
-    return Linda_connect(port);
+    bool r = Linda_connect(port);
+    connected = r;
+    return r;
 }
 
 void disconnect() {
     Linda_disconnect();
+    connected = false;
 }
+
+bool connected;
 
 }
 

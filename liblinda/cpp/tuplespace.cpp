@@ -29,7 +29,12 @@
 namespace Linda {
 
 TupleSpace::TupleSpace() {
-    this->tsid = Linda_createTuplespace();
+    if(connected) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    } else {
+        this->initialised = false;
+    }
 }
 
 TupleSpace::TupleSpace(std::string id) {
@@ -38,6 +43,7 @@ TupleSpace::TupleSpace(std::string id) {
         exit(-1);
     }
     this->tsid = id;
+    this->initialised = true;
 }
 
 TupleSpace::~TupleSpace() {
@@ -48,18 +54,34 @@ TupleSpace::~TupleSpace() {
 }
 
 void TupleSpace::out(Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     Linda_out((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
 Tuple TupleSpace::in(Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     return Linda_in((const Linda_tuplespace)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
 Tuple TupleSpace::rd(Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     return Linda_rd((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
 Tuple* TupleSpace::inp(Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     struct Tuple_t* rt = Linda_inp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
     if(rt == NULL) {
         return NULL;
@@ -71,6 +93,10 @@ Tuple* TupleSpace::inp(Tuple& t) {
 }
 
 Tuple* TupleSpace::rdp(Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     struct Tuple_t* rt = Linda_rdp((char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
     if(rt == NULL) {
         return NULL;
@@ -82,18 +108,38 @@ Tuple* TupleSpace::rdp(Tuple& t) {
 }
 
 int TupleSpace::collect(TupleSpace& ts, Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     return Linda_collect((const Linda_tuplespace)ts.tsid.c_str(), (char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
 int TupleSpace::copy_collect(TupleSpace& ts, Tuple& t) {
+    if(!this->initialised) {
+        this->tsid = Linda_createTuplespace();
+        this->initialised = true;
+    }
     return Linda_copy_collect((const Linda_tuplespace)ts.tsid.c_str(), (char*)this->tsid.c_str(), (struct Tuple_t*)t.values);
 }
 
 TupleSpace& TupleSpace::operator=(const TupleSpace& ts) {
-    Linda_addReference((const Linda_tuplespace)ts.tsid.c_str());
-    Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+    if(ts.initialised) {
+        Linda_addReference((const Linda_tuplespace)ts.tsid.c_str());
+        if(this->initialised) {
+            Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+        }
 
-    this->tsid = ts.tsid;
+        this->tsid = ts.tsid;
+        this->initialised = true;
+    } else {
+        if(this->initialised) {
+            Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+        }
+
+        this->tsid = "";
+        this->initialised = false;
+    }
 
     return *this;
 }

@@ -35,6 +35,8 @@ class TupleSpace;
 bool connect(int port=Linda_port);
 void disconnect();
 
+extern bool connected;
+
 class Value {
     friend class Tuple;
     friend class TupleSpace;
@@ -92,6 +94,7 @@ public:
 
 private:
     std::string tsid;
+    bool initialised;
 };
 
 extern TupleSpace uts;
