@@ -1,0 +1,8 @@
+env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/"], LIBPATH="#.")
+
+Export("env")
+
+objs, interpreter = SConscript("src/SConscript")
+
+lib = env.SharedLibrary("minimal",  objs)
+env.Program("minimal", interpreter, LIBS=["minimal", "fl"])

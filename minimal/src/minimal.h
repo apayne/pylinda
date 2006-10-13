@@ -20,6 +20,53 @@
 
 #ifndef MINIMAL_H
 
+typedef void* MinimalObject;
+
+struct Minimal_SyntaxTree_t {
+    enum {
+        IDENTIFIER,
+        INTEGER,
+        SEQENTIAL_DEFS,
+        TYPE_SPEC,
+        TYPE_FUNCTION
+    } type;
+    union {
+        int integer;
+        double floating;
+        char* string;
+        struct {
+            struct Minimal_SyntaxTree_t* branch1;
+            struct Minimal_SyntaxTree_t* branch2;
+        };
+        struct {
+            char* type_name;
+            struct Minimal_SyntaxTree_t* type_def;
+        };
+    };
+};
+typedef struct Minimal_SyntaxTree_t Minimal_SyntaxTree;
+
+struct Minimal_NameSyntaxMap_t {
+    char* name;
+    Minimal_SyntaxTree* tree;
+    struct Minimal_NameSyntaxMap_t* left;
+    struct Minimal_NameSyntaxMap_t* right;
+};
+typedef struct Minimal_NameSyntaxMap_t Minimal_NameSyntaxMap;
+
+struct MinimalLayer_t {
+    char* name;
+    Minimal_NameSyntaxMap map;
+};
+typedef struct MinimalLayer_t* MinimalLayer;
+
+struct MinimalFunction_t {
+    char* name;
+    Minimal_SyntaxTree* type;
+    Minimal_SyntaxTree* code;
+};
+typedef struct MinimalFunction_t* MinimalFunction;
+
 MinimalLayer Minimal_createLayer();
 
 MinimalFunction Minimal_parseTypeSpec(char* code);
@@ -27,7 +74,11 @@ MinimalFunction Minimal_parseCode(char* code);
 
 MinimalFunction Minimal_getFunction(char* funcname);
 
-void Minimal_addReference(MinimalObject* obj);
-void Minimal_delReference(MinimalObject* obj);
+void Minimal_addReference(MinimalObject obj);
+void Minimal_delReference(MinimalObject obj);
+
+MinimalLayer Minimal_getCurrentLayer();
+MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
+extern MinimalLayer Minimal_defaultLayer;
 
 #endif
