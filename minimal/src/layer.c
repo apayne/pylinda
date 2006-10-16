@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "minimal_internal.h"
 
@@ -27,6 +28,14 @@ MinimalLayer Minimal_defaultLayer;
 static MinimalLayer Minimal_currentLayer;
 
 void Minimal_Layer_init() {
+    Minimal_defaultLayer = Minimal_createLayer();
+    Minimal_defaultLayer->name = (char*)malloc(strlen("__default__")+1);
+    strcpy(Minimal_defaultLayer->name, "__default__");
+    Minimal_currentLayer = Minimal_defaultLayer;
+}
+
+void Minimal_Layer_finalise() {
+    Minimal_deleteLayer(Minimal_defaultLayer);
 }
 
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer) {
@@ -45,9 +54,12 @@ MinimalLayer Minimal_getCurrentLayer() {
 
 void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
     switch(tree->type) {
+    case BLANK:
+        break;
     case IDENTIFIER:
     case INTEGER:
     case TYPE_FUNCTION:
+        fprintf(stderr, "Unknown tree node type in Minimal_Layer_addTree (%i)\n", tree->type);
         break;
     case SEQENTIAL_DEFS:
         Minimal_Layer_addTree(layer, tree->branch1);
@@ -60,4 +72,17 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
         fprintf(stderr, "Unknown tree node type in Minimal_Layer_addTree (%i)\n", tree->type);
         return;
     }
+}
+
+MinimalLayer Minimal_createLayer() {
+    MinimalLayer layer = (MinimalLayer)malloc(sizeof(struct MinimalLayer_t));
+    layer->name = NULL;
+    Minimal_SyntaxMap_init(&(layer->map));
+    return layer;
+}
+
+void Minimal_deleteLayer(MinimalLayer layer) {
+    free(layer->name);
+    Minimal_SyntaxMap_empty(&(layer->map));
+    free(layer);
 }

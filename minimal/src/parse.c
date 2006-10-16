@@ -19,13 +19,14 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "minimal_internal.h"
 
 #include "yy.lex.h"
 
 int yyparse();
-extern Minimal_SyntaxTree yylval;
+Minimal_SyntaxTree yy_result;
 
 MinimalFunction Minimal_parseTypeSpec(char* code) {
     return NULL;
@@ -35,16 +36,18 @@ MinimalFunction Minimal_parseCode(char* code) {
     int r;
     YY_BUFFER_STATE buf = yy_scan_string(code);
     r = yyparse(code);
-    yy_delete_buffer(buf);
-    if(r == 0) {
+    if(r != 0) {
+        yy_delete_buffer(buf);
+        fprintf(stderr, "Syntax error.\n");
         return NULL;
     } else {
         MinimalFunction f;
         MinimalLayer layer = Minimal_setCurrentLayer(Minimal_defaultLayer);
-        f = Minimal_createFunction(&yylval);
+        f = Minimal_createFunction(&yy_result);
+        Minimal_SyntaxTree_clear(&yy_result);
         Minimal_setCurrentLayer(layer);
         Minimal_delReference(layer);
-        Minimal_SyntaxTree_clear(&yylval);
+        yy_delete_buffer(buf);
         return f;
     }
 }

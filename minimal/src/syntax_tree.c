@@ -27,7 +27,8 @@
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id) {
     Minimal_SyntaxTree tree;
     tree.type = IDENTIFIER;
-    tree.string = id;
+    tree.string = (char*)malloc(strlen(id)+1);
+    strcpy(tree.string, id);
     return tree;
 }
 
@@ -43,6 +44,9 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     if(tree == NULL) { return NULL; }
     ntree = (Minimal_SyntaxTree*)malloc(sizeof(struct Minimal_SyntaxTree_t));
     switch(tree->type) {
+    case BLANK:
+        ntree->type = BLANK;
+        return ntree;
     case IDENTIFIER:
         ntree->type = IDENTIFIER;
         ntree->string = (char*)malloc(strlen(tree->string)+1);
@@ -52,9 +56,17 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->type = INTEGER;
         ntree->integer = tree->integer;
         return ntree;
-    case SEQENTIAL_DEFS:
     case TYPE_SPEC:
+        ntree->type = TYPE_SPEC;
+        ntree->type_name = (char*)malloc(strlen(tree->type_name)+1);
+        strcpy(ntree->type_name, tree->type_name);
+        ntree->type_def = Minimal_SyntaxTree_copy(tree->type_def);
+        return ntree;
     case TYPE_FUNCTION:
+        ntree->type = TYPE_FUNCTION;
+        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
+        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        return ntree;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
         free(ntree);
@@ -62,21 +74,37 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     }
 }
 
-void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree) {
-    if(tree == NULL) { return; }
-
+void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     switch(tree->type) {
+    case BLANK:
+        break;
     case IDENTIFIER:
         free(tree->string);
         break;
     case INTEGER:
         break;
     case SEQENTIAL_DEFS:
+        Minimal_SyntaxTree_free(tree->branch1);
+        Minimal_SyntaxTree_free(tree->branch2);
+        break;
     case TYPE_SPEC:
+        free(tree->type_name);
+        Minimal_SyntaxTree_free(tree->type_def);
+        break;
     case TYPE_FUNCTION:
+        Minimal_SyntaxTree_free(tree->branch1);
+        Minimal_SyntaxTree_free(tree->branch2);
+        break;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_free (%i)\n", tree->type);
         break;
     }
+}
+
+void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree) {
+    if(tree == NULL) { return; }
+
+    Minimal_SyntaxTree_clear(tree);
+
     free(tree);
 }

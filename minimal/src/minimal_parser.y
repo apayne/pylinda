@@ -25,6 +25,8 @@
 
 #include "yy.lex.h"
 
+Minimal_SyntaxTree yy_result;
+
 void yyerror(char* s) {
     fprintf(stderr, "%s\n", s);
 }
@@ -34,30 +36,33 @@ void yyerror(char* s) {
 
 %% /* Grammar rules and actions follow */
 
-input:
+input:  { $$.type = BLANK;
+          yy_result = $$; }
      | input typespec_def YY_SEMICOLON {
-                        $$.branch1 = &$1;
-                        $$.branch2 = &$2;
+                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                        $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                         $$.type = SEQENTIAL_DEFS;
+                        yy_result = $$;
                         }
      | input definition YY_SEMICOLON {
-                        $$.branch1 = &$1;
-                        $$.branch2 = &$2;
+                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                        $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                         $$.type = SEQENTIAL_DEFS;
+                        yy_result = $$;
                         }
 ;
 
 typespec_def: YY_ID YY_TYPESPEC typespec {
-    $$.type_name = $1.string;
-    $$.type_def  = &$3;
+    $$.type_name = (char*)malloc(strlen($1.string)+1); strcpy($$.type_name, $1.string); Minimal_SyntaxTree_clear(&$1);
+    $$.type_def  = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
     $$.type = TYPE_SPEC;
     }
 ;
 
 typespec: YY_ID { $$ = $1 }
         | typespec YY_FUNCTION typespec {
-                        $$.branch1 = &$1;
-                        $$.branch2 = &$2;
+                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                        $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         $$.type = TYPE_FUNCTION;
                         }
 ;

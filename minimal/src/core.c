@@ -18,32 +18,15 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "minimal_internal.h"
 
-int main(int argc, char* argv[]) {
-    Minimal_init();
+void Minimal_init() {
+    Minimal_Layer_init();
+}
 
-    if(argc > 1) {
-        int size;
-        char* code;
-        FILE* fp = fopen(argv[1], "r");
-        fseek(fp, 0, SEEK_END);
-        size = ftell(fp);
-        code = (char*)malloc(size+1);
-        fseek(fp, 0, SEEK_SET);
-        fread(code, 1, size, fp);
-        code[size] = '\0';
-        fclose(fp);
-
-        Minimal_parseCode(code);
-
-        free(code);
-    }
-
-    Minimal_finalise();
-
-    return 0;
+void Minimal_finalise() {
+    Minimal_Layer_finalise();
 }

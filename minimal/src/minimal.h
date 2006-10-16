@@ -20,10 +20,14 @@
 
 #ifndef MINIMAL_H
 
+void Minimal_init();
+void Minimal_finalise();
+
 typedef void* MinimalObject;
 
 struct Minimal_SyntaxTree_t {
     enum {
+        BLANK,
         IDENTIFIER,
         INTEGER,
         SEQENTIAL_DEFS,

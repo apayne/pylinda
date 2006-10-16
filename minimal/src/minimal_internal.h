@@ -22,6 +22,9 @@
 
 #ifndef MINIMAL_INTERNAL_H
 
+void Minimal_Layer_init();
+void Minimal_Layer_finalise();
+
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 
@@ -34,7 +37,15 @@ MinimalFunction Minimal_createFunction(Minimal_SyntaxTree* tree);
 void Minimal_addName(Minimal_NameSyntaxMap* map, char* name, Minimal_SyntaxTree* tree);
 Minimal_SyntaxTree* Minimal_getName(Minimal_NameSyntaxMap* map, char* name);
 void Minimal_delName(Minimal_NameSyntaxMap* map, char* name);
+void Minimal_SyntaxMap_empty(Minimal_NameSyntaxMap* map);
 
 void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree);
+
+void Minimal_deleteLayer(MinimalLayer layer);
+
+#define Minimal_SyntaxMap_init(map) \
+    (map)->name = NULL; \
+    (map)->left = NULL; \
+    (map)->right = NULL
 
 #endif

@@ -59,7 +59,7 @@ OPERATOR   [+-\/%\^=*]
 {CDEFINE} { }
 
 %{
-static void Minimal_nevercall() {
+void Minimal_nevercall() {
     unput('a');
 }
 %}

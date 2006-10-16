@@ -25,6 +25,7 @@
 #include "minimal_internal.h"
 
 void Minimal_addName(Minimal_NameSyntaxMap* map, char* name, Minimal_SyntaxTree* tree) {
+    printf("Add Name %s\n", name);
     if(map == NULL) {
         fprintf(stderr, "Minimal Error: addName called with NULL map parameter.\n");
         return;
@@ -41,11 +42,13 @@ void Minimal_addName(Minimal_NameSyntaxMap* map, char* name, Minimal_SyntaxTree*
     } else if(strcmp(map->name, name) == -1) {
         if(map->left == NULL) {
             map->left = (Minimal_NameSyntaxMap*)malloc(sizeof(struct Minimal_NameSyntaxMap_t));
+            Minimal_SyntaxMap_init(map->left);
         }
         Minimal_addName(map->left, name, tree);
     } else if(strcmp(map->name, name) == 1) {
         if(map->right == NULL) {
             map->right = (Minimal_NameSyntaxMap*)malloc(sizeof(struct Minimal_NameSyntaxMap_t));
+            Minimal_SyntaxMap_init(map->right);
         }
         Minimal_addName(map->right, name, tree);
     }
@@ -70,19 +73,28 @@ void Minimal_delName(Minimal_NameSyntaxMap* map, char* name) {
         return;
     } else if(strcmp(map->name, name) == 0) {
         free(map->name);
-        Minimal_SyntaxTree_free(map->tree);
+        map->name = NULL;
+        Minimal_SyntaxTree_free(map->tree); map->tree = NULL;
         if(map->left != NULL) {
             map->name = (char*)malloc(strlen(map->left->name)+1);
             strcpy(map->name, map->left->name);
             map->tree = Minimal_SyntaxTree_copy(map->left->tree);
+            Minimal_delName(map->left, map->left->name);
         } else if(map->right != NULL) {
             map->name = (char*)malloc(strlen(map->right->name)+1);
             strcpy(map->name, map->right->name);
             map->tree = Minimal_SyntaxTree_copy(map->right->tree);
+            Minimal_delName(map->right, map->right->name);
         }
     } else if(strcmp(map->name, name) == -1) {
         Minimal_delName(map->left, name);
     } else if(strcmp(map->name, name) == 1) {
         Minimal_delName(map->left, name);
+    }
+}
+
+void Minimal_SyntaxMap_empty(Minimal_NameSyntaxMap* map) {
+    while(map->name != NULL) {
+        Minimal_delName(map, map->name);
     }
 }
