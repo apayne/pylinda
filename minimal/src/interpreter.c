@@ -18,33 +18,30 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "minimal_internal.h"
 
-#include "yy.lex.h"
+void Minimal_interpreter() {
+    Minimal_SyntaxTree* tree;
 
-int yyparse();
-Minimal_SyntaxTree yy_result;
+    while(1) {
+        char* line = readline("> ");
+        if(line == NULL) { break; }
+        if(strlen(line) == 0) { free(line); continue; }
 
-Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code) {
-    return NULL;
-}
+        add_history(line);
 
-Minimal_SyntaxTree* Minimal_parseCode(char* code) {
-    int r;
-    YY_BUFFER_STATE buf = yy_scan_string(code);
-    r = yyparse(code);
-    if(r != 0) {
-        yy_delete_buffer(buf);
-        fprintf(stderr, "Syntax error.\n");
-        return NULL;
-    } else {
-        Minimal_SyntaxTree* r;
-        r = Minimal_SyntaxTree_copy(&yy_result);
-        Minimal_SyntaxTree_clear(&yy_result);
-        yy_delete_buffer(buf);
-        return r;
+        tree = Minimal_parseCode(line);
+        if(tree == NULL) { free(line); continue; }
+
+        Minimal_evaluate(tree, Minimal_defaultLayer);
+
+        Minimal_SyntaxTree_free(tree);
+
+        free(line);
     }
 }

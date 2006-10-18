@@ -36,7 +36,10 @@ WHITESPACE {DELIM}+
 ARROW      "->"
 TYPESPEC   "::"
 SEMICOLON  ";"
-OPERATOR   [+-\/%\^=*]
+OPERATOR   [+-\/%\^*]
+EQUAL      [=]
+OPENB      [(]
+CLOSEB     [)]
 
 %%
 
@@ -54,6 +57,9 @@ OPERATOR   [+-\/%\^=*]
 {TYPESPEC} { return YY_TYPESPEC; }
 {SEMICOLON} { return  YY_SEMICOLON; }
 {OPERATOR} { return YY_OPERATOR; }
+{EQUAL} { return YY_EQ; }
+{OPENB} { return YY_OPENB; }
+{CLOSEB} { return YY_CLOSEB; }
 
 {WHITESPACE} { }
 {CDEFINE} { }

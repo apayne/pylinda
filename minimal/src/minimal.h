@@ -25,14 +25,62 @@ void Minimal_finalise();
 
 typedef void* MinimalObject;
 
+struct Tuple_t;
+typedef struct Tuple_t* Tuple;
+
+struct MinimalValue_t;
+typedef struct MinimalValue_t MinimalValue;
+
+struct MinimalFunction_t;
+typedef struct MinimalFunction_t* MinimalFunction;
+
+struct MinimalValue_t {
+    enum {
+        NIL,
+        BOOLEAN,
+        INTEGER,
+        FLOAT,
+        STRING,
+        TYPE,
+        TSREF,
+        TUPLE,
+        FUNCTION
+    } type;
+    union {
+        unsigned char boolean;
+        long integer;
+        float floating;
+        struct {
+            char* string;
+            int length;
+        };
+        char* typespec;
+        char* tsid;
+        Tuple tuple;
+        MinimalFunction function;
+    };
+};
+
+struct Minimal_Tuple_t {
+    MinimalValue* values;
+    int size;
+};
+
+MinimalValue Minimal_nil();
+MinimalValue Minimal_int(int i);
+
 struct Minimal_SyntaxTree_t {
     enum {
-        BLANK,
-        IDENTIFIER,
-        INTEGER,
-        SEQENTIAL_DEFS,
-        TYPE_SPEC,
-        TYPE_FUNCTION
+        ST_BLANK,
+        ST_IDENTIFIER,
+        ST_INTEGER,
+        ST_SEQENTIAL_DEFS,
+        ST_TYPE_SPEC,
+        ST_TYPE_FUNCTION,
+        ST_FUNCTION_DEF,
+        ST_PARAMETER_LIST,
+        ST_FUNCTION_CALL,
+        ST_ARGUMENT_LIST
     } type;
     union {
         int integer;
@@ -45,6 +93,24 @@ struct Minimal_SyntaxTree_t {
         struct {
             char* type_name;
             struct Minimal_SyntaxTree_t* type_def;
+        };
+        struct {
+            char* var_name;
+            struct Minimal_SyntaxTree_t* next_var;
+        };
+        struct {
+            char* func_name;
+            struct Minimal_SyntaxTree_t* type_def;
+            struct Minimal_SyntaxTree_t* parameter_list;
+            struct Minimal_SyntaxTree_t* body;
+        };
+        struct {
+            struct Minimal_SyntaxTree_t* function;
+            struct Minimal_SyntaxTree_t* arguments;
+        };
+        struct {
+            struct Minimal_SyntaxTree_t* argument;
+            struct Minimal_SyntaxTree_t* next_arg;
         };
     };
 };
@@ -68,13 +134,16 @@ struct MinimalFunction_t {
     char* name;
     Minimal_SyntaxTree* type;
     Minimal_SyntaxTree* code;
+    MinimalLayer* layer;
 };
-typedef struct MinimalFunction_t* MinimalFunction;
 
 MinimalLayer Minimal_createLayer();
+MinimalLayer Minimal_createLayer2(MinimalLayer* parent);
 
-MinimalFunction Minimal_parseTypeSpec(char* code);
-MinimalFunction Minimal_parseCode(char* code);
+Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code);
+Minimal_SyntaxTree* Minimal_parseCode(char* code);
+
+MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
 MinimalFunction Minimal_getFunction(char* funcname);
 

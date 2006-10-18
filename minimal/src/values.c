@@ -20,31 +20,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "minimal_internal.h"
 
-#include "yy.lex.h"
-
-int yyparse();
-Minimal_SyntaxTree yy_result;
-
-Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code) {
-    return NULL;
+Minimal_Value Minimal_nil() {
+    Minimal_Value v;
+    v.type = NIL;
+    return v;
 }
 
-Minimal_SyntaxTree* Minimal_parseCode(char* code) {
-    int r;
-    YY_BUFFER_STATE buf = yy_scan_string(code);
-    r = yyparse(code);
-    if(r != 0) {
-        yy_delete_buffer(buf);
-        fprintf(stderr, "Syntax error.\n");
-        return NULL;
-    } else {
-        Minimal_SyntaxTree* r;
-        r = Minimal_SyntaxTree_copy(&yy_result);
-        Minimal_SyntaxTree_clear(&yy_result);
-        yy_delete_buffer(buf);
-        return r;
-    }
+Minimal_Value Minimal_int(int i) {
+    Minimal_Value v;
+    v.type = INTEGER;
+    v.integer = i;
+    return v;
 }

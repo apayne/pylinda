@@ -1,3 +1,4 @@
 #!/usr/bin/minimal
 
 double :: int -> int;
+double x = 2 * x;

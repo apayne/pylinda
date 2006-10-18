@@ -43,6 +43,8 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree);
 
 void Minimal_deleteLayer(MinimalLayer layer);
 
+void Minimal_interpreter();
+
 #define Minimal_SyntaxMap_init(map) \
     (map)->name = NULL; \
     (map)->left = NULL; \

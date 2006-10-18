@@ -54,19 +54,24 @@ MinimalLayer Minimal_getCurrentLayer() {
 
 void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
     switch(tree->type) {
-    case BLANK:
+    case ST_BLANK:
         break;
-    case IDENTIFIER:
-    case INTEGER:
-    case TYPE_FUNCTION:
-        fprintf(stderr, "Unknown tree node type in Minimal_Layer_addTree (%i)\n", tree->type);
-        break;
-    case SEQENTIAL_DEFS:
+    case ST_SEQENTIAL_DEFS:
         Minimal_Layer_addTree(layer, tree->branch1);
         Minimal_Layer_addTree(layer, tree->branch2);
         break;
-    case TYPE_SPEC:
+    case ST_TYPE_SPEC:
         Minimal_addName(&(layer->map), tree->type_name, tree->type_def);
+        break;
+    case ST_FUNCTION_DEF:
+        {
+        Minimal_SyntaxTree* typespec = Minimal_getName(&(layer->map), tree->func_name);
+        if(typespec != NULL && typespec->type == ST_TYPE_FUNCTION) {
+            Minimal_addReference(typespec);
+            tree->type_def = typespec;
+        }
+        Minimal_addName(&(layer->map), tree->func_name, tree);
+        }
         break;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_Layer_addTree (%i)\n", tree->type);

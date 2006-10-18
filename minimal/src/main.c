@@ -43,6 +43,8 @@ int main(int argc, char* argv[]) {
         free(code);
     }
 
+    Minimal_interpreter();
+
     Minimal_finalise();
 
     return 0;
