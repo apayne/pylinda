@@ -29,10 +29,13 @@ struct Tuple_t;
 typedef struct Tuple_t* Tuple;
 
 struct MinimalValue_t;
-typedef struct MinimalValue_t MinimalValue;
+typedef struct MinimalValue_t* MinimalValue;
 
-struct MinimalFunction_t;
-typedef struct MinimalFunction_t* MinimalFunction;
+struct Minimal_SyntaxTree_t;
+typedef struct Minimal_SyntaxTree_t Minimal_SyntaxTree;
+
+struct MinimalLayer_t;
+typedef struct MinimalLayer_t* MinimalLayer;
 
 struct MinimalValue_t {
     enum {
@@ -54,10 +57,19 @@ struct MinimalValue_t {
             char* string;
             int length;
         };
-        char* typespec;
+        struct {
+            char* type_name;
+            Minimal_SyntaxTree* type_spec;
+        };
         char* tsid;
         Tuple tuple;
-        MinimalFunction function;
+        struct {
+            char* func_name;
+            Minimal_SyntaxTree* type;
+            Minimal_SyntaxTree* parameter_list;
+            Minimal_SyntaxTree* code;
+            MinimalLayer layer;
+        };
     };
 };
 
@@ -68,6 +80,10 @@ struct Minimal_Tuple_t {
 
 MinimalValue Minimal_nil();
 MinimalValue Minimal_int(int i);
+
+unsigned char Minimal_isTypeSpec(MinimalValue v);
+MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec);
+MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 
 struct Minimal_SyntaxTree_t {
     enum {
@@ -114,38 +130,30 @@ struct Minimal_SyntaxTree_t {
         };
     };
 };
-typedef struct Minimal_SyntaxTree_t Minimal_SyntaxTree;
 
-struct Minimal_NameSyntaxMap_t {
+struct Minimal_NameValueMap_t {
     char* name;
-    Minimal_SyntaxTree* tree;
-    struct Minimal_NameSyntaxMap_t* left;
-    struct Minimal_NameSyntaxMap_t* right;
+    MinimalValue value;
+    struct Minimal_NameValueMap_t* left;
+    struct Minimal_NameValueMap_t* right;
 };
-typedef struct Minimal_NameSyntaxMap_t Minimal_NameSyntaxMap;
+typedef struct Minimal_NameValueMap_t Minimal_NameValueMap;
 
 struct MinimalLayer_t {
     char* name;
-    Minimal_NameSyntaxMap map;
-};
-typedef struct MinimalLayer_t* MinimalLayer;
-
-struct MinimalFunction_t {
-    char* name;
-    Minimal_SyntaxTree* type;
-    Minimal_SyntaxTree* code;
-    MinimalLayer* layer;
+    MinimalLayer parent;
+    Minimal_NameValueMap map;
 };
 
 MinimalLayer Minimal_createLayer();
-MinimalLayer Minimal_createLayer2(MinimalLayer* parent);
+MinimalLayer Minimal_createLayer2(MinimalLayer parent);
 
 Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
 
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
-MinimalFunction Minimal_getFunction(char* funcname);
+MinimalValue Minimal_getFunction(char* funcname);
 
 void Minimal_addReference(MinimalObject obj);
 void Minimal_delReference(MinimalObject obj);

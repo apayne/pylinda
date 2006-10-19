@@ -32,22 +32,32 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree);
 
-MinimalFunction Minimal_createFunction(Minimal_SyntaxTree* tree);
-
-void Minimal_addName(Minimal_NameSyntaxMap* map, char* name, Minimal_SyntaxTree* tree);
-Minimal_SyntaxTree* Minimal_getName(Minimal_NameSyntaxMap* map, char* name);
-void Minimal_delName(Minimal_NameSyntaxMap* map, char* name);
-void Minimal_SyntaxMap_empty(Minimal_NameSyntaxMap* map);
+void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
+MinimalValue Minimal_getName(Minimal_NameValueMap* map, char* name);
+void Minimal_delName(Minimal_NameValueMap* map, char* name);
+void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);
 
 void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree);
 
-void Minimal_deleteLayer(MinimalLayer layer);
-
 void Minimal_interpreter();
+
+void Minimal_Layer_free(MinimalLayer layer);
+void Minimal_Value_free(MinimalValue val);
 
 #define Minimal_SyntaxMap_init(map) \
     (map)->name = NULL; \
     (map)->left = NULL; \
     (map)->right = NULL
+
+
+enum MinimalTypeId_t {
+    MINIMAL_VALUE,
+    MINIMAL_LAYER
+};
+typedef enum MinimalTypeId_t MinimalTypeId;
+
+#define Minimal_newReference(type_id, ptr_type, val_type) ((ptr_type)Minimal_newReference2(type_id, malloc(sizeof(val_type))))
+
+void* Minimal_newReference2(MinimalTypeId type_id, void* ptr);
 
 #endif

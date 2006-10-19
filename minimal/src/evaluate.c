@@ -41,21 +41,22 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     case ST_FUNCTION_CALL:
         {
         MinimalValue function = Minimal_evaluate(tree->function, layer);
-        if(function->type != FUNCTION) { fprintf(stderr, "Error, didn't get function for function call.\n"); return Minimal_nil() }
+        if(function->type != FUNCTION) { fprintf(stderr, "Error, didn't get function for function call.\n"); return NULL; }
         MinimalLayer new_layer = Minimal_createLayer2(function->layer);
         Minimal_SyntaxTree* param = function->parameter_list;
         Minimal_SyntaxTree* arg = tree->arguments;
         while(arg != NULL && arg->type != ST_BLANK) {
-            Minimal_addName(new_layer, param->var_name, Minimal_evaluate(arg->argument, layer));
+            Minimal_addName(&(new_layer->map), param->var_name, Minimal_evaluate(arg->argument, layer));
 
             param = param->next_var; arg = arg->next_arg;
         }
-        MinimalValue r = Minimal_evaluate(function->tree, new_layer);
+        MinimalValue r = Minimal_evaluate(function->code, new_layer);
         Minimal_delReference(new_layer);
         return r;
+        }
     case ST_ARGUMENT_LIST:
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_evaluate (%i)\n", tree->type);
-        return Minimal_nil();
+        return NULL;
     }
 }

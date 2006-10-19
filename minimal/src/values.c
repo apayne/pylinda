@@ -24,15 +24,15 @@
 
 #include "minimal_internal.h"
 
-Minimal_Value Minimal_nil() {
-    Minimal_Value v;
-    v.type = NIL;
+MinimalValue Minimal_nil() {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = NIL;
     return v;
 }
 
-Minimal_Value Minimal_int(int i) {
-    Minimal_Value v;
-    v.type = INTEGER;
-    v.integer = i;
+MinimalValue Minimal_int(int i) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = INTEGER;
+    v->integer = i;
     return v;
 }

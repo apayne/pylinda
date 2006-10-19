@@ -35,7 +35,7 @@ void Minimal_Layer_init() {
 }
 
 void Minimal_Layer_finalise() {
-    Minimal_deleteLayer(Minimal_defaultLayer);
+    Minimal_delReference(Minimal_defaultLayer);
 }
 
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer) {
@@ -61,16 +61,21 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
         Minimal_Layer_addTree(layer, tree->branch2);
         break;
     case ST_TYPE_SPEC:
-        Minimal_addName(&(layer->map), tree->type_name, tree->type_def);
+        {
+        MinimalValue t = Minimal_typeSpec(tree->type_name, tree->type_def);
+        Minimal_addName(&(layer->map), tree->type_name, t);
+        }
         break;
     case ST_FUNCTION_DEF:
         {
-        Minimal_SyntaxTree* typespec = Minimal_getName(&(layer->map), tree->func_name);
-        if(typespec != NULL && typespec->type == ST_TYPE_FUNCTION) {
-            Minimal_addReference(typespec);
-            tree->type_def = typespec;
+        MinimalValue f;
+        MinimalValue typespec = Minimal_getName(&(layer->map), tree->func_name);
+        if(typespec != NULL && Minimal_isTypeSpec(typespec)) {
+            Minimal_addReference(typespec->type_spec);
+            tree->function->type_def = typespec->type_spec;
         }
-        Minimal_addName(&(layer->map), tree->func_name, tree);
+        f = Minimal_function(tree->func_name, NULL, NULL, tree);
+        Minimal_addName(&(layer->map), tree->func_name, f);
         }
         break;
     default:
@@ -80,14 +85,25 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
 }
 
 MinimalLayer Minimal_createLayer() {
-    MinimalLayer layer = (MinimalLayer)malloc(sizeof(struct MinimalLayer_t));
+    MinimalLayer layer = Minimal_newReference(MINIMAL_LAYER, MinimalLayer, struct MinimalLayer_t);
     layer->name = NULL;
+    layer->parent = NULL;
     Minimal_SyntaxMap_init(&(layer->map));
     return layer;
 }
 
-void Minimal_deleteLayer(MinimalLayer layer) {
+MinimalLayer Minimal_createLayer2(MinimalLayer parent) {
+    MinimalLayer layer = Minimal_newReference(MINIMAL_LAYER, MinimalLayer, struct MinimalLayer_t);
+    layer->name = NULL;
+    Minimal_addReference(parent);
+    layer->parent = parent;
+    Minimal_SyntaxMap_init(&(layer->map));
+    return layer;
+}
+
+void Minimal_Layer_free(MinimalLayer layer) {
     free(layer->name);
+    Minimal_delReference(layer->parent);
     Minimal_SyntaxMap_empty(&(layer->map));
     free(layer);
 }
