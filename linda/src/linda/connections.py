@@ -206,7 +206,9 @@ def connectTo(node):
     connect_lock.acquire()
     try:
         if not neighbours.has_key(node): # check that we still don't know how to connect
-            connectToMain(node)
+            return connectToMain(node)
+        else:
+            return True
     finally:
         connect_lock.release()
 
@@ -218,13 +220,14 @@ def connectToMain(node):
     if details == "DONT_KNOW":
         sys.stderr.write("Failed to get connection details for %s.\n" % (node, ))
         return False
+    print details[0], details[1]
     neighbours[node] = details[1]
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect(details[0])
+        s.connect(details[1][0])
     except socket.error, e:
         print "Failed to connect to", details
-        neighbours[node] = details[1]
+        neighbours[node] = details[1][1]
     else:
         neighbours[node] = s
 

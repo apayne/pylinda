@@ -124,7 +124,7 @@ static PyObject* LindaServerPython_getsockname(PyObject *self, PyObject* args) {
 
     getsockname(sd, &addr, &len);
 
-    return PyString_FromString(addr.sa_data);
+    return PyString_FromString(inet_ntoa(((struct sockaddr_in*)&addr)->sin_addr));
 }
 
 static PyObject* LindaServerPython_getpeername(PyObject *self, PyObject* args) {

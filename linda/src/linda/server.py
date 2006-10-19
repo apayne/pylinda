@@ -168,14 +168,14 @@ class LindaConnection:
         # try to find out how to connect to a server
         if data[0] == node_id:
             # they're looking for us! Return our details
-            req.send(msgid, ((self.request.getsockname()[0], getOptions().port), None))
+            req.send(msgid, ("RESULT_TUPLE", ((req.getsockname()[0], getOptions().port), None)))
         elif data[0] in neighbours.keys():
             # they're looking for our neighbour, ask them how to connect to them
             r = sendMessageToNode(data[0], None, get_connect_details, data[0])
             if isinstance(neighbours[data[0]], str): # we don't have a direct connection
-                req.send(msgid, (r[0], neighbours[data[0]]))
+                req.send(msgid, ("RESULT_TUPLE", (r[1][0], neighbours[data[0]])))
             else: # we have a direct connection, tell people to go through us
-                req.send(msgid, (r[0], node_id))
+                req.send(msgid, ("RESULT_TUPLE", (r[1][0], node_id)))
         else:
             # we don't know the node they're looking for
             req.send(msgid, (dont_know, ))
@@ -505,6 +505,9 @@ def removeProcess(pid):
     # remove any references the process may have had to our tuplespaces
     for ts in local_ts:
         local_ts.deleteAllReferences(ts, pid)
+
+def removeServer(nid):
+    print "Really should implement this..."
 
 def cleanShutdown():
     # Stop accepting new connections
