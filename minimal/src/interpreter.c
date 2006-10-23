@@ -29,6 +29,7 @@ void Minimal_interpreter() {
     Minimal_SyntaxTree* tree;
 
     while(1) {
+        MinimalValue v;
         char* line = readline("> ");
         if(line == NULL) { break; }
         if(strlen(line) == 0) { free(line); continue; }
@@ -38,10 +39,13 @@ void Minimal_interpreter() {
         tree = Minimal_parseCode(line);
         if(tree == NULL) { free(line); continue; }
 
-        Minimal_evaluate(tree, Minimal_defaultLayer);
-
+        v = Minimal_evaluate(tree, Minimal_defaultLayer);
         Minimal_SyntaxTree_free(tree);
-
         free(line);
+
+        line = Minimal_Value_string(v);
+        printf("%s\n", line);
+        free(line);
+        Minimal_delReference(v);
     }
 }

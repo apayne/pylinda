@@ -29,24 +29,34 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     switch(tree->type) {
     case ST_BLANK:
         return Minimal_nil();
+    case ST_IDENTIFIER:
+        {
+        MinimalValue r = Minimal_getName(&(layer->map), tree->string);
+        if(r == NULL) { fprintf(stderr, "Error: Unknown variable name %s.\n", tree->string); };
+        return r;
+        }
     case ST_INTEGER:
         return Minimal_int(tree->integer);
     case ST_SEQENTIAL_DEFS:
         Minimal_evaluate(tree->branch1, layer);
         return Minimal_evaluate(tree->branch2, layer);
     case ST_TYPE_SPEC:
-    case ST_TYPE_FUNCTION:
+        Minimal_Layer_addTree(layer, tree);
+        return Minimal_getName(&(layer->map), tree->type_name);
     case ST_FUNCTION_DEF:
-    case ST_PARAMETER_LIST:
+        Minimal_Layer_addTree(layer, tree);
+        return Minimal_getName(&(layer->map), tree->type_name);
     case ST_FUNCTION_CALL:
         {
         MinimalValue function = Minimal_evaluate(tree->function, layer);
-        if(function->type != FUNCTION) { fprintf(stderr, "Error, didn't get function for function call.\n"); return NULL; }
+        if(function == NULL) { return NULL; }
+        if(function->type != FUNCTION) { fprintf(stderr, "Error: Didn't get function for function call.\n"); return NULL; }
         MinimalLayer new_layer = Minimal_createLayer2(function->layer);
         Minimal_SyntaxTree* param = function->parameter_list;
         Minimal_SyntaxTree* arg = tree->arguments;
         while(arg != NULL && arg->type != ST_BLANK) {
-            Minimal_addName(&(new_layer->map), param->var_name, Minimal_evaluate(arg->argument, layer));
+            MinimalValue param_val = Minimal_evaluate(arg->argument, layer);
+            Minimal_addName(&(new_layer->map), param->var_name, param_val);
 
             param = param->next_var; arg = arg->next_arg;
         }
@@ -54,9 +64,27 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         Minimal_delReference(new_layer);
         return r;
         }
+    case ST_OPERATOR:
+        {
+        MinimalValue r;
+        MinimalValue op1 = Minimal_evaluate(tree->op1, layer);
+        MinimalValue op2 = Minimal_evaluate(tree->op2, layer);
+        if(strcmp(tree->_operator, "+") == 0) {
+            r = Minimal_Value_add(op1, op2);
+        } else if(strcmp(tree->_operator, "-") == 0) {
+            r = Minimal_Value_sub(op1, op2);
+        } else if(strcmp(tree->_operator, "*") == 0) {
+            r = Minimal_Value_mul(op1, op2);
+        } else if(strcmp(tree->_operator, "/") == 0) {
+            r = Minimal_Value_div(op1, op2);
+        }
+        Minimal_delReference(op1);
+        Minimal_delReference(op2);
+        return r;
+        }
     case ST_ARGUMENT_LIST:
     default:
-        fprintf(stderr, "Unknown tree node type in Minimal_evaluate (%i)\n", tree->type);
+        fprintf(stderr, "Error: Unknown tree node type in Minimal_evaluate (%i)\n", tree->type);
         return NULL;
     }
 }

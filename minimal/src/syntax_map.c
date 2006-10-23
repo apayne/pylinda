@@ -25,14 +25,12 @@
 #include "minimal_internal.h"
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
-    printf("Add Name %s\n", name);
     if(map == NULL) {
         fprintf(stderr, "Minimal Error: addName called with NULL map parameter.\n");
         return;
     } else if(map->name == NULL) {
         map->name = (char*)malloc(strlen(name)+1);
         strcpy(map->name, name);
-        Minimal_addReference(tree);
         map->value = tree;
     } else if(strcmp(map->name, name) == 0) {
         free(map->name);

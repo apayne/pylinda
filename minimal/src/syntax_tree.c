@@ -39,6 +39,16 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
     return tree;
 }
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
+    Minimal_SyntaxTree tree;
+    tree.type = ST_OPERATOR;
+    tree.string = (char*)malloc(strlen(op)+1);
+    strcpy(tree._operator, op);
+    tree.op1 = NULL;
+    tree.op2 = NULL;
+    return tree;
+}
+
 Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     Minimal_SyntaxTree* ntree;
     if(tree == NULL) { return NULL; }
@@ -95,6 +105,13 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->argument = Minimal_SyntaxTree_copy(tree->argument);
         ntree->next_arg = Minimal_SyntaxTree_copy(tree->next_arg);
         return ntree;
+    case ST_OPERATOR:
+        ntree->type = ST_OPERATOR;
+        ntree->_operator = (char*)malloc(strlen(tree->_operator)+1);
+        strcpy(ntree->_operator, tree->_operator);
+        ntree->op1 = Minimal_SyntaxTree_copy(tree->op1);
+        ntree->op2 = Minimal_SyntaxTree_copy(tree->op2);
+        return ntree;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
         free(ntree);
@@ -139,6 +156,11 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     case ST_ARGUMENT_LIST:
         Minimal_SyntaxTree_free(tree->argument);
         Minimal_SyntaxTree_free(tree->next_arg);
+        break;
+    case ST_OPERATOR:
+        free(tree->_operator);
+        Minimal_SyntaxTree_free(tree->op1);
+        Minimal_SyntaxTree_free(tree->op2);
         break;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);

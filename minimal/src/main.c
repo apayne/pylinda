@@ -27,8 +27,10 @@ int main(int argc, char* argv[]) {
     Minimal_init();
 
     if(argc > 1) {
+        Minimal_SyntaxTree* tree;
         int size;
         char* code;
+
         FILE* fp = fopen(argv[1], "r");
         fseek(fp, 0, SEEK_END);
         size = ftell(fp);
@@ -38,7 +40,9 @@ int main(int argc, char* argv[]) {
         code[size] = '\0';
         fclose(fp);
 
-        Minimal_parseCode(code);
+        tree = Minimal_parseCode(code);
+        Minimal_Layer_addTree(Minimal_defaultLayer, tree);
+        Minimal_SyntaxTree_free(tree);
 
         free(code);
     }

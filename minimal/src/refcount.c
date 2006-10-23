@@ -150,6 +150,10 @@ void Minimal_delObject(MinimalTypeId type_id, void* ptr) {
     switch(type_id) {
     case MINIMAL_VALUE:
         Minimal_Value_free((MinimalValue)ptr);
+        break;
+    case MINIMAL_LAYER:
+        Minimal_Layer_free((MinimalLayer)ptr);
+        break;
     default:
         fprintf(stderr, "Error: Deleting object with unrecognised type_id (%i).\n", type_id);
     }

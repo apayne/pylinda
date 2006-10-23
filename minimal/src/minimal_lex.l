@@ -56,7 +56,10 @@ CLOSEB     [)]
 {ARROW} { return YY_FUNCTION; }
 {TYPESPEC} { return YY_TYPESPEC; }
 {SEMICOLON} { return  YY_SEMICOLON; }
-{OPERATOR} { return YY_OPERATOR; }
+{OPERATOR} {
+        yylval = Minimal_SyntaxTree_createOperator(yytext);
+        return YY_OPERATOR;
+           }
 {EQUAL} { return YY_EQ; }
 {OPENB} { return YY_OPENB; }
 {CLOSEB} { return YY_CLOSEB; }

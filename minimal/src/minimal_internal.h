@@ -27,6 +27,7 @@ void Minimal_Layer_finalise();
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
+Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op);
 
 Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
@@ -59,5 +60,10 @@ typedef enum MinimalTypeId_t MinimalTypeId;
 #define Minimal_newReference(type_id, ptr_type, val_type) ((ptr_type)Minimal_newReference2(type_id, malloc(sizeof(val_type))))
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr);
+
+MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
+MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
+MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);
+MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
 
 #endif

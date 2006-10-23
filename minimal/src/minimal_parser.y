@@ -81,7 +81,12 @@ definition: YY_ID parameter_list YY_EQ expr { $$.type = ST_FUNCTION_DEF;
 
 
 expr: value { $$ = $1; }
-    | expr YY_OPERATOR expr { $$ = $1; }
+    | expr YY_OPERATOR expr { $$.type = ST_OPERATOR;
+                              $$._operator = (char*)malloc(strlen($2.string)+1); strcpy($$.func_name, $2.string);
+                              Minimal_SyntaxTree_clear(&$2);
+                              $$.op1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                              $$.op2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                            }
     | function_call { $$ = $1; }
 ;
 

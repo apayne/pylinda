@@ -55,7 +55,7 @@ struct MinimalValue_t {
         float floating;
         struct {
             char* string;
-            int length;
+            unsigned int length;
         };
         struct {
             char* type_name;
@@ -65,7 +65,7 @@ struct MinimalValue_t {
         Tuple tuple;
         struct {
             char* func_name;
-            Minimal_SyntaxTree* type;
+            Minimal_SyntaxTree* func_type;
             Minimal_SyntaxTree* parameter_list;
             Minimal_SyntaxTree* code;
             MinimalLayer layer;
@@ -79,11 +79,26 @@ struct Minimal_Tuple_t {
 };
 
 MinimalValue Minimal_nil();
+
+unsigned char Minimal_isInt(MinimalValue v);
 MinimalValue Minimal_int(int i);
+int Minimal_getInt(MinimalValue v);
+
+unsigned char Minimal_isFloat(MinimalValue v);
+MinimalValue Minimal_float(float f);
+float Minimal_getFloat(MinimalValue v);
+
+unsigned char Minimal_isString(MinimalValue v);
+MinimalValue Minimal_string(char* s);
+MinimalValue Minimal_string2(char* s, unsigned int len);
+char* Minimal_getString(MinimalValue v);
+unsigned int Minimal_getStringLen(MinimalValue v);
 
 unsigned char Minimal_isTypeSpec(MinimalValue v);
 MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec);
 MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
+
+char* Minimal_Value_string(MinimalValue v);
 
 struct Minimal_SyntaxTree_t {
     enum {
@@ -96,7 +111,8 @@ struct Minimal_SyntaxTree_t {
         ST_FUNCTION_DEF,
         ST_PARAMETER_LIST,
         ST_FUNCTION_CALL,
-        ST_ARGUMENT_LIST
+        ST_ARGUMENT_LIST,
+        ST_OPERATOR
     } type;
     union {
         int integer;
@@ -127,6 +143,11 @@ struct Minimal_SyntaxTree_t {
         struct {
             struct Minimal_SyntaxTree_t* argument;
             struct Minimal_SyntaxTree_t* next_arg;
+        };
+        struct {
+            char* _operator;
+            struct Minimal_SyntaxTree_t* op1;
+            struct Minimal_SyntaxTree_t* op2;
         };
     };
 };

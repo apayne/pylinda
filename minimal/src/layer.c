@@ -71,10 +71,11 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
         MinimalValue f;
         MinimalValue typespec = Minimal_getName(&(layer->map), tree->func_name);
         if(typespec != NULL && Minimal_isTypeSpec(typespec)) {
-            Minimal_addReference(typespec->type_spec);
-            tree->function->type_def = typespec->type_spec;
+            tree->type_def = typespec->type_spec;
+            Minimal_delReference(typespec);
         }
-        f = Minimal_function(tree->func_name, NULL, NULL, tree);
+        f = Minimal_function(tree->func_name, tree->type_def, tree->parameter_list, tree->body);
+        f->layer = layer;
         Minimal_addName(&(layer->map), tree->func_name, f);
         }
         break;
@@ -103,7 +104,7 @@ MinimalLayer Minimal_createLayer2(MinimalLayer parent) {
 
 void Minimal_Layer_free(MinimalLayer layer) {
     free(layer->name);
-    Minimal_delReference(layer->parent);
+    if(layer->parent != NULL) { Minimal_delReference(layer->parent); }
     Minimal_SyntaxMap_empty(&(layer->map));
     free(layer);
 }
