@@ -69,7 +69,7 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
     case ST_FUNCTION_DEF:
         {
         MinimalValue f;
-        MinimalValue typespec = Minimal_getName(&(layer->map), tree->func_name);
+        MinimalValue typespec = Minimal_getName(layer, tree->func_name);
         if(typespec != NULL && Minimal_isTypeSpec(typespec)) {
             tree->type_def = typespec->type_spec;
             Minimal_delReference(typespec);

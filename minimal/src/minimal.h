@@ -183,4 +183,7 @@ MinimalLayer Minimal_getCurrentLayer();
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
 extern MinimalLayer Minimal_defaultLayer;
 
+char* Minimal_serialize(MinimalValue f);
+xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+
 #endif

@@ -18,6 +18,8 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <libxml/tree.h>
+
 #include "minimal.h"
 
 #ifndef MINIMAL_INTERNAL_H
@@ -34,7 +36,8 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree);
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
-MinimalValue Minimal_getName(Minimal_NameValueMap* map, char* name);
+MinimalValue Minimal_getName(MinimalLayer layer, char* name);
+MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name);
 void Minimal_delName(Minimal_NameValueMap* map, char* name);
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);
 
@@ -50,7 +53,6 @@ void Minimal_Value_free(MinimalValue val);
     (map)->left = NULL; \
     (map)->right = NULL
 
-
 enum MinimalTypeId_t {
     MINIMAL_VALUE,
     MINIMAL_LAYER
@@ -65,5 +67,8 @@ MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
+
+void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+void Minimal_serializeFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
 #endif

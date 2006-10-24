@@ -53,16 +53,20 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
     }
 }
 
-MinimalValue Minimal_getName(Minimal_NameValueMap* map, char* name) {
+MinimalValue Minimal_getName(MinimalLayer layer, char* name) {
+    return Minimal_getName2(&(layer->map), name);
+}
+
+MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name) {
     if(map == NULL || map->name == NULL) {
         return NULL;
     } else if(strcmp(map->name, name) == 0) {
         Minimal_addReference(map->value);
         return map->value;
     } else if(strcmp(map->name, name) < 0) {
-        return Minimal_getName(map->left, name);
+        return Minimal_getName2(map->left, name);
     } else if(strcmp(map->name, name) > 0) {
-        return Minimal_getName(map->right, name);
+        return Minimal_getName2(map->right, name);
     } else {
         return NULL; /* should never get here */
     }

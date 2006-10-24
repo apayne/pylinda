@@ -31,7 +31,7 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         return Minimal_nil();
     case ST_IDENTIFIER:
         {
-        MinimalValue r = Minimal_getName(&(layer->map), tree->string);
+        MinimalValue r = Minimal_getName(layer, tree->string);
         if(r == NULL) { fprintf(stderr, "Error: Unknown variable name %s.\n", tree->string); };
         return r;
         }
@@ -42,10 +42,10 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         return Minimal_evaluate(tree->branch2, layer);
     case ST_TYPE_SPEC:
         Minimal_Layer_addTree(layer, tree);
-        return Minimal_getName(&(layer->map), tree->type_name);
+        return Minimal_getName(layer, tree->type_name);
     case ST_FUNCTION_DEF:
         Minimal_Layer_addTree(layer, tree);
-        return Minimal_getName(&(layer->map), tree->type_name);
+        return Minimal_getName(layer, tree->type_name);
     case ST_FUNCTION_CALL:
         {
         MinimalValue function = Minimal_evaluate(tree->function, layer);
