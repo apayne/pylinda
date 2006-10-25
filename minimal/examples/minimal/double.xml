@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<minimal>
+  <function name="double">
+    <type_spec>
+      <type_function>
+        <id name="int"/>
+        <id name="int"/>
+      </type_function>
+    </type_spec>
+    <parameter_list>
+      <param name="x"/>
+    </parameter_list>
+    <type_spec>
+      <operator op="*">
+        <integer val="2"/>
+        <id name="x"/>
+      </operator>
+    </type_spec>
+  </function>
+</minimal>
+

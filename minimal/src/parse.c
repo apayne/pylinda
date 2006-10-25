@@ -34,6 +34,11 @@ Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code) {
 
 Minimal_SyntaxTree* Minimal_parseCode(char* code) {
     int r;
+
+    if(code[0] == '<' && code[1] == '?' && code[2] == 'x' && code[3] == 'm' && code[4] == 'l') {
+        return Minimal_parseXMLCode(code);
+    }
+
     YY_BUFFER_STATE buf = yy_scan_string(code);
     r = yyparse(code);
     if(r != 0) {

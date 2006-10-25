@@ -41,8 +41,10 @@ int main(int argc, char* argv[]) {
         fclose(fp);
 
         tree = Minimal_parseCode(code);
-        Minimal_Layer_addTree(Minimal_defaultLayer, tree);
-        Minimal_SyntaxTree_free(tree);
+        if(tree != NULL) {
+            Minimal_Layer_addTree(Minimal_defaultLayer, tree);
+            Minimal_SyntaxTree_free(tree);
+        }
 
         free(code);
     }

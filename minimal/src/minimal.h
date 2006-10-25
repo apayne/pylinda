@@ -186,4 +186,6 @@ extern MinimalLayer Minimal_defaultLayer;
 char* Minimal_serialize(MinimalValue f);
 xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
+Minimal_SyntaxTree* Minimal_parseXMLCode(char* code);
+
 #endif
