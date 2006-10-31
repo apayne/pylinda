@@ -29,7 +29,25 @@ int yyparse();
 Minimal_SyntaxTree yy_result;
 
 Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code) {
-    return NULL;
+    int r;
+
+    if(code[0] == '<' && code[1] == '?' && code[2] == 'x' && code[3] == 'm' && code[4] == 'l') {
+        return Minimal_parseXMLCode(code);
+    }
+
+    YY_BUFFER_STATE buf = yy_scan_string(code);
+    r = yyparse(code);
+    if(r != 0) {
+        yy_delete_buffer(buf);
+        fprintf(stderr, "Syntax error.\n");
+        return NULL;
+    } else {
+        Minimal_SyntaxTree* r;
+        r = Minimal_SyntaxTree_copy(&yy_result);
+        Minimal_SyntaxTree_clear(&yy_result);
+        yy_delete_buffer(buf);
+        return r;
+    }
 }
 
 Minimal_SyntaxTree* Minimal_parseCode(char* code) {

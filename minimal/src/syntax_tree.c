@@ -112,6 +112,16 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->op1 = Minimal_SyntaxTree_copy(tree->op1);
         ntree->op2 = Minimal_SyntaxTree_copy(tree->op2);
         return ntree;
+    case ST_PRODUCT_TYPE:
+        ntree->type = ST_PRODUCT_TYPE;
+        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
+        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        return ntree;
+    case ST_SUM_TYPE:
+        ntree->type = ST_SUM_TYPE;
+        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
+        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        return ntree;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
         free(ntree);
@@ -161,6 +171,14 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
         free(tree->_operator);
         Minimal_SyntaxTree_free(tree->op1);
         Minimal_SyntaxTree_free(tree->op2);
+        break;
+    case ST_PRODUCT_TYPE:
+        Minimal_SyntaxTree_free(tree->branch1);
+        Minimal_SyntaxTree_free(tree->branch2);
+        break;
+    case ST_SUM_TYPE:
+        Minimal_SyntaxTree_free(tree->branch1);
+        Minimal_SyntaxTree_free(tree->branch2);
         break;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);

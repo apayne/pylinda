@@ -79,7 +79,7 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
     }
 }
 
-void Minimal_addReference(void* ptr) {
+void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
     struct MinimalRefCount* tree = Minimal_refCountTree;
     while(tree != NULL) {
         if(tree->ptr == ptr) {
@@ -91,10 +91,10 @@ void Minimal_addReference(void* ptr) {
             tree = tree->right;
         }
     }
-    fprintf(stderr, "Error: addReference to pointer not allocated with Minimal_newReference.\n");
+    fprintf(stderr, "Error: addReference to pointer not allocated with Minimal_newReference (%s:%i).\n", file, line);
 }
 
-void Minimal_delReference(void* ptr) {
+void Minimal_delReference(MinimalObject ptr) {
     struct MinimalRefCount* parent = NULL;
     struct MinimalRefCount* tree = Minimal_refCountTree;
     while(tree != NULL) {

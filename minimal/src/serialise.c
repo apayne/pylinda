@@ -59,13 +59,38 @@ char* Minimal_serialize(MinimalValue f) {
 
 void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     switch(f->type) {
+    case NIL:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"nil", NULL);
+        xmlAddChild(parent, node);
+        return;
+        }
+    case INTEGER:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
+        xmlAddChild(parent, node);
+        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        sprintf(integer, "%li", f->integer);
+        xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
+        return;
+        }
+    case TUPLE:
+        {
+        int i;
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
+        xmlAddChild(parent, node);
+        for(i=0; i<f->size; i++) {
+            Minimal_serializeValue(doc, node, f->values[i]);
+        }
+        return;
+        }
     case FUNCTION:
         {
         Minimal_serializeFunction(doc, parent, f);
         return;
         }
     default:
-        fprintf(stderr, "Error: Unknown syntax tree id in Minimal_serializeValue (%i).\n", f->type);
+        fprintf(stderr, "Error: Unknown value id in Minimal_serializeValue (%i).\n", f->type);
         return;
     }
 }
@@ -162,3 +187,4 @@ void Minimal_serializeFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f)
     xmlAddChild(node, code);
     Minimal_serializeCode(doc, code, f->code);
 }
+

@@ -25,6 +25,8 @@
 
 void Minimal_init() {
     Minimal_Layer_init();
+
+    Minimal_Nil = Minimal_nil();
 }
 
 void Minimal_finalise() {

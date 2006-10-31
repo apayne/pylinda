@@ -18,15 +18,14 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "libxml/tree.h"
+
 #ifndef MINIMAL_H
 
 void Minimal_init();
 void Minimal_finalise();
 
 typedef void* MinimalObject;
-
-struct Tuple_t;
-typedef struct Tuple_t* Tuple;
 
 struct MinimalValue_t;
 typedef struct MinimalValue_t* MinimalValue;
@@ -49,6 +48,7 @@ struct MinimalValue_t {
         TUPLE,
         FUNCTION
     } type;
+    MinimalValue typeobj;
     union {
         unsigned char boolean;
         long integer;
@@ -62,7 +62,10 @@ struct MinimalValue_t {
             Minimal_SyntaxTree* type_spec;
         };
         char* tsid;
-        Tuple tuple;
+        struct {
+            MinimalValue* values;
+            int size;
+        };
         struct {
             char* func_name;
             Minimal_SyntaxTree* func_type;
@@ -73,10 +76,7 @@ struct MinimalValue_t {
     };
 };
 
-struct Minimal_Tuple_t {
-    MinimalValue* values;
-    int size;
-};
+extern MinimalValue Minimal_Nil;
 
 MinimalValue Minimal_nil();
 
@@ -95,10 +95,18 @@ char* Minimal_getString(MinimalValue v);
 unsigned int Minimal_getStringLen(MinimalValue v);
 
 unsigned char Minimal_isTypeSpec(MinimalValue v);
+MinimalValue Minimal_type(char* typespec);
 MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec);
 MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 
 char* Minimal_Value_string(MinimalValue v);
+
+MinimalValue Minimal_tuple(int size);
+void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value);
+void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
+void Minimal_tupleGet(MinimalValue tuple, int pos, MinimalValue value);
+
+void Minimal_setType(MinimalValue value, MinimalValue type);
 
 struct Minimal_SyntaxTree_t {
     enum {
@@ -112,7 +120,9 @@ struct Minimal_SyntaxTree_t {
         ST_PARAMETER_LIST,
         ST_FUNCTION_CALL,
         ST_ARGUMENT_LIST,
-        ST_OPERATOR
+        ST_OPERATOR,
+        ST_PRODUCT_TYPE,
+        ST_SUM_TYPE
     } type;
     union {
         int integer;
@@ -176,8 +186,9 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
 MinimalValue Minimal_getFunction(char* funcname);
 
-void Minimal_addReference(MinimalObject obj);
-void Minimal_delReference(MinimalObject obj);
+#define Minimal_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
+void Minimal_addReference2(MinimalObject ptr, char* file, int line);
+void Minimal_delReference(MinimalObject ptr);
 
 MinimalLayer Minimal_getCurrentLayer();
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);

@@ -24,9 +24,12 @@
 
 #include "minimal_internal.h"
 
+MinimalValue Minimal_Nil;
+
 MinimalValue Minimal_nil() {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = NIL;
+    v->typeobj = NULL;
     return v;
 }
 
@@ -38,6 +41,7 @@ MinimalValue Minimal_int(int i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = INTEGER;
     v->integer = i;
+    v->typeobj = NULL;
     return v;
 }
 
@@ -53,6 +57,7 @@ MinimalValue Minimal_float(float f) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = FLOAT;
     v->floating = f;
+    v->typeobj = NULL;
     return v;
 }
 
@@ -70,6 +75,7 @@ MinimalValue Minimal_string(char* s) {
     v->length = strlen(s) + 1;
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
+    v->typeobj = NULL;
     return v;
 }
 
@@ -79,6 +85,7 @@ MinimalValue Minimal_string2(char* s, unsigned int len) {
     v->length = len;
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
+    v->typeobj = NULL;
     return v;
 }
 
@@ -100,6 +107,7 @@ MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec) {
     v->type_name = (char*)malloc(strlen(type_name)+1);
     strcpy(v->type_name, type_name);
     v->type_spec = Minimal_SyntaxTree_copy(type_spec);
+    v->typeobj = NULL;
     return v;
 }
 
@@ -111,7 +119,68 @@ MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Mi
     v->func_type = Minimal_SyntaxTree_copy(func_type);
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
     v->code = Minimal_SyntaxTree_copy(code);
+    v->typeobj = NULL;
     return v;
+}
+
+MinimalValue Minimal_type(char* typespec) {
+    Minimal_SyntaxTree* tree = Minimal_parseTypeSpec(typespec);
+    if(tree == NULL) {
+        fprintf(stderr, "Error: Tried to parse type spec but got NULL\n");
+        return NULL;
+    } else if(tree->type != ST_TYPE_SPEC) {
+        fprintf(stderr, "Error: Tried to parse type spec but didn't get a type spec back - got %i\n", tree->type);
+        return NULL;
+    }
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+
+    v->type = TYPE;
+    v->type_name = (char*)malloc(strlen(tree->type_name)+1); strcpy(v->type_name, tree->type_name);
+    v->type_spec = Minimal_SyntaxTree_copy(tree->type_def);
+    v->typeobj = NULL;
+
+    Minimal_SyntaxTree_free(tree);
+
+    return v;
+}
+
+MinimalValue Minimal_tuple(int size) {
+    int i;
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = TUPLE;
+    v->size = size;
+    v->values = (MinimalValue*)malloc(sizeof(void*)*size);
+    for(i=0; i<size; i++) {
+        v->values[i] = NULL;
+    }
+    v->typeobj = NULL;
+    return v;
+}
+
+void Minimal_tupleSet(MinimalValue tuple, int size, MinimalValue value) {
+    if(size > tuple->size) {
+        int i;
+        MinimalValue* ptrs = (MinimalValue*)malloc(sizeof(void*)*(size+1));
+        memcpy(ptrs, tuple->values, sizeof(void*)*tuple->size);
+        for(i=tuple->size; i<=size; i++) {
+            ptrs[i] = NULL;
+        }
+        free(tuple->values);
+        tuple->values = ptrs;
+    }
+    if(tuple->values[size] != NULL) {
+        Minimal_delReference(tuple->values[size]);
+    }
+    Minimal_addReference(value);
+    tuple->values[size] = value;
+}
+
+void Minimal_setType(MinimalValue value, MinimalValue type) {
+    if(value->typeobj != NULL) {
+        Minimal_delReference(value->typeobj);
+    }
+    Minimal_addReference(type);
+    value->typeobj = type;
 }
 
 char* Minimal_Value_string(MinimalValue v) {

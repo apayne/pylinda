@@ -37,21 +37,39 @@ void yyerror(char* s) {
 
 input: { $$.type = ST_BLANK; yy_result = $$; }
      | input typespec_def YY_SEMICOLON {
-                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                        $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                        $$.type = ST_SEQENTIAL_DEFS;
+                        if($1.type == ST_BLANK) {
+                            $$ = $2;
+                        } else if($2.type == ST_BLANK) {
+                            $$ = $1;
+                        } else {
+                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            $$.type = ST_SEQENTIAL_DEFS;
+                        }
                         yy_result = $$;
                         }
      | input definition YY_SEMICOLON {
-                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                        $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                        $$.type = ST_SEQENTIAL_DEFS;
+                        if($1.type == ST_BLANK) {
+                            $$ = $2;
+                        } else if($2.type == ST_BLANK) {
+                            $$ = $1;
+                        } else {
+                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            $$.type = ST_SEQENTIAL_DEFS;
+                        }
                         yy_result = $$;
                         }
      | input expr YY_SEMICOLON {
-                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                        $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                        $$.type = ST_SEQENTIAL_DEFS;
+                        if($1.type == ST_BLANK) {
+                            $$ = $2;
+                        } else if($2.type == ST_BLANK) {
+                            $$ = $1;
+                        } else {
+                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            $$.type = ST_SEQENTIAL_DEFS;
+                        }
                         yy_result = $$;
                         }
 ;
@@ -68,6 +86,23 @@ typespec: YY_ID { $$ = $1 }
                         $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                         $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         $$.type = ST_TYPE_FUNCTION;
+                        }
+        | typespec YY_OPERATOR typespec {
+                        if(strcmp($2.string, "*") == 0) {
+                            $$.type = ST_PRODUCT_TYPE;
+                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                        } else if(strcmp($2.string, "+") == 0) {
+                            $$.type = ST_SUM_TYPE;
+                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                        } else {
+                            fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2.string);
+                            $$.type = ST_BLANK;
+                        }
+                        }
+        | YY_OPENB typespec YY_CLOSEB {
+                        $$ = $2;
                         }
 ;
 

@@ -5,4 +5,8 @@ Export("env")
 objs, interpreter = SConscript("src/SConscript")
 
 lib = env.SharedLibrary("minimal",  objs)
+Export("lib")
+
 env.Program("minimal", interpreter, LIBS=["minimal", "fl", "readline", "xml2"])
+
+SConscript("examples/SConscript")
