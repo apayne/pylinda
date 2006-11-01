@@ -3,8 +3,11 @@ env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "/usr/include/li
 Export("env")
 
 objs, interpreter = SConscript("src/SConscript")
+cpp = SConscript("bindings/SConscript")
+print cpp
 
-lib = env.SharedLibrary("minimal",  objs)
+lib = env.SharedLibrary("minimal", objs)
+lib = env.SharedLibrary("minimal++", cpp)
 Export("lib")
 
 env.Program("minimal", interpreter, LIBS=["minimal", "fl", "readline", "xml2"])

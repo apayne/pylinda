@@ -30,6 +30,7 @@ MinimalValue Minimal_nil() {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = NIL;
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -42,6 +43,7 @@ MinimalValue Minimal_int(int i) {
     v->type = INTEGER;
     v->integer = i;
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -58,6 +60,7 @@ MinimalValue Minimal_float(float f) {
     v->type = FLOAT;
     v->floating = f;
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -76,6 +79,7 @@ MinimalValue Minimal_string(char* s) {
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -86,6 +90,7 @@ MinimalValue Minimal_string2(char* s, unsigned int len) {
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -108,6 +113,7 @@ MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec) {
     strcpy(v->type_name, type_name);
     v->type_spec = Minimal_SyntaxTree_copy(type_spec);
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -120,6 +126,7 @@ MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Mi
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
     v->code = Minimal_SyntaxTree_copy(code);
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -138,6 +145,7 @@ MinimalValue Minimal_type(char* typespec) {
     v->type_name = (char*)malloc(strlen(tree->type_name)+1); strcpy(v->type_name, tree->type_name);
     v->type_spec = Minimal_SyntaxTree_copy(tree->type_def);
     v->typeobj = NULL;
+    v->sum_pos = -1;
 
     Minimal_SyntaxTree_free(tree);
 
@@ -154,6 +162,7 @@ MinimalValue Minimal_tuple(int size) {
         v->values[i] = NULL;
     }
     v->typeobj = NULL;
+    v->sum_pos = -1;
     return v;
 }
 
@@ -171,8 +180,15 @@ void Minimal_tupleSet(MinimalValue tuple, int size, MinimalValue value) {
     if(tuple->values[size] != NULL) {
         Minimal_delReference(tuple->values[size]);
     }
-    Minimal_addReference(value);
     tuple->values[size] = value;
+}
+
+MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos) {
+    if(pos < 0 || pos > tuple->size) {
+        return NULL;
+    } else {
+        return tuple->values[pos];
+    }
 }
 
 void Minimal_setType(MinimalValue value, MinimalValue type) {
@@ -181,6 +197,10 @@ void Minimal_setType(MinimalValue value, MinimalValue type) {
     }
     Minimal_addReference(type);
     value->typeobj = type;
+}
+
+void Minimal_setSumPos(MinimalValue value, int sum_pos) {
+    value->sum_pos = sum_pos;
 }
 
 char* Minimal_Value_string(MinimalValue v) {
@@ -252,6 +272,10 @@ char* Minimal_Value_string(MinimalValue v) {
 void Minimal_Value_free(MinimalValue v) {
     if(v == NULL) { return; }
 
+    if(v->typeobj != NULL) {
+        Minimal_delReference(v->typeobj);
+    }
+
     switch(v->type) {
     case NIL:
         break;
@@ -271,7 +295,14 @@ void Minimal_Value_free(MinimalValue v) {
     case TSREF:
         break;
     case TUPLE:
+        {
+        int i;
+        for(i=0; i<v->size; i++) {
+            Minimal_delReference(v->values[i]);
+        }
+        free(v->values);
         break;
+        }
     case FUNCTION:
         free(v->func_name);
         Minimal_SyntaxTree_free(v->func_type);
@@ -283,4 +314,5 @@ void Minimal_Value_free(MinimalValue v) {
         fprintf(stderr, "Unknown value type in Minimal_Value_free (%i)\n", v->type);
         return;
     }
+    free(v);
 }

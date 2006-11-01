@@ -26,6 +26,8 @@
 
 #include "minimal_internal.h"
 
+void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec);
+
 xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     if(doc == NULL) {
         doc = xmlNewDoc(NULL);
@@ -52,26 +54,43 @@ char* Minimal_serialize(MinimalValue f) {
     memcpy(outbuf, buf, size);
     outbuf[size] = '\0';
 
+    xmlFreeDoc(doc);
     xmlFree(buf);
 
     return outbuf;
 }
 
+#define AddSumPos(x) if(f->sum_pos != -1) { \
+                        char* pos = (char*)malloc(snprintf(NULL, 0, "%i", f->sum_pos)+1); \
+                        sprintf(pos, "%i", f->sum_pos); \
+                        xmlNewProp(x, (xmlChar*)"sum_pos", (xmlChar*)pos); \
+                        free(pos); \
+                     }
 void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
+    if(f->typeobj != NULL) {
+        xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
+        xmlAddChild(parent, typenode);
+        xmlNewProp(typenode, (xmlChar*)"name", (xmlChar*)f->typeobj->type_name);
+        Minimal_serializeTypeSpec(doc, typenode, f->typeobj->type_spec);
+    }
+
     switch(f->type) {
     case NIL:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"nil", NULL);
         xmlAddChild(parent, node);
+        AddSumPos(node);
         return;
         }
     case INTEGER:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
         xmlAddChild(parent, node);
+        AddSumPos(node);
         char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
+        free(integer);
         return;
         }
     case TUPLE:
@@ -79,6 +98,7 @@ void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         int i;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
         xmlAddChild(parent, node);
+        AddSumPos(node);
         for(i=0; i<f->size; i++) {
             Minimal_serializeValue(doc, node, f->values[i]);
         }
@@ -115,6 +135,22 @@ void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
     case ST_TYPE_FUNCTION:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_function", NULL);
+        xmlAddChild(parent, node);
+        Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
+        Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
+        return;
+        }
+    case ST_PRODUCT_TYPE:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"product_type", NULL);
+        xmlAddChild(parent, node);
+        Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
+        Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
+        return;
+        }
+    case ST_SUM_TYPE:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"sum_type", NULL);
         xmlAddChild(parent, node);
         Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
         Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
@@ -176,6 +212,7 @@ void Minimal_serializeFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f)
     xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"function", NULL);
     xmlNewProp(node, (xmlChar*)"name", (xmlChar*)f->func_name);
     xmlAddChild(parent, node);
+    AddSumPos(node);
 
     xmlNodePtr type_spec = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
     xmlAddChild(node, type_spec);

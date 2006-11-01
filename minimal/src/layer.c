@@ -31,11 +31,13 @@ void Minimal_Layer_init() {
     Minimal_defaultLayer = Minimal_createLayer();
     Minimal_defaultLayer->name = (char*)malloc(strlen("__default__")+1);
     strcpy(Minimal_defaultLayer->name, "__default__");
+    Minimal_addReference(Minimal_defaultLayer);
     Minimal_currentLayer = Minimal_defaultLayer;
 }
 
 void Minimal_Layer_finalise() {
     Minimal_delReference(Minimal_defaultLayer);
+    Minimal_delReference(Minimal_currentLayer);
 }
 
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer) {

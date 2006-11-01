@@ -94,6 +94,20 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
     fprintf(stderr, "Error: addReference to pointer not allocated with Minimal_newReference (%s:%i).\n", file, line);
 }
 
+int Minimal_getReferenceCount(MinimalObject ptr) {
+    struct MinimalRefCount* tree = Minimal_refCountTree;
+    while(tree != NULL) {
+        if(tree->ptr == ptr) {
+            return tree->count;
+        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
+            tree = tree->left;
+        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
+            tree = tree->right;
+        }
+    }
+    return -1;
+}
+
 void Minimal_delReference(MinimalObject ptr) {
     struct MinimalRefCount* parent = NULL;
     struct MinimalRefCount* tree = Minimal_refCountTree;
@@ -103,13 +117,15 @@ void Minimal_delReference(MinimalObject ptr) {
             if(tree->count == 0) {
                 Minimal_delObject(tree->type_id, ptr);
                 if(tree->left == NULL && tree->right == NULL) {
-                    if(parent->left == tree) {
+                    if(parent == NULL) {
+                        free(tree); Minimal_refCountTree = NULL;
+                    } else if(parent->left == tree) {
                         free(tree); parent->left = NULL;
                     } else {
                         free(tree); parent->right = NULL;
                     }
                 } else {
-                    parent = tree; 
+                    parent = tree;
                     if(tree->left != NULL) {
                         tree = tree->left;
                     } else {

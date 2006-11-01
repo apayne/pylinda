@@ -100,6 +100,7 @@ typespec: YY_ID { $$ = $1 }
                             fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2.string);
                             $$.type = ST_BLANK;
                         }
+                        Minimal_SyntaxTree_clear(&$2);
                         }
         | YY_OPENB typespec YY_CLOSEB {
                         $$ = $2;

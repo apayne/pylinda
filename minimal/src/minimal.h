@@ -22,6 +22,10 @@
 
 #ifndef MINIMAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void Minimal_init();
 void Minimal_finalise();
 
@@ -49,6 +53,7 @@ struct MinimalValue_t {
         FUNCTION
     } type;
     MinimalValue typeobj;
+    int sum_pos;
     union {
         unsigned char boolean;
         long integer;
@@ -104,9 +109,10 @@ char* Minimal_Value_string(MinimalValue v);
 MinimalValue Minimal_tuple(int size);
 void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value);
 void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
-void Minimal_tupleGet(MinimalValue tuple, int pos, MinimalValue value);
+MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
 
 void Minimal_setType(MinimalValue value, MinimalValue type);
+void Minimal_setSumPos(MinimalValue value, int sum_pos);
 
 struct Minimal_SyntaxTree_t {
     enum {
@@ -142,7 +148,7 @@ struct Minimal_SyntaxTree_t {
         };
         struct {
             char* func_name;
-            struct Minimal_SyntaxTree_t* type_def;
+            struct Minimal_SyntaxTree_t* type_spec;
             struct Minimal_SyntaxTree_t* parameter_list;
             struct Minimal_SyntaxTree_t* body;
         };
@@ -188,6 +194,7 @@ MinimalValue Minimal_getFunction(char* funcname);
 
 #define Minimal_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
 void Minimal_addReference2(MinimalObject ptr, char* file, int line);
+int Minimal_getReferenceCount(MinimalObject ptr);
 void Minimal_delReference(MinimalObject ptr);
 
 MinimalLayer Minimal_getCurrentLayer();
@@ -198,5 +205,9 @@ char* Minimal_serialize(MinimalValue f);
 xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(char* code);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

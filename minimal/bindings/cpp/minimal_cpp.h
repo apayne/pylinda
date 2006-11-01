@@ -18,19 +18,3 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "minimal_internal.h"
-
-void Minimal_init() {
-    Minimal_Layer_init();
-
-    Minimal_Nil = Minimal_nil();
-}
-
-void Minimal_finalise() {
-    Minimal_delReference(Minimal_Nil);
-
-    Minimal_Layer_finalise();
-}
