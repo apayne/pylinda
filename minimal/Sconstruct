@@ -1,4 +1,4 @@
-env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "/usr/include/libxml2"], LIBPATH="#.")
+env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
 
 Export("env")
 
