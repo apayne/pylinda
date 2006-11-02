@@ -49,11 +49,7 @@ int main(int argc, char* argv[]) {
         free(code);
     }
 
-//    Minimal_interpreter();
-
-    char* text = Minimal_serialize(Minimal_getName(Minimal_defaultLayer, "double"));
-    printf("%s\n", text);
-    free(text);
+    Minimal_interpreter();
 
     Minimal_finalise();
 

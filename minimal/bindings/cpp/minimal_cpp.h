@@ -18,3 +18,51 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <string>
+
+#ifndef MINIMAL_CPP_H
+#define MINIMAL_CPP_H
+
+struct MinimalValue_t;
+typedef struct MinimalValue_t* MinimalValue;
+
+namespace Minimal {
+
+void init();
+void finalise();
+
+class Value {
+public:
+    Value();
+    Value(int i);
+    Value(bool b);
+
+    std::string serialise();
+
+    void setType(Value& type);
+    void setSumPos(int pos);
+
+    void set(int pos, Value obj);
+
+    Value& operator=(Value& other);
+    Value& operator=(MinimalValue other);
+
+    Value& operator=(int i);
+
+    Value operator[](int index);
+
+    void addReference();
+    void delReference();
+
+private:
+    MinimalValue value;
+};
+
+Value Type(std::string spec);
+Value Tuple(int size);
+
+extern Value Nil;
+
+}
+
+#endif

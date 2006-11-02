@@ -31,7 +31,7 @@ void yyerror(char* s) {
 }
 %}
 
-%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_EQ YY_OPENB YY_CLOSEB
+%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB
 
 %% /* Grammar rules and actions follow */
 
@@ -117,6 +117,7 @@ definition: YY_ID parameter_list YY_EQ expr { $$.type = ST_FUNCTION_DEF;
 
 
 expr: value { $$ = $1; }
+    | YY_OPENB expr YY_CLOSEB { $$ = $2; }
     | expr YY_OPERATOR expr { $$.type = ST_OPERATOR;
                               $$._operator = (char*)malloc(strlen($2.string)+1); strcpy($$.func_name, $2.string);
                               Minimal_SyntaxTree_clear(&$2);
@@ -124,6 +125,7 @@ expr: value { $$ = $1; }
                               $$.op2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                             }
     | function_call { $$ = $1; }
+    | tuple { $$ = $1; }
 ;
 
 value: YY_ID { $$ = $1; }
@@ -163,6 +165,26 @@ argument_list: { $$.type = ST_BLANK; }
                                         $$.next_arg->next_arg = NULL;
                                        }
                                      }
+;
+
+tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
+     | expr YY_COMMA tuple2 { $$ = Minimal_SyntaxTree_createTuple(1);
+                              $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                              int i;
+                              for(i=0; i<$3.size; i++) {
+                                  Minimal_SyntaxTree_addToTuple($$, $3.tuple[i]);
+                              }
+                              Minimal_SyntaxTree_clear(&$3);
+                            }
+;
+
+tuple2: { $$.type = ST_BLANK; }
+        expr { $$ = Minimal_SyntaxTree_createTuple(1);
+               $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+             }
+      | tuple2 YY_COMMA expr { Minimal_SyntaxTree_addToTuple($1.tuple[0], Minimal_SyntaxTree_copy(&$3)); Minimal_SyntaxTree_clear(&$3);
+                            $$ = $1;
+                          }
 ;
 
 %%

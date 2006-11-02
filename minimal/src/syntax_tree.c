@@ -49,6 +49,38 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
     return tree;
 }
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
+    Minimal_SyntaxTree tree;
+    tree.type = ST_TUPLE;
+    if(size == 0) {
+        tree.tuple = NULL;
+    } else {
+        int i;
+        tree.tuple = (Minimal_SyntaxTree**)malloc(sizeof(void*)*size);
+        for(i=0; i<size; i++) {
+            tree.tuple[i] = NULL;
+        }
+    }
+    tree.size = size;
+    return tree;
+}
+
+
+void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree* tree) {
+    if(tuple->size == 0) {
+        tuple->tuple = (Minimal_SyntaxTree**)malloc(sizeof(void*));
+        tuple->tuple[0] = tree;
+    } else {
+        Minimal_SyntaxTree** newt = (Minimal_SyntaxTree**)malloc(sizeof(void*)*(tuple->size+1));
+        memcpy(newt, tuple->tuple, sizeof(void*)*(tuple->size));
+        newt[tuple->size] = tree;
+        free(tuple->tuple);
+        tuple->tuple = newt;
+    }
+    tuple->size = tuple->size + 1;
+    return;
+}
+
 Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     Minimal_SyntaxTree* ntree;
     if(tree == NULL) { return NULL; }
@@ -122,6 +154,17 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
         ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
         return ntree;
+    case ST_TUPLE:
+        {
+        int i;
+        ntree->type = ST_TUPLE;
+        ntree->size = tree->size;
+        ntree->tuple = (Minimal_SyntaxTree**)malloc(sizeof(void*)*tree->size);
+        for(i=0; i<tree->size; i++) {
+            ntree->tuple[i] = Minimal_SyntaxTree_copy(tree->tuple[i]);
+        }
+        return ntree;
+        }
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
         free(ntree);
@@ -180,6 +223,15 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
         Minimal_SyntaxTree_free(tree->branch1);
         Minimal_SyntaxTree_free(tree->branch2);
         break;
+    case ST_TUPLE:
+        {
+        int i;
+        for(i=0; i<tree->size; i++) {
+            Minimal_SyntaxTree_free(tree->tuple[i]);
+        }
+        free(tree->tuple);
+        break;
+        }
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);
         break;

@@ -28,7 +28,7 @@
 
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node);
 
-Minimal_SyntaxTree* Minimal_parseXMLCode(char* code) {
+Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
     xmlDocPtr doc = xmlReadMemory(code, strlen(code), NULL, NULL, 0);
 
     xmlNodePtr node = xmlDocGetRootElement(doc);

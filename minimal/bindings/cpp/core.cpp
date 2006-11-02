@@ -17,3 +17,25 @@
 *    along with Minimal; if not, write to the Free Software
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+#include "minimal.h"
+#define FORCE_C
+#include "minimal.h"
+
+namespace Minimal {
+
+Value Nil;
+
+void init() {
+    Minimal_init();
+
+    Nil = Minimal_Nil;
+}
+
+void finalise() {
+    Nil.delReference();
+
+    Minimal_finalise();
+}
+
+}

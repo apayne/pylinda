@@ -85,6 +85,10 @@ extern MinimalValue Minimal_Nil;
 
 MinimalValue Minimal_nil();
 
+unsigned char Minimal_isBool(MinimalValue v);
+MinimalValue Minimal_bool(unsigned char b);
+unsigned char Minimal_getBool(MinimalValue v);
+
 unsigned char Minimal_isInt(MinimalValue v);
 MinimalValue Minimal_int(int i);
 int Minimal_getInt(MinimalValue v);
@@ -100,8 +104,8 @@ char* Minimal_getString(MinimalValue v);
 unsigned int Minimal_getStringLen(MinimalValue v);
 
 unsigned char Minimal_isTypeSpec(MinimalValue v);
-MinimalValue Minimal_type(char* typespec);
-MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec);
+MinimalValue Minimal_type(const char* typespec);
+MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec);
 MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 
 char* Minimal_Value_string(MinimalValue v);
@@ -128,7 +132,8 @@ struct Minimal_SyntaxTree_t {
         ST_ARGUMENT_LIST,
         ST_OPERATOR,
         ST_PRODUCT_TYPE,
-        ST_SUM_TYPE
+        ST_SUM_TYPE,
+        ST_TUPLE
     } type;
     union {
         int integer;
@@ -165,6 +170,10 @@ struct Minimal_SyntaxTree_t {
             struct Minimal_SyntaxTree_t* op1;
             struct Minimal_SyntaxTree_t* op2;
         };
+        struct {
+            int size;
+            struct Minimal_SyntaxTree_t** tuple;
+        };
     };
 };
 
@@ -185,7 +194,7 @@ struct MinimalLayer_t {
 MinimalLayer Minimal_createLayer();
 MinimalLayer Minimal_createLayer2(MinimalLayer parent);
 
-Minimal_SyntaxTree* Minimal_parseTypeSpec(char* code);
+Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
 
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
@@ -201,10 +210,10 @@ MinimalLayer Minimal_getCurrentLayer();
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
 extern MinimalLayer Minimal_defaultLayer;
 
-char* Minimal_serialize(MinimalValue f);
-xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+char* Minimal_serialise(MinimalValue f);
+xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
-Minimal_SyntaxTree* Minimal_parseXMLCode(char* code);
+Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code);
 
 #ifdef __cplusplus
 }

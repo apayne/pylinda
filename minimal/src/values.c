@@ -34,6 +34,23 @@ MinimalValue Minimal_nil() {
     return v;
 }
 
+unsigned char Minimal_isBool(MinimalValue v) {
+    return v->type == BOOLEAN;
+}
+
+MinimalValue Minimal_bool(unsigned char b) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = BOOLEAN;
+    v->boolean = b;
+    v->typeobj = NULL;
+    v->sum_pos = -1;
+    return v;
+}
+
+unsigned char Minimal_getBool(MinimalValue v) {
+    return v->boolean;
+}
+
 unsigned char Minimal_isInt(MinimalValue v) {
     return v->type == INTEGER;
 }
@@ -106,7 +123,7 @@ unsigned char Minimal_isTypeSpec(MinimalValue v) {
     return v->type == TYPE;
 }
 
-MinimalValue Minimal_typeSpec(char* type_name, Minimal_SyntaxTree* type_spec) {
+MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = TYPE;
     v->type_name = (char*)malloc(strlen(type_name)+1);
@@ -130,7 +147,7 @@ MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Mi
     return v;
 }
 
-MinimalValue Minimal_type(char* typespec) {
+MinimalValue Minimal_type(const char* typespec) {
     Minimal_SyntaxTree* tree = Minimal_parseTypeSpec(typespec);
     if(tree == NULL) {
         fprintf(stderr, "Error: Tried to parse type spec but got NULL\n");
@@ -166,8 +183,12 @@ MinimalValue Minimal_tuple(int size) {
     return v;
 }
 
+void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value) {
+    Minimal_tupleSet(tuple, tuple->size, value);
+}
+
 void Minimal_tupleSet(MinimalValue tuple, int size, MinimalValue value) {
-    if(size > tuple->size) {
+    if(size >= tuple->size) {
         int i;
         MinimalValue* ptrs = (MinimalValue*)malloc(sizeof(void*)*(size+1));
         memcpy(ptrs, tuple->values, sizeof(void*)*tuple->size);

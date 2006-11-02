@@ -2,6 +2,6 @@ import os
 
 Import("env")
 
-files = env.File([x for x in os.listdir(".") if x.endswith(".cpp")])
+files = [env.File(x) for x in os.listdir(".") if x.endswith(".cpp")]
 
 Return("files")

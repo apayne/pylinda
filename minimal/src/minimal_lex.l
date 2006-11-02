@@ -36,6 +36,7 @@ WHITESPACE {DELIM}+
 ARROW      "->"
 TYPESPEC   "::"
 SEMICOLON  ";"
+COMMA      ","
 OPERATOR   [+-\/%\^*]
 EQUAL      [=]
 OPENB      [(]
@@ -56,6 +57,7 @@ CLOSEB     [)]
 {ARROW} { return YY_FUNCTION; }
 {TYPESPEC} { return YY_TYPESPEC; }
 {SEMICOLON} { return  YY_SEMICOLON; }
+{COMMA} { return  YY_COMMA; }
 {OPERATOR} {
         yylval = Minimal_SyntaxTree_createOperator(yytext);
         return YY_OPERATOR;

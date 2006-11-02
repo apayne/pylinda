@@ -31,6 +31,9 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op);
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size);
+void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree* tree);
+
 Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree);
@@ -68,7 +71,7 @@ MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
 
-void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
-void Minimal_serializeFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
 #endif

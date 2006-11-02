@@ -18,6 +18,7 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <iostream>
 #include <string>
 
 #include "minimal.h"
@@ -32,32 +33,32 @@ int main(int argc, char* argv[]) {
     Minimal::Value sumtype = Minimal::Type("sumtype :: int + float;");
     Minimal::Value intlisttype = Minimal::Type("intlist :: Nil + (int * intlist);");
 
-    MinimalValue intvalue = 1;
+    Minimal::Value intvalue = 1;
     intvalue.setType(inttype);
-    buf = intvalue.serialize();
+    buf = intvalue.serialise();
     std::cout << buf << std::endl << "---" << std::endl;
 
-    MinimalValue pairvalue = Minimal::Tuple(2);
-    pairvalue[0] = 1;
-    pairvalue[1] = 2;
+    Minimal::Value pairvalue = Minimal::Tuple(2);
+    pairvalue.set(0, 1);
+    pairvalue.set(1, 2);
     pairvalue.setType(pairtype);
-    buf = Minimal_serialize(pairvalue);
+    buf = pairvalue.serialise();
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::Value sumvalue = 1;
     sumvalue.setType(sumtype);
     sumvalue.setSumPos(0);
-    buf = sumvalue.serialize();
+    buf = sumvalue.serialise();
     std::cout << buf << std::endl << "---" << std::endl;
 
-    MinimalValue intlistvalue = Minimal::Tuple(2);
-    intlistvalue.setSumPos(, 1);
-    intlistvalue[0] = 1;
-    Minimal::addReference(Minimal_Nil);
-    intlistvalue[1] = Minimal_Nil;
+    Minimal::Value intlistvalue = Minimal::Tuple(2);
+    intlistvalue.setSumPos(1);
+    intlistvalue.set(0, 1);
+    Minimal::Nil.addReference();
+    intlistvalue.set(1, Minimal::Nil);
     intlistvalue[1].setSumPos(0);
     intlistvalue.setType(intlisttype);
-    buf = intlistvalue.serialize();
+    buf = intlistvalue.serialise();
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::finalise();

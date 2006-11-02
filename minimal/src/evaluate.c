@@ -82,7 +82,15 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         Minimal_delReference(op2);
         return r;
         }
-    case ST_ARGUMENT_LIST:
+    case ST_TUPLE:
+        {
+        int i;
+        MinimalValue r = Minimal_tuple(0);
+        for(i=0; i<tree->size; i++) {
+            Minimal_tupleAdd(r, Minimal_evaluate(tree->tuple[i], layer));
+        }
+        return r;
+        }
     default:
         fprintf(stderr, "Error: Unknown tree node type in Minimal_evaluate (%i)\n", tree->type);
         return NULL;

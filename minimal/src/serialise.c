@@ -26,9 +26,9 @@
 
 #include "minimal_internal.h"
 
-void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec);
+void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec);
 
-xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
+xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     if(doc == NULL) {
         doc = xmlNewDoc(NULL);
     }
@@ -37,16 +37,16 @@ xmlDocPtr Minimal_serializeXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f)
         xmlDocSetRootElement(doc, parent);
     }
 
-    Minimal_serializeValue(doc, parent, f);
+    Minimal_serialiseValue(doc, parent, f);
 
     return doc;
 }
 
-char* Minimal_serialize(MinimalValue f) {
+char* Minimal_serialise(MinimalValue f) {
     xmlChar* buf;
     int size;
 
-    xmlDocPtr doc = Minimal_serializeXML(NULL, NULL, f);
+    xmlDocPtr doc = Minimal_serialiseXML(NULL, NULL, f);
 
     xmlDocDumpFormatMemory(doc, &buf, &size, 1);
 
@@ -60,25 +60,26 @@ char* Minimal_serialize(MinimalValue f) {
     return outbuf;
 }
 
+#define AddTypeObj(x) if(f->typeobj != NULL) { \
+                            xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL); \
+                            xmlAddChild(x, typenode); \
+                            xmlNewProp(typenode, (xmlChar*)"name", (xmlChar*)f->typeobj->type_name); \
+                            Minimal_serialiseTypeSpec(doc, typenode, f->typeobj->type_spec); \
+                      }
 #define AddSumPos(x) if(f->sum_pos != -1) { \
                         char* pos = (char*)malloc(snprintf(NULL, 0, "%i", f->sum_pos)+1); \
                         sprintf(pos, "%i", f->sum_pos); \
                         xmlNewProp(x, (xmlChar*)"sum_pos", (xmlChar*)pos); \
                         free(pos); \
                      }
-void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
-    if(f->typeobj != NULL) {
-        xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
-        xmlAddChild(parent, typenode);
-        xmlNewProp(typenode, (xmlChar*)"name", (xmlChar*)f->typeobj->type_name);
-        Minimal_serializeTypeSpec(doc, typenode, f->typeobj->type_spec);
-    }
+void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
 
     switch(f->type) {
     case NIL:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"nil", NULL);
         xmlAddChild(parent, node);
+        AddTypeObj(node);
         AddSumPos(node);
         return;
         }
@@ -86,6 +87,7 @@ void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
         xmlAddChild(parent, node);
+        AddTypeObj(node);
         AddSumPos(node);
         char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -98,15 +100,17 @@ void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         int i;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
         xmlAddChild(parent, node);
+        AddTypeObj(node);
         AddSumPos(node);
         for(i=0; i<f->size; i++) {
-            Minimal_serializeValue(doc, node, f->values[i]);
+            if(f->values[i] == NULL) { break; }
+            Minimal_serialiseValue(doc, node, f->values[i]);
         }
         return;
         }
     case FUNCTION:
         {
-        Minimal_serializeFunction(doc, parent, f);
+        Minimal_serialiseFunction(doc, parent, f);
         return;
         }
     default:
@@ -115,7 +119,7 @@ void Minimal_serializeValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     }
 }
 
-void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec) {
+void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec) {
     switch(type_spec->type) {
     case ST_IDENTIFIER:
         {
@@ -129,31 +133,31 @@ void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
         xmlAddChild(parent, node);
         xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->type_name);
-        Minimal_serializeTypeSpec(doc, node, type_spec->type_def);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->type_def);
         return;
         }
     case ST_TYPE_FUNCTION:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_function", NULL);
         xmlAddChild(parent, node);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2);
         return;
         }
     case ST_PRODUCT_TYPE:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"product_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2);
         return;
         }
     case ST_SUM_TYPE:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"sum_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch1);
-        Minimal_serializeTypeSpec(doc, node, type_spec->branch2);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2);
         return;
         }
     default:
@@ -162,7 +166,7 @@ void Minimal_serializeTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
     }
 }
 
-void Minimal_serializeParameterList(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* parameter_list) {
+void Minimal_serialiseParameterList(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* parameter_list) {
     xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"parameter_list", NULL);
     xmlAddChild(parent, node);
 
@@ -175,7 +179,7 @@ void Minimal_serializeParameterList(xmlDocPtr doc, xmlNodePtr parent, struct Min
     }
 }
 
-void Minimal_serializeCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* tree) {
+void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* tree) {
     switch(tree->type) {
     case ST_IDENTIFIER:
         {
@@ -198,8 +202,8 @@ void Minimal_serializeCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
         xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"operator", NULL);
         xmlAddChild(parent, p);
         xmlNewProp(p, (xmlChar*)"op", (xmlChar*)tree->_operator);
-        Minimal_serializeCode(doc, p, tree->op1);
-        Minimal_serializeCode(doc, p, tree->op2);
+        Minimal_serialiseCode(doc, p, tree->op1);
+        Minimal_serialiseCode(doc, p, tree->op2);
         return;
         }
     default:
@@ -208,20 +212,21 @@ void Minimal_serializeCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
     }
 }
 
-void Minimal_serializeFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
+void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"function", NULL);
     xmlNewProp(node, (xmlChar*)"name", (xmlChar*)f->func_name);
     xmlAddChild(parent, node);
+    AddTypeObj(node);
     AddSumPos(node);
 
     xmlNodePtr type_spec = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
     xmlAddChild(node, type_spec);
-    Minimal_serializeTypeSpec(doc, type_spec, f->type_spec);
+    Minimal_serialiseTypeSpec(doc, type_spec, f->type_spec);
 
-    Minimal_serializeParameterList(doc, node, f->parameter_list);
+    Minimal_serialiseParameterList(doc, node, f->parameter_list);
 
     xmlNodePtr code = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
     xmlAddChild(node, code);
-    Minimal_serializeCode(doc, code, f->code);
+    Minimal_serialiseCode(doc, code, f->code);
 }
 
