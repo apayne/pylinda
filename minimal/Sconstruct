@@ -4,7 +4,6 @@ Export("env")
 
 objs, interpreter = SConscript("src/SConscript")
 cpp = SConscript("bindings/SConscript")
-print cpp
 
 lib = env.SharedLibrary("minimal", objs)
 lib = env.SharedLibrary("minimal++", cpp)

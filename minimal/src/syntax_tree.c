@@ -73,7 +73,7 @@ void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree
     } else {
         Minimal_SyntaxTree** newt = (Minimal_SyntaxTree**)malloc(sizeof(void*)*(tuple->size+1));
         memcpy(newt, tuple->tuple, sizeof(void*)*(tuple->size));
-        newt[tuple->size] = tree;
+        newt[tuple->size] = Minimal_SyntaxTree_copy(tree);
         free(tuple->tuple);
         tuple->tuple = newt;
     }

@@ -110,6 +110,7 @@ typespec: YY_ID { $$ = $1 }
 definition: YY_ID parameter_list YY_EQ expr { $$.type = ST_FUNCTION_DEF;
                                               $$.func_name = (char*)malloc(strlen($1.string)+1); strcpy($$.func_name, $1.string);
                                               Minimal_SyntaxTree_clear(&$1);
+                                              $$.type_spec = NULL;
                                               $$.parameter_list = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                                               $$.body = Minimal_SyntaxTree_copy(&$4); Minimal_SyntaxTree_clear(&$4);
                                             }
@@ -172,7 +173,7 @@ tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
                               $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                               int i;
                               for(i=0; i<$3.size; i++) {
-                                  Minimal_SyntaxTree_addToTuple($$, $3.tuple[i]);
+                                  Minimal_SyntaxTree_addToTuple(&$$, $3.tuple[i]);
                               }
                               Minimal_SyntaxTree_clear(&$3);
                             }

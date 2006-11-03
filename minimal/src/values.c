@@ -139,7 +139,11 @@ MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Mi
     v->type = FUNCTION;
     v->func_name = (char*)malloc(strlen(func_name)+1);
     strcpy(v->func_name, func_name);
-    v->func_type = Minimal_SyntaxTree_copy(func_type);
+    if(func_type != NULL) {
+        v->func_type = Minimal_SyntaxTree_copy(func_type);
+    } else {
+        v->func_type = NULL;
+    }
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
     v->code = Minimal_SyntaxTree_copy(code);
     v->typeobj = NULL;
