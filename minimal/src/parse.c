@@ -71,3 +71,12 @@ Minimal_SyntaxTree* Minimal_parseCode(char* code) {
         return r;
     }
 }
+
+MinimalValue Minimal_parseValue(char* code) {
+    if(code[0] == '<' && code[1] == '?' && code[2] == 'x' && code[3] == 'm' && code[4] == 'l') {
+        return Minimal_parseXMLValue(code);
+    } else {
+        fprintf(stderr, "Error: Minimal_parseValue requires XML!\n!");
+        return NULL;
+    }
+}

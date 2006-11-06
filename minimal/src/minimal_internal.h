@@ -74,4 +74,6 @@ MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
 void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
+MinimalValue Minimal_parseXMLValue(const char* code);
+
 #endif

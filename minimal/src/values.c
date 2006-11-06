@@ -216,6 +216,30 @@ MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos) {
     }
 }
 
+unsigned char Minimal_isPtr(MinimalValue v) {
+    return v->type == POINTER;
+}
+
+MinimalValue Minimal_ptr(MinimalValue type, MinimalValue value) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = POINTER;
+    Minimal_addReference(value);
+    v->ptr = value;
+    Minimal_addReference(type);
+    v->ptr_type = type;
+    v->typeobj = NULL;
+    v->sum_pos = -1;
+    return v;
+}
+
+MinimalValue Minimal_getPtr(MinimalValue v) {
+    return v->ptr;
+}
+
+MinimalValue Minimal_getPtrType(MinimalValue v) {
+    return v->ptr_type;
+}
+
 void Minimal_setType(MinimalValue value, MinimalValue type) {
     if(value->typeobj != NULL) {
         Minimal_delReference(value->typeobj);

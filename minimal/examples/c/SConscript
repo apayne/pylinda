@@ -2,3 +2,5 @@ Import("env")
 Import("lib")
 
 env.Program("type_object", "type_object.c", LIBS=["minimal", "fl", "readline", "xml2"])
+env.Program("recursive", "recursive.c", LIBS=["minimal", "fl", "readline", "xml2"])
+env.Program("parse_object", "parse_object.c", LIBS=["minimal", "fl", "readline", "xml2"])

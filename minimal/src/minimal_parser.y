@@ -105,6 +105,15 @@ typespec: YY_ID { $$ = $1 }
         | YY_OPENB typespec YY_CLOSEB {
                         $$ = $2;
                         }
+        | YY_ID YY_OPENB YY_ID YY_CLOSEB {
+                        if(strcmp($1.string, "ptr") == 0) {
+                            $$.type = ST_POINTER;
+                            $$.ptr = (char*)malloc(strlen($3.string)+1); strcpy($$.type_name, $3.string); Minimal_SyntaxTree_clear(&$3);
+                        } else {
+                            fprintf(stderr, "Error: %s is an invalid type function.\n", $1.string);
+                            $$.type = ST_BLANK;
+                        }
+                        }
 ;
 
 definition: YY_ID parameter_list YY_EQ expr { $$.type = ST_FUNCTION_DEF;

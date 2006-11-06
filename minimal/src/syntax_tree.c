@@ -165,6 +165,11 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         }
         return ntree;
         }
+    case ST_POINTER:
+        ntree->type = ST_POINTER;
+        ntree->ptr = (char*)malloc(strlen(tree->ptr)+1);
+        strcpy(ntree->ptr, tree->ptr);
+        return ntree;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
         free(ntree);
@@ -232,6 +237,9 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
         free(tree->tuple);
         break;
         }
+    case ST_POINTER:
+        free(tree->ptr);
+        break;
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);
         break;

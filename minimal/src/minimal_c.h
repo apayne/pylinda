@@ -50,7 +50,8 @@ struct MinimalValue_t {
         TYPE,
         TSREF,
         TUPLE,
-        FUNCTION
+        FUNCTION,
+        POINTER
     } type;
     MinimalValue typeobj;
     int sum_pos;
@@ -77,6 +78,10 @@ struct MinimalValue_t {
             Minimal_SyntaxTree* parameter_list;
             Minimal_SyntaxTree* code;
             MinimalLayer layer;
+        };
+        struct {
+            MinimalValue ptr;
+            MinimalValue ptr_type;
         };
     };
 };
@@ -115,6 +120,11 @@ void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value);
 void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
 MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
 
+unsigned char Minimal_isPtr(MinimalValue v);
+MinimalValue Minimal_ptr(MinimalValue type, MinimalValue ptr);
+MinimalValue Minimal_getPtr(MinimalValue v);
+MinimalValue Minimal_getPtrType(MinimalValue v);
+
 void Minimal_setType(MinimalValue value, MinimalValue type);
 void Minimal_setSumPos(MinimalValue value, int sum_pos);
 
@@ -133,7 +143,8 @@ struct Minimal_SyntaxTree_t {
         ST_OPERATOR,
         ST_PRODUCT_TYPE,
         ST_SUM_TYPE,
-        ST_TUPLE
+        ST_TUPLE,
+        ST_POINTER
     } type;
     union {
         int integer;
@@ -174,6 +185,7 @@ struct Minimal_SyntaxTree_t {
             int size;
             struct Minimal_SyntaxTree_t** tuple;
         };
+        char* ptr;
     };
 };
 
@@ -196,6 +208,7 @@ MinimalLayer Minimal_createLayer2(MinimalLayer parent);
 
 Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
+MinimalValue Minimal_parseValue(char* code);
 
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
