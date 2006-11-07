@@ -42,7 +42,7 @@ linda.connect(2103)
 
 See the \link marriage.py marriage.py \endlink example for a concrete example.
 
-The another server option prevents any program running not running locally from connecting. While preventing any use as a distributed computing platform, if want to prevent any security problems<sup>*</sup> from running PyLinda then this option may come in handy.
+This option prevents any program running not running locally from connecting. While preventing any use as a distributed computing platform, if you want to prevent any security problems<sup>*</sup> caused by running PyLinda then this option may come in handy.
 
 \code
 linda_server.py -l
