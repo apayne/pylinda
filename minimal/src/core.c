@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "libxml/parser.h"
+
 #include "minimal_internal.h"
 
 void Minimal_init() {
@@ -33,4 +35,6 @@ void Minimal_finalise() {
     Minimal_delReference(Minimal_Nil);
 
     Minimal_Layer_finalise();
+
+    xmlCleanupParser();
 }

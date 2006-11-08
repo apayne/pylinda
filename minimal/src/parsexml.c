@@ -27,7 +27,7 @@
 #include "minimal_internal.h"
 
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node);
-MinimalValue Minimal_xmlToValue(xmlNodePtr node, Minimal_NameValueMap* memo);
+MinimalValue Minimal_xmlToValue(xmlNodePtr node, ValueMemo* memo);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
     xmlDocPtr doc = xmlReadMemory(code, strlen(code), NULL, NULL, 0);
@@ -100,6 +100,28 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
             cur_node = cur_node->next;
         }
         return tree;
+    } else if(strcmp((char*)(node->name), "sum_type") == 0) {
+        Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
+        Minimal_SyntaxTree* tree2 = tree;
+        tree->type = ST_SUM_TYPE;
+        tree->branch1 = NULL;
+        tree->branch2 = NULL;
+        xmlNode* cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                if(tree2->branch1 == NULL) {
+                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
+                } else {
+                    tree2->branch2 = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
+                    tree2 = tree2->branch2;
+                    tree2->type = ST_PRODUCT_TYPE;
+                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
+                    tree2->branch2 = NULL;
+                }
+            }
+            cur_node = cur_node->next;
+        }
+        return tree;
     } else if(strcmp((char*)(node->name), "id") == 0) {
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
@@ -121,6 +143,14 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
             cur_node = cur_node->next;
         }
         return tree;
+    } else if(strcmp((char*)(node->name), "ptr") == 0) {
+        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+        Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
+        tree->type = ST_POINTER;
+        tree->ptr = (char*)malloc(strlen((char*)name)+1);
+        strcpy(tree->ptr, (char*)name);
+        free(name);
+        return tree;
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Syntax Trees (%s).\n", node->name);
         return NULL;
@@ -138,20 +168,27 @@ MinimalValue Minimal_parseXMLValue(const char* code) {
         return NULL;
     }
 
-    Minimal_NameValueMap map;
-    Minimal_SyntaxMap_init(&map);
+    ValueMemo memo;
+    memo.found = NULL;
+    memo.waiting = NULL;
 
-    value = Minimal_xmlToValue(node, &map);
+    value = Minimal_xmlToValue(node, &memo);
 
-    Minimal_SyntaxMap_empty(&map);
+    if(memo.found != NULL) {
+        free(memo.found);
+    }
+    if(memo.waiting != NULL) {
+        free(memo.waiting);
+    }
+
     xmlFreeDoc(doc);
 
     return value;
 }
 
-MinimalValue Minimal_xmlToValue(xmlNodePtr node, Minimal_NameValueMap* memo) {
+MinimalValue Minimal_xmlToValue(xmlNodePtr node, ValueMemo* memo) {
+    MinimalValue value = NULL;
     if(strcmp((char*)(node->name), "minimal") == 0) {
-        MinimalValue value = NULL;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && value == NULL) {
@@ -163,9 +200,11 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node, Minimal_NameValueMap* memo) {
             }
             cur_node = cur_node->next;
         }
-        return value;
+    } else if(strcmp((char*)(node->name), "nil") == 0) {
+        Minimal_addReference(Minimal_Nil)
+        value = Minimal_Nil;
     } else if(strcmp((char*)(node->name), "tuple") == 0) {
-        MinimalValue value = Minimal_tuple(0);
+        value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
@@ -177,7 +216,6 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node, Minimal_NameValueMap* memo) {
             }
             cur_node = cur_node->next;
         }
-        return value;
     } else if(strcmp((char*)(node->name), "type") == 0) {
         Minimal_SyntaxTree* tree = NULL;
         xmlNode* cur_node = node->children;
@@ -188,18 +226,93 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node, Minimal_NameValueMap* memo) {
             cur_node = cur_node->next;
         }
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
-        MinimalValue value = Minimal_typeSpec((char*)name, tree);
+        value = Minimal_typeSpec((char*)name, tree);
         Minimal_SyntaxTree_free(tree);
         free(name);
-        return value;
     } else if(strcmp((char*)(node->name), "integer") == 0) {
-        xmlChar* value = xmlGetProp(node, (xmlChar*)"val");
+        xmlChar* val = xmlGetProp(node, (xmlChar*)"val");
         int i;
-        scanf((char*)value, "%i", &i);
-        free(value);
-        return Minimal_int(i);
+        sscanf((char*)val, "%i", &i);
+        free(val);
+        value = Minimal_int(i);
+    } else if(strcmp((char*)(node->name), "ptr") == 0) {
+        xmlChar* val = xmlGetProp(node, (xmlChar*)"val");
+        unsigned long ptr;
+        sscanf((char*)val, "%li", &ptr);
+        free(val);
+
+        if(memo->found_size > 0) {
+            int i;
+            for(i=0; i<memo->found_size; i++) {
+                if(memo->found[i].ptrid == ptr) {
+                    Minimal_addReference(memo->found[i].realptr);
+                    value = Minimal_ptr(NULL, (void*)(memo->found[i].realptr));
+                    break;
+                }
+            }
+        }
+        if(value == NULL) {
+            value = Minimal_ptr(NULL, NULL);
+            if(memo->waiting == NULL) {
+                memo->waiting_size = 1;
+                memo->waiting = malloc(sizeof(struct PointerReplacementArray));
+                memo->waiting[0].ptrid = ptr;
+                memo->waiting[0].realptr = (void**)&(value->ptr);
+            } else {
+                int i;
+                unsigned char matched = 0;
+                for(i=0; i<memo->waiting_size; i++) {
+                    if(memo->waiting[i].ptrid == 0) {
+                        memo->waiting[i].ptrid = ptr;
+                        memo->waiting[i].realptr = (void**)&(value->ptr);
+                        matched = 1;
+                    }
+                }
+                if(!matched) {
+                    struct PointerReplacementArray* array = malloc(sizeof(struct PointerReplacementArray)*(memo->waiting_size+1));
+                    memcpy(array, memo->waiting, sizeof(struct PointerReplacementArray)*memo->waiting_size);
+                    array[memo->waiting_size].ptrid = ptr;
+                    array[memo->waiting_size].realptr = (void**)&(value->ptr);
+                    free(memo->waiting);
+                    memo->waiting = array;
+                    memo->waiting_size++;
+                }
+            }
+        }
+
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Values (%s).\n", node->name);
         return NULL;
     }
+    xmlChar* cid = xmlGetProp(node, (xmlChar*)"id");
+    if(cid != NULL) {
+        unsigned long id;
+        sscanf((char*)cid, "%li", &id);
+        free(cid);
+        if(memo->waiting != NULL) {
+            int i;
+            for(i=0; i<memo->waiting_size; i++) {
+                if(memo->waiting[i].ptrid == id) {
+                    Minimal_addReference(value);
+                    *(memo->waiting[i].realptr) = value;
+                    memo->waiting[i].ptrid = 0;
+                }
+            }
+        }
+        if(memo->found == NULL) {
+            memo->found_size = 1;
+            memo->found = malloc(sizeof(struct PointerReplacementArray));
+            memo->found[0].ptrid = id;
+            memo->found[0].realptr = (void**)value;
+        } else {
+            struct PointerReplacementArray* array = malloc(sizeof(struct PointerReplacementArray)*(memo->found_size+1));
+            memcpy(array, memo->found, sizeof(struct PointerReplacementArray)*memo->found_size);
+            array[memo->found_size].ptrid = id;
+            array[memo->found_size].realptr = (void**)value;
+            free(memo->found);
+            memo->found = array;
+            memo->found_size++;
+        }
+    }
+    return value;
 }

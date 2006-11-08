@@ -76,4 +76,14 @@ void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f)
 
 MinimalValue Minimal_parseXMLValue(const char* code);
 
+struct PointerReplacementArray { unsigned long ptrid; void** realptr; };
+
+struct ValueMemo_t {
+    int found_size;
+    struct PointerReplacementArray* found;
+    int waiting_size;
+    struct PointerReplacementArray* waiting;
+};
+typedef struct ValueMemo_t ValueMemo;
+
 #endif

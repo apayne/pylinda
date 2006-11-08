@@ -178,9 +178,13 @@ MinimalValue Minimal_tuple(int size) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = TUPLE;
     v->size = size;
-    v->values = (MinimalValue*)malloc(sizeof(void*)*size);
-    for(i=0; i<size; i++) {
-        v->values[i] = NULL;
+    if(size == 0) {
+        v->values = NULL;
+    } else {
+        v->values = (MinimalValue*)malloc(sizeof(void*)*size);
+        for(i=0; i<size; i++) {
+            v->values[i] = NULL;
+        }
     }
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -201,6 +205,7 @@ void Minimal_tupleSet(MinimalValue tuple, int size, MinimalValue value) {
         }
         free(tuple->values);
         tuple->values = ptrs;
+        tuple->size = size+1;
     }
     if(tuple->values[size] != NULL) {
         Minimal_delReference(tuple->values[size]);
@@ -223,9 +228,13 @@ unsigned char Minimal_isPtr(MinimalValue v) {
 MinimalValue Minimal_ptr(MinimalValue type, MinimalValue value) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = POINTER;
-    Minimal_addReference(value);
+    if(value != NULL) {
+        Minimal_addReference(value);
+    }
     v->ptr = value;
-    Minimal_addReference(type);
+    if(type != NULL) {
+        Minimal_addReference(type);
+    }
     v->ptr_type = type;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -305,12 +314,30 @@ char* Minimal_Value_string(MinimalValue v) {
         strcpy(r, "<TSRef>");
         return r;
     case TUPLE:
-        r = (char*)malloc(strlen("<Tuple>")+1);
-        strcpy(r, "<Tuple>");
-        return r;
+        {
+        int i;
+        r = (char*)malloc(2);
+        r[0] = '('; r[1] = '\0';
+        for(i=0; i<v->size; i++) {
+            char* tmp = Minimal_Value_string(v->values[i]);
+            char* tmp2 = (char*)malloc(strlen(r)+strlen(tmp)+3);
+            strcpy(tmp2, r); strcpy(&(tmp2[strlen(r)]), tmp);
+            tmp2[strlen(r)+strlen(tmp)] = ','; tmp2[strlen(r)+strlen(tmp)+1] = ' '; tmp2[strlen(r)+strlen(tmp)+2] = '\0';
+            free(r); free(tmp);
+            r = tmp2;
+        }
+        char* tmp2 = (char*)malloc(strlen(r));
+        memcpy(tmp2, r, strlen(r)); tmp2[strlen(r)-2] = ')'; tmp2[strlen(r)-1] = '\0';;
+        free(r);
+        return tmp2;
+        }
     case FUNCTION:
         r = (char*)malloc(strlen("<Function>")+1);
         strcpy(r, "<Function>");
+        return r;
+    case POINTER:
+        r = (char*)malloc(strlen("<Pointer ")+sizeof(void*)*2+3);
+        sprintf(r, "<Pointer %p>", v->ptr);
         return r;
     default:
         fprintf(stderr, "Unknown value type in Minimal_Value_string (%i)\n", v->type);
@@ -358,6 +385,10 @@ void Minimal_Value_free(MinimalValue v) {
         Minimal_SyntaxTree_free(v->parameter_list);
         Minimal_SyntaxTree_free(v->code);
         Minimal_delReference(v->layer);
+        break;
+    case POINTER:
+        Minimal_delReference(v->ptr_type);
+        Minimal_delReference(v->ptr);
         break;
     default:
         fprintf(stderr, "Unknown value type in Minimal_Value_free (%i)\n", v->type);
