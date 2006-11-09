@@ -51,7 +51,8 @@ struct MinimalValue_t {
         TSREF,
         TUPLE,
         FUNCTION,
-        POINTER
+        POINTER,
+        TUPLESPACE
     } type;
     MinimalValue typeobj;
     int sum_pos;
@@ -88,6 +89,7 @@ struct MinimalValue_t {
 
 extern MinimalValue Minimal_Nil;
 
+unsigned char Minimal_isNil();
 MinimalValue Minimal_nil();
 
 unsigned char Minimal_isBool(MinimalValue v);
@@ -113,9 +115,12 @@ MinimalValue Minimal_type(const char* typespec);
 MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec);
 MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 
+MinimalValue Minimal_copy(MinimalValue v);
 char* Minimal_Value_string(MinimalValue v);
 
+unsigned char Minimal_isTuple(MinimalValue v);
 MinimalValue Minimal_tuple(int size);
+int Minimal_getTupleSize(MinimalValue tuple);
 void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value);
 void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
 MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
@@ -124,6 +129,10 @@ unsigned char Minimal_isPtr(MinimalValue v);
 MinimalValue Minimal_ptr(MinimalValue type, MinimalValue ptr);
 MinimalValue Minimal_getPtr(MinimalValue v);
 MinimalValue Minimal_getPtrType(MinimalValue v);
+
+unsigned char Minimal_isTupleSpace(MinimalValue v);
+MinimalValue Minimal_tupleSpace(const char* ts);
+char* Minimal_getTupleSpace(MinimalValue v);
 
 void Minimal_setType(MinimalValue value, MinimalValue type);
 void Minimal_setSumPos(MinimalValue value, int sum_pos);

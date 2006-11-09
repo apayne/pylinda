@@ -79,26 +79,26 @@ struct Message_t {
      union {
          char* string;
          int i;
-         Tuple tuple;
+         MinimalValue tuple;
          Linda_tuplespace ts;
          struct {
              Linda_tuplespace ts;
-             Tuple t;
+             MinimalValue t;
          } out;
          struct {
              Linda_tuplespace ts;
-             Tuple t;
+             MinimalValue t;
              char* tid;
          } in;
          struct {
              Linda_tuplespace ts;
-             Tuple t;
+             MinimalValue t;
              char* tid;
          } rd;
          struct {
              Linda_tuplespace ts1;
              Linda_tuplespace ts2;
-             Tuple t;
+             MinimalValue t;
          } collect;
          struct {
             Linda_tuplespace ts;
@@ -106,7 +106,7 @@ struct Message_t {
          } ref;
          struct {
             Linda_tuplespace ts;
-            Tuple t;
+            MinimalValue t;
          } tuple_request;
      };
 };
@@ -120,18 +120,18 @@ Message* Message_parse(char* text, int len, unsigned char final);
 
 Message* Message_result_string(char* text);
 Message* Message_result_int(int i);
-Message* Message_result_tuple(Tuple t);
+Message* Message_result_tuple(LindaValue t);
 
 Message* Message_done();
 Message* Message_dont_know();
 
-Message* Message_out(const Linda_tuplespace ts, Tuple t);
-Message* Message_in(const Linda_tuplespace ts, Tuple t);
-Message* Message_rd(const Linda_tuplespace ts, Tuple t);
-Message* Message_inp(const Linda_tuplespace ts, Tuple t);
-Message* Message_rdp(const Linda_tuplespace ts, Tuple t);
-Message* Message_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t);
-Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t);
+Message* Message_out(const Linda_tuplespace ts, LindaValue t);
+Message* Message_in(const Linda_tuplespace ts, LindaValue t);
+Message* Message_rd(const Linda_tuplespace ts, LindaValue t);
+Message* Message_inp(const Linda_tuplespace ts, LindaValue t);
+Message* Message_rdp(const Linda_tuplespace ts, LindaValue t);
+Message* Message_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
+Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
 Message* Message_unblock();
 
 Message* Message_createTuplespace();
@@ -159,23 +159,23 @@ Message* Message_get_requests(const Linda_tuplespace ts);
 Message* Message_get_neighbours();
 Message* Message_get_connection_details(char* id);
 
-Message* Message_tuple_request(const Linda_tuplespace ts, Tuple t);
-Message* Message_cancel_request(const Linda_tuplespace ts, Tuple t);
-Message* Message_multiple_in(const Linda_tuplespace ts, Tuple t);
+Message* Message_tuple_request(const Linda_tuplespace ts, LindaValue t);
+Message* Message_cancel_request(const Linda_tuplespace ts, LindaValue t);
+Message* Message_multiple_in(const Linda_tuplespace ts, LindaValue t);
 
 void Message_free(Message* m);
 
-void Linda_scanTuple(Tuple t, char* ref);
+void Linda_scanTuple(LindaValue t, char* ref);
 
 struct Tuplequeue_t {
     struct Tuplequeue_t* next;
-    Tuple tuple;
+    LindaValue tuple;
 };
 typedef struct Tuplequeue_t* Tuplequeue;
 
 Tuplequeue Tuplequeue_push(Tuplequeue tq);
 Tuplequeue Tuplequeue_pop(Tuplequeue tq);
-Tuple Tuplequeue_top(Tuplequeue tq);
+LindaValue Tuplequeue_top(Tuplequeue tq);
 
 struct Linda_thread_data_t {
     int sd;

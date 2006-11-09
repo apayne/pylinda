@@ -237,11 +237,11 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
         }
     } else if(strcmp(action, "RESULT_TUPLE") == 0) {
         if(PyTuple_Size(tuple) == (offset+2) && PyTuple_Check(PyTuple_GetItem(tuple, offset+1))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+1));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+1));
             m = Message_result_tuple(t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
@@ -279,22 +279,22 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     PYTHON_TO_MSG_STRING("GET_CONNECTION_DETAILS", get_connection_details)
     } else if(strcmp(action, "COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
             m = Message_collect(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
     } else if(strcmp(action, "COPY_COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
             m = Message_copy_collect(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
@@ -302,33 +302,33 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     PYTHON_TO_MSG_NONE("UNBLOCK", unblock)
     } else if(strcmp(action, "TUPLE_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
             m = Message_tuple_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
     } else if(strcmp(action, "CANCEL_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
             m = Message_cancel_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
     } else if(strcmp(action, "MULTIPLE_IN") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
-            Tuple t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
+            LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
             m = Message_multiple_in(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
             Message_send(sd, msgid, m);
             Message_free(m);
-            Tuple_free(t);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;

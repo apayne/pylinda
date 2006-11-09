@@ -23,9 +23,9 @@
 void inittuplespace(PyObject* m);
 void inittsref(PyObject* m);
 
-Value* PyO2Value(PyObject* obj);
-Tuple PyO2Tuple(PyObject* tup);
-PyObject* Tuple2PyO(Tuple t);
+LindaValue PyO2Value(PyObject* obj);
+LindaValue PyO2Tuple(PyObject* tup);
+PyObject* Tuple2PyO(LindaValue t);
 
 PyObject* LindaPython_send(PyObject *self, PyObject* args);
 PyObject* LindaPython_recv(PyObject *self, PyObject* args);

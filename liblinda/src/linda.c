@@ -45,6 +45,8 @@ unsigned char Linda_connect(int port) {
     Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
 
+    Minimal_init();
+
     if(tdata->sd != 0) { return 1; }
 
 #ifdef USE_DOMAIN_SOCKETS
@@ -111,9 +113,11 @@ void Linda_disconnect() {
     tdata->thread_id = NULL;
 
     Linda_active_connections -= 1;
+
+    Minimal_finalise();
 }
 
-void Linda_out(const Linda_tuplespace ts, Tuple t) {
+void Linda_out(const Linda_tuplespace ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_scanTuple(t, ts);
     Message* m = Message_out(ts, t);
@@ -123,34 +127,34 @@ void Linda_out(const Linda_tuplespace ts, Tuple t) {
     Message_free(m);
 }
 
-Tuple Linda_in(const Linda_tuplespace ts, Tuple t) {
-    Tuple r;
+LindaValue Linda_in(const Linda_tuplespace ts, LindaValue t) {
+    LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_in(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { return NULL; }
-    r = Tuple_copy(m->tuple);
+    r = Linda_copy(m->tuple);
     Message_free(m);
     return r;
 }
 
-Tuple Linda_rd(const Linda_tuplespace ts, Tuple t) {
-    Tuple r;
+LindaValue Linda_rd(const Linda_tuplespace ts, LindaValue t) {
+    LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_rd(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { return NULL; }
-    r = Tuple_copy(m->tuple);
+    r = Linda_copy(m->tuple);
     Message_free(m);
     return r;
 }
 
-Tuple Linda_inp(const Linda_tuplespace ts, Tuple t) {
-    Tuple r;
+LindaValue Linda_inp(const Linda_tuplespace ts, LindaValue t) {
+    LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_inp(ts, t);
     Message_send(tdata->sd, NULL, m);
@@ -161,14 +165,14 @@ Tuple Linda_inp(const Linda_tuplespace ts, Tuple t) {
         Message_free(m);
         return NULL;
     } else {
-        r = Tuple_copy(m->tuple);
+        r = Linda_copy(m->tuple);
         Message_free(m);
         return r;
     }
 }
 
-Tuple Linda_rdp(const Linda_tuplespace ts, Tuple t) {
-    Tuple r;
+LindaValue Linda_rdp(const Linda_tuplespace ts, LindaValue t) {
+    LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_rdp(ts, t);
     Message_send(tdata->sd, NULL, m);
@@ -179,13 +183,13 @@ Tuple Linda_rdp(const Linda_tuplespace ts, Tuple t) {
         Message_free(m);
         return NULL;
     } else {
-        r = Tuple_copy(m->tuple);
+        r = Linda_copy(m->tuple);
         Message_free(m);
         return r;
     }
 }
 
-int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t) {
+int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t) {
     int i;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_collect(ts1, ts2, t);
@@ -198,7 +202,7 @@ int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple 
     return i;
 }
 
-int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t) {
+int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t) {
     int i;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_copy_collect(ts1, ts2, t);
