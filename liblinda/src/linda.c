@@ -38,7 +38,7 @@ int Linda_port = 2102;
 
 int Linda_active_connections = 0;
 
-Linda_tuplespace Linda_uts = "UTS";
+LindaValue Linda_uts;
 
 unsigned char Linda_connect(int port) {
     int err;
@@ -117,7 +117,7 @@ void Linda_disconnect() {
     Minimal_finalise();
 }
 
-void Linda_out(const Linda_tuplespace ts, LindaValue t) {
+void Linda_out(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_scanTuple(t, ts);
     Message* m = Message_out(ts, t);
@@ -127,7 +127,7 @@ void Linda_out(const Linda_tuplespace ts, LindaValue t) {
     Message_free(m);
 }
 
-LindaValue Linda_in(const Linda_tuplespace ts, LindaValue t) {
+LindaValue Linda_in(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_in(ts, t);
@@ -140,7 +140,7 @@ LindaValue Linda_in(const Linda_tuplespace ts, LindaValue t) {
     return r;
 }
 
-LindaValue Linda_rd(const Linda_tuplespace ts, LindaValue t) {
+LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_rd(ts, t);
@@ -153,7 +153,7 @@ LindaValue Linda_rd(const Linda_tuplespace ts, LindaValue t) {
     return r;
 }
 
-LindaValue Linda_inp(const Linda_tuplespace ts, LindaValue t) {
+LindaValue Linda_inp(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_inp(ts, t);
@@ -171,7 +171,7 @@ LindaValue Linda_inp(const Linda_tuplespace ts, LindaValue t) {
     }
 }
 
-LindaValue Linda_rdp(const Linda_tuplespace ts, LindaValue t) {
+LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_rdp(ts, t);
@@ -189,7 +189,7 @@ LindaValue Linda_rdp(const Linda_tuplespace ts, LindaValue t) {
     }
 }
 
-int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t) {
+int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     int i;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_collect(ts1, ts2, t);
@@ -202,7 +202,7 @@ int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaV
     return i;
 }
 
-int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t) {
+int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     int i;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = Message_copy_collect(ts1, ts2, t);

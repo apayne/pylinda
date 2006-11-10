@@ -67,15 +67,13 @@ PyObject* Linda2PyO(LindaValue v) {
         if(LindaPython_is_server) {
             linda_TSRefObject* ts;
             ts = (linda_TSRefObject*)linda_TSRefType.tp_alloc(&linda_TSRefType, 0);
-            ts->ts = (char*)malloc(strlen(Linda_getTupleSpace(v))+1);
-            strcpy(ts->ts, Linda_getTupleSpace(v));
+            ts->ts = Linda_copy(v);
             Py_INCREF(ts);
             return (PyObject*)ts;
         } else {
             linda_TupleSpaceObject* ts;
             ts = (linda_TupleSpaceObject*)linda_TupleSpaceType.tp_alloc(&linda_TupleSpaceType, 0);
-            ts->ts = (char*)malloc(strlen(Linda_getTupleSpace(v))+1);
-            strcpy(ts->ts, Linda_getTupleSpace(v));
+            ts->ts = Linda_copy(v);
             Py_INCREF(ts);
             return (PyObject*)ts;
         }
@@ -127,9 +125,9 @@ LindaValue PyO2Linda(PyObject* obj) {
             return NULL;
         }
     } else if(LindaPython_is_server && PyObject_IsInstance(obj, (PyObject*)&linda_TSRefType)) {
-        v = Linda_tupleSpace(((linda_TSRefObject*)obj)->ts);
+        v = Linda_copy(((linda_TSRefObject*)obj)->ts);
     } else if(!LindaPython_is_server && PyObject_TypeCheck(obj, &linda_TupleSpaceType)) {
-        v = Linda_tupleSpace(((linda_TupleSpaceObject*)obj)->ts);
+        v = Linda_copy(((linda_TupleSpaceObject*)obj)->ts);
     } else {
         fprintf(stderr, "PyO2Linda: Invalid type.\n");
         return NULL;

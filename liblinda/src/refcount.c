@@ -23,13 +23,13 @@
 #include "linda.h"
 #include "linda_internal.h"
 
-void Linda_scanTuple(Tuple t, char* ref) {
+void Linda_scanTuple(LindaValue t, LindaValue ref) {
     int i;
     Message* m;
     Linda_thread_data* tdata;
 
-    for(i=0; i<Tuple_get_size(t); i++) {
-        Value* v = Tuple_get(t, i);
+    for(i=0; i<Linda_getTupleSize(t); i++) {
+        LindaValue v = Linda_tupleGet(t, i);
         switch(v->type) {
         case NIL:
         case BOOLEAN:
@@ -40,14 +40,14 @@ void Linda_scanTuple(Tuple t, char* ref) {
             break;
         case TSREF:
             tdata = Linda_get_thread_data();
-            m = Message_addReference2(v->tsid, ref);
+            m = Message_addReference2(v, Linda_getTupleSpace(ref));
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             m = Message_recv(tdata->sd);
             Message_free(m);
             break;
         case TUPLE:
-            Linda_scanTuple(Value_get_tuple(v), ref);
+            Linda_scanTuple(v, ref);
             break;
         default:
             fprintf(stderr, "Unknown value (%i) found when scanning tuple.\n", v->type);

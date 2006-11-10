@@ -121,46 +121,46 @@ void StartElementHandler(void* userData, const XML_Char* name, const XML_Char** 
                 char* c = malloc(strlen(*(attrptr+1)) + 1);
                 strcpy(c, *(attrptr+1));
                 if(bm->in_tuple > 0) {
-                    Tuple_add(Tuplequeue_top(bm->tq), Value_tsref(c));
+                    Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_tupleSpace(c));
                 } else {
                     switch(bm->m->type) {
                     case OUT:
-                        bm->m->out.ts = c;
+                        bm->m->out.ts = Linda_tupleSpace(c);
                         break;
                     case IN:
                     case INP:
-                        bm->m->in.ts = c;
+                        bm->m->in.ts = Linda_tupleSpace(c);
                         break;
                     case RD:
                     case RDP:
-                        bm->m->rd.ts = c;
+                        bm->m->rd.ts = Linda_tupleSpace(c);
                         break;
                     case COLLECT:
                     case COPY_COLLECT:
                         if(bm->m->collect.ts1 == NULL) {
-                            bm->m->collect.ts1 = c;
+                            bm->m->collect.ts1 = Linda_tupleSpace(c);
                         } else {
-                            bm->m->collect.ts2 = c;
+                            bm->m->collect.ts2 = Linda_tupleSpace(c);
                         }
                         break;
                     case ADD_REFERENCE:
                     case DELETE_REFERENCE:
-                        bm->m->ref.ts = c;
+                        bm->m->ref.ts = Linda_tupleSpace(c);
                         break;
                     case INSPECT:
                     case REGISTER_THREAD:
                     case GET_PARTITIONS:
                     case GET_REQUESTS:
-                        bm->m->ts = c;
+                        bm->m->ts = Linda_tupleSpace(c);
                         break;
                     case REGISTER_PARTITION:
                     case DELETED_PARTITION:
-                        bm->m->ref.ts = c;
+                        bm->m->ref.ts = Linda_tupleSpace(c);
                         break;
                     case TUPLE_REQUEST:
                     case CANCEL_REQUEST:
                     case MULTIPLE_IN:
-                        bm->m->tuple_request.ts = c;
+                        bm->m->tuple_request.ts = Linda_tupleSpace(c);
                         break;
                     default:
                         fprintf(stderr, "Got unexpected TSID.\n");
@@ -320,7 +320,7 @@ void EndElementHandler(void* userData, const XML_Char* name) {
     } else if(strcmp(name, "tid") == 0) {
     } else if(strcmp(name, "tuple") == 0) {
         if(bm->in_tuple > 0) {
-            Tuple t = Tuple_copy(Tuplequeue_top(bm->tq));
+            LindaValue t = Linda_copy(Tuplequeue_top(bm->tq));
             bm->tq = Tuplequeue_pop(bm->tq);
             bm->in_tuple--;
             if(bm->in_tuple == 0) {
@@ -350,26 +350,26 @@ void EndElementHandler(void* userData, const XML_Char* name) {
                     break;
                 default:
                     fprintf(stderr, "Discarding tuple due to invalid message type.\n");
-                    Tuple_free(t);
+                    Linda_delReference(t);
                 }
             } else {
-                Tuple_add(Tuplequeue_top(bm->tq), Value_tuple(t));
-                Tuple_free(t);
+                Linda_tupleAdd(Tuplequeue_top(bm->tq), t);
+                Linda_delReference(t);
             }
         }
     } else if(strcmp(name, "nil") == 0) {
-        Tuple_add(Tuplequeue_top(bm->tq), Value_nil());
+        Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_nil());
     } else if(strcmp(name, "true") == 0) {
-        Tuple_add(Tuplequeue_top(bm->tq), Value_bool(1));
+        Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_bool(1));
     } else if(strcmp(name, "false") == 0) {
-        Tuple_add(Tuplequeue_top(bm->tq), Value_bool(0));
+        Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_bool(0));
     } else if(strcmp(name, "int") == 0) {
         switch(bm->m->type) {
         case RESULT_INT:
             bm->m->i = atoi(bm->text);
             break;
         default:
-            Tuple_add(Tuplequeue_top(bm->tq), Value_int(atoi(bm->text)));
+            Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_int(atoi(bm->text)));
             free(bm->text); bm->text = NULL;
         }
     } else if(strcmp(name, "string") == 0) {
@@ -388,14 +388,14 @@ void EndElementHandler(void* userData, const XML_Char* name) {
             bm->m->ref.tid = bm->text; bm->text = NULL;
             break;
         default:
-            Tuple_add(Tuplequeue_top(bm->tq), Value_string(bm->text));
+            Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_string(bm->text));
             free(bm->text); bm->text = NULL;
         }
     } else if(strcmp(name, "float") == 0) {
-        Tuple_add(Tuplequeue_top(bm->tq), Value_float(atof(bm->text)));
+        Linda_tupleAdd(Tuplequeue_top(bm->tq), Linda_float(atof(bm->text)));
         free(bm->text); bm->text = NULL;
     } else if(strcmp(name, "type") == 0) {
-        Tuple_add(Tuplequeue_top(bm->tq), Value_type(bm->text));
+        Linda_tupleAdd(Tuplequeue_top(bm->tq), Minimal_typeSpec(NULL, Minimal_parseTypeSpec(bm->text)));
         free(bm->text); bm->text = NULL;
     } else {
         fprintf(stderr, "Unknown message close tag '%s'. Ignoring.\n", name);

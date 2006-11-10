@@ -25,18 +25,18 @@
 
 Tuplequeue Tuplequeue_push(Tuplequeue tq) {
     Tuplequeue ntq = malloc(sizeof(struct Tuplequeue_t));
-    ntq->tuple = Tuple_new(0);
+    ntq->tuple = Linda_tuple(0);
     ntq->next = tq;
     return ntq;
 }
 
 Tuplequeue Tuplequeue_pop(Tuplequeue tq) {
     Tuplequeue ntq = tq->next;
-    Tuple_free(tq->tuple);
+    Linda_delReference(tq->tuple);
     free(tq);
     return ntq;
 }
 
-Tuple Tuplequeue_top(Tuplequeue tq) {
+LindaValue Tuplequeue_top(Tuplequeue tq) {
     return tq->tuple;
 }

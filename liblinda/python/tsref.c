@@ -44,8 +44,7 @@ static int linda_TSRef_init(linda_TSRefObject* self, PyObject* args, PyObject* k
     if(!PyArg_ParseTuple(args, "s", &id))
         return -1;
 
-    self->ts = malloc(strlen(id)+1);
-    strcpy(self->ts, id);
+    self->ts = Linda_tupleSpace(id);
     return 0;
 }
 
@@ -57,7 +56,7 @@ static void linda_TSRef_dealloc(linda_TSRefObject* self)
 
 static PyObject* linda_TSRef_str(linda_TSRefObject* self) {
     if(self->ts != NULL) {
-        return PyString_FromFormat("<TSRef %s>", self->ts);
+        return PyString_FromFormat("<TSRef %s>", Linda_getTupleSpace(self->ts));
     } else {
         return PyString_FromFormat("<TSRef>");
     }
@@ -65,7 +64,7 @@ static PyObject* linda_TSRef_str(linda_TSRefObject* self) {
 
 static PyObject* linda_TSRef_repr(linda_TSRefObject* self) {
     if(self->ts != NULL) {
-        return PyString_FromFormat("<TSRef %s>", self->ts);
+        return PyString_FromFormat("<TSRef %s>", Linda_getTupleSpace(self->ts));
     } else {
         return PyString_FromFormat("<TSRef>");
     }
@@ -76,13 +75,13 @@ static long linda_TSRef_compare(linda_TSRefObject* self, linda_TSRefObject* othe
         PyErr_SetString(PyExc_TypeError, "Got null string in TSRef.");
         return -1;
     } else {
-        return strcmp(self->ts, other->ts);
+        return strcmp(Linda_getTupleSpace(self->ts), Linda_getTupleSpace(other->ts));
     }
 }
 
 static long linda_TSRef_hash(linda_TSRefObject* self) {
     long r;
-    PyObject* s = PyString_FromString(self->ts);
+    PyObject* s = PyString_FromString(Linda_getTupleSpace(self->ts));
     r = PyObject_Hash(s);
     Py_DECREF(s);
     return r;
@@ -95,7 +94,7 @@ static PyMethodDef tsref_methods[] = {
 
 static PyObject* linda_TSRef_getid(linda_TSRefObject* self, void *closure)
 {
-    return PyString_FromString(self->ts);
+    return PyString_FromString(Linda_getTupleSpace(self->ts));
 }
 
 static PyGetSetDef tsref_getseters[] = {

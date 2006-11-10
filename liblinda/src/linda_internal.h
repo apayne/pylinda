@@ -79,33 +79,33 @@ struct Message_t {
      union {
          char* string;
          int i;
-         MinimalValue tuple;
-         Linda_tuplespace ts;
+         LindaValue tuple;
+         LindaValue ts;
          struct {
-             Linda_tuplespace ts;
+             LindaValue ts;
              MinimalValue t;
          } out;
          struct {
-             Linda_tuplespace ts;
+             LindaValue ts;
              MinimalValue t;
              char* tid;
          } in;
          struct {
-             Linda_tuplespace ts;
+             LindaValue ts;
              MinimalValue t;
              char* tid;
          } rd;
          struct {
-             Linda_tuplespace ts1;
-             Linda_tuplespace ts2;
+             LindaValue ts1;
+             LindaValue ts2;
              MinimalValue t;
          } collect;
          struct {
-            Linda_tuplespace ts;
+            LindaValue ts;
             char* tid;
          } ref;
          struct {
-            Linda_tuplespace ts;
+            LindaValue ts;
             MinimalValue t;
          } tuple_request;
      };
@@ -125,23 +125,23 @@ Message* Message_result_tuple(LindaValue t);
 Message* Message_done();
 Message* Message_dont_know();
 
-Message* Message_out(const Linda_tuplespace ts, LindaValue t);
-Message* Message_in(const Linda_tuplespace ts, LindaValue t);
-Message* Message_rd(const Linda_tuplespace ts, LindaValue t);
-Message* Message_inp(const Linda_tuplespace ts, LindaValue t);
-Message* Message_rdp(const Linda_tuplespace ts, LindaValue t);
-Message* Message_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
-Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
+Message* Message_out(LindaValue ts, LindaValue t);
+Message* Message_in(LindaValue ts, LindaValue t);
+Message* Message_rd(LindaValue ts, LindaValue t);
+Message* Message_inp(LindaValue ts, LindaValue t);
+Message* Message_rdp(LindaValue ts, LindaValue t);
+Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
 Message* Message_unblock();
 
 Message* Message_createTuplespace();
-Message* Message_addReference(const Linda_tuplespace ts);
-Message* Message_addReference2(const Linda_tuplespace ts, char* id);
-Message* Message_deleteReference(const Linda_tuplespace ts);
+Message* Message_addReference(LindaValue ts);
+Message* Message_addReference2(LindaValue ts, char* id);
+Message* Message_deleteReference(LindaValue ts);
 
 Message* Message_monitor();
 Message* Message_list_ts();
-Message* Message_inspect(const Linda_tuplespace ts);
+Message* Message_inspect(LindaValue ts);
 Message* Message_get_routes();
 
 Message* Message_register_process();
@@ -150,22 +150,22 @@ Message* Message_register_thread();
 Message* Message_my_name_is(char* name);
 Message* Message_get_node_id();
 
-Message* Message_register_partition(const Linda_tuplespace ts, char* ref);
-Message* Message_get_partitions(const Linda_tuplespace ts);
-Message* Message_deleted_partition(const Linda_tuplespace ts, char* ref);
+Message* Message_register_partition(LindaValue ts, char* ref);
+Message* Message_get_partitions(LindaValue ts);
+Message* Message_deleted_partition(LindaValue ts, char* ref);
 
-Message* Message_get_requests(const Linda_tuplespace ts);
+Message* Message_get_requests(LindaValue ts);
 
 Message* Message_get_neighbours();
 Message* Message_get_connection_details(char* id);
 
-Message* Message_tuple_request(const Linda_tuplespace ts, LindaValue t);
-Message* Message_cancel_request(const Linda_tuplespace ts, LindaValue t);
-Message* Message_multiple_in(const Linda_tuplespace ts, LindaValue t);
+Message* Message_tuple_request(LindaValue ts, LindaValue t);
+Message* Message_cancel_request(LindaValue ts, LindaValue t);
+Message* Message_multiple_in(LindaValue ts, LindaValue t);
 
 void Message_free(Message* m);
 
-void Linda_scanTuple(LindaValue t, char* ref);
+void Linda_scanTuple(LindaValue t, LindaValue ref);
 
 struct Tuplequeue_t {
     struct Tuplequeue_t* next;

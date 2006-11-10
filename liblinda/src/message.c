@@ -24,274 +24,315 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 
+#include <libxml/xmlmemory.h>
+#include <libxml/xmlsave.h>
+
 #include "linda_c.h"
 #include "linda_internal.h"
 
-char* Message_getTupleString(Tuple t);
-char* Message_getElementString(Value* v);
+void Message_getElementString(xmlDocPtr doc, xmlNodePtr parent, LindaValue v);
 
 char* Message_getString(Message* msg) {
-    char* msgstr = NULL;
-    char* msgid = NULL;
-    char* action = NULL;
-    char* body = NULL;
-    char* tmp = NULL;
-    Value v;
+    LindaValue v;
+
+    xmlDocPtr doc = xmlNewDoc(NULL);
+    xmlNodePtr root = xmlNewDocNode(doc, NULL, (xmlChar*)"linda", NULL);
+    xmlDocSetRootElement(doc, root);
 
     if(msg->msgid) {
-        int size = snprintf(NULL, 0, "%i", msg->msgid->count);
-        msgid = (char*)malloc(37 + strlen(msg->msgid->source) + strlen(msg->msgid->dest) + size);
-        sprintf(msgid, "<msgid source=\"%s\" dest=\"%s\" count=\"%i\" />", msg->msgid->source, msg->msgid->dest, msg->msgid->count);
-    } else {
-        msgid = (char*)malloc(1);
-        msgid[0] = '\0';
+        xmlNodePtr msgid = xmlNewDocNode(doc, NULL, (xmlChar*)"msgid", NULL);
+        xmlAddChild(root, msgid);
+        char* count_str = (char*)malloc(snprintf(NULL, 0, "%i", msg->msgid->count) + 1);
+        sprintf(count_str, "%i", msg->msgid->count);
+        xmlNewProp(msgid, (xmlChar*)"source", (xmlChar*)msg->msgid->source);
+        xmlNewProp(msgid, (xmlChar*)"dest", (xmlChar*)msg->msgid->dest);
+        xmlNewProp(msgid, (xmlChar*)"count", (xmlChar*)count_str);
+        free(count_str);
     }
 
     switch(msg->type) {
     case DONE:
-        action = "<action>done</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"done");
+        /*xmlAddChild(root, action);*/
+        }
         break;
     case DONT_KNOW:
-        action = "<action>dont_know</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"dont_know");
+        /*xmlAddChild(root, action);*/
         break;
     case RESULT_STRING:
-        action = "<action>result_string</action>";
-        v = Value_string(msg->string);
-        body = Message_getElementString(&v);
-        Value_clear(&v);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_string");
+        v = Linda_string(msg->string);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
     case RESULT_INT:
-        action = "<action>result_int</action>";
-        v = Value_int(msg->i);
-        body = Message_getElementString(&v);
-        Value_clear(&v);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_int");
+        v = Linda_int(msg->i);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
     case RESULT_TUPLE:
-        action = "<action>result_tuple</action>";
-        body = Message_getTupleString(msg->tuple);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_tuple");
+        Message_getElementString(doc, root, msg->tuple);
         break;
     case UNBLOCK:
-        action = "<action>unblock</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"unblock");
         break;
     case OUT:
-        action = "<action>out</action>";
-        tmp = Message_getTupleString(msg->out.t);
-        body = (char*)malloc(14 + strlen(msg->out.ts) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" />%s", msg->out.ts, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"out");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->out.ts);
+        Message_getElementString(doc, root, msg->out.t);
         break;
+        }
     case IN:
-        action = "<action>in</action>";
-        tmp = Message_getTupleString(msg->in.t);
-        body = (char*)malloc(26 + strlen(msg->in.ts) + strlen(tmp) + strlen(msg->in.tid));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, msg->in.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"in");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->in.ts);
+
+        Message_getElementString(doc, root, msg->in.t);
+
+        xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
+        xmlAddChild(root, tid);
+        xmlNewProp(tid, (xmlChar*)"id", (xmlChar*)msg->in.tid);
         break;
+        }
     case RD:
-        action = "<action>rd</action>";
-        tmp = Message_getTupleString(msg->rd.t);
-        body = (char*)malloc(26 + strlen(msg->rd.ts) + strlen(tmp) + strlen(msg->rd.tid));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, msg->rd.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"rd");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->rd.ts);
+
+        Message_getElementString(doc, root, msg->rd.t);
+
+        xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
+        xmlAddChild(root, tid);
+        xmlNewProp(tid, (xmlChar*)"id", (xmlChar*)msg->rd.tid);
         break;
+        }
     case INP:
-        action = "<action>inp</action>";
-        tmp = Message_getTupleString(msg->in.t);
-        body = (char*)malloc(26 + strlen(msg->in.ts) + strlen(tmp) + strlen(msg->in.tid));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->in.ts, tmp, msg->in.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"inp");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->in.ts);
+
+        Message_getElementString(doc, root, msg->in.t);
+
+        xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
+        xmlAddChild(root, tid);
+        xmlNewProp(tid, (xmlChar*)"id", (xmlChar*)msg->in.tid);
         break;
+        }
     case RDP:
-        action = "<action>rdp</action>";
-        tmp = Message_getTupleString(msg->rd.t);
-        body = (char*)malloc(26 + strlen(msg->rd.ts) + strlen(tmp) + strlen(msg->rd.tid));
-        sprintf(body, "<ts id=\"%s\" />%s<tid id=\"%s\" />", msg->rd.ts, tmp, msg->rd.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"rdp");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->rd.ts);
+
+        Message_getElementString(doc, root, msg->rd.t);
+
+        xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
+        xmlAddChild(root, tid);
+        xmlNewProp(tid, (xmlChar*)"id", (xmlChar*)msg->rd.tid);
         break;
+        }
     case COLLECT:
-        action = "<action>collect</action>";
-        tmp = Message_getTupleString(msg->collect.t);
-        body = (char*)malloc(26 + strlen(msg->collect.ts1) + strlen(msg->collect.ts2) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" /><ts id=\"%s\" />%s", msg->collect.ts1, msg->collect.ts2, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"collect");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->collect.ts1);
+        ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->collect.ts2);
+
+        Message_getElementString(doc, root, msg->collect.t);
         break;
+        }
     case COPY_COLLECT:
-        action = "<action>copy_collect</action>";
-        tmp = Message_getTupleString(msg->collect.t);
-        body = (char*)malloc(26 + strlen(msg->collect.ts1) + strlen(msg->collect.ts2) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" /><ts id=\"%s\" />%s", msg->collect.ts1, msg->collect.ts2, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"copy_collect");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->collect.ts1);
+        ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->collect.ts2);
+
+        Message_getElementString(doc, root, msg->collect.t);
         break;
+        }
     case CREATE_TUPLESPACE:
-        action = "<action>create_tuplespace</action>";
-        body = (char*)malloc(18 + strlen(msg->string));
-        sprintf(body, "<string>%s</string>", msg->string);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"create_tuplespace");
+        v = Linda_string(msg->string);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
+        }
     case ADD_REFERENCE:
-        action = "<action>add_reference</action>";
-        body = (char*)malloc(32 + strlen(msg->ref.ts) + strlen(msg->ref.tid));
-        sprintf(body, "<ts id=\"%s\" /><string>%s</string>", msg->ref.ts, msg->ref.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"add_reference");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
+        v = Linda_string(msg->ref.tid);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
+        }
     case DELETE_REFERENCE:
-        action = "<action>delete_reference</action>";
-        body = (char*)malloc(32 + strlen(msg->ref.ts) + strlen(msg->ref.tid));
-        sprintf(body, "<ts id=\"%s\" /><string>%s</string>", msg->ref.ts, msg->ref.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"delete_reference");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
+        v = Linda_string(msg->ref.tid);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
+        }
     case MONITOR:
-        action = "<action>monitor</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"monitor");
         break;
     case LIST_TS:
-        action = "<action>list_ts</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"list_ts");
         break;
     case INSPECT:
-        action = "<action>inspect</action>";
-        body = (char*)malloc(14 + strlen(msg->ts));
-        sprintf(body, "<ts id=\"%s\" />", msg->ts);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"inspect");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ts);
         break;
+        }
     case GET_ROUTES:
-        action = "<action>get_routes</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_routes");
         break;
     case REGISTER_PROCESS:
-        action = "<action>register_process</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_process");
         break;
     case REGISTER_THREAD:
-        action = "<action>register_thread</action>";
-        body = (char*)malloc(18 + strlen(process_id));
-        sprintf(body, "<string>%s</string>", process_id);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_thread");
+        v = Linda_string(process_id);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
     case GET_NODE_ID:
-        action = "<action>get_node_id</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_node_id");
         break;
     case MY_NAME_IS:
-        action = "<action>my_name_is</action>";
-        body = (char*)malloc(18 + strlen(msg->string));
-        sprintf(body, "<string>%s</string>", msg->string);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"my_name_is");
+        v = Linda_string(process_id);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
     case REGISTER_PARTITION:
-        action = "<action>register_partition</action>";
-        body = (char*)malloc(31 + strlen(msg->ref.ts) + strlen(msg->ref.tid));
-        sprintf(body, "<ts id=\"%s\" /><string>%s</string>", msg->ref.ts, msg->ref.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_partition");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
+        v = Linda_string(msg->ref.tid);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
+        }
     case GET_PARTITIONS:
-        action = "<action>get_partitions</action>";
-        body = (char*)malloc(14 + strlen(msg->ref.ts));
-        sprintf(body, "<ts id=\"%s\" />", msg->ref.ts);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_partitions");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         break;
+        }
     case DELETED_PARTITION:
-        action = "<action>deleted_partition</action>";
-        body = (char*)malloc(31 + strlen(msg->ref.ts) + strlen(msg->ref.tid));
-        sprintf(body, "<ts id=\"%s\" /><string>%s</string>", msg->ref.ts, msg->ref.tid);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"deleted_partition");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
+        v = Linda_string(msg->ref.tid);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
+        }
     case GET_REQUESTS:
-        action = "<action>get_requests</action>";
-        body = (char*)malloc(14 + strlen(msg->ref.ts));
-        sprintf(body, "<ts id=\"%s\" />", msg->ref.ts);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_requests");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         break;
+        }
     case GET_NEIGHBOURS:
-        action = "<action>get_neighbours</action>";
-        body = (char*)malloc(1);
-        body[0] = '\0';
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_neighbours");
         break;
     case GET_CONNECTION_DETAILS:
-        action = "<action>get_connection_details</action>";
-        body = (char*)malloc(18 + strlen(msg->string));
-        sprintf(body, "<string>%s</string>", msg->string);
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_connection_details");
+        v = Linda_string(msg->string);
+        Message_getElementString(doc, root, v);
+        Linda_delReference(v);
         break;
     case TUPLE_REQUEST:
-        action = "<action>tuple_request</action>";
-        tmp = Message_getTupleString(msg->tuple_request.t);
-        body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"tuple_request");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->tuple_request.ts);
+
+        Message_getElementString(doc, root, msg->tuple_request.t);
         break;
+        }
     case CANCEL_REQUEST:
-        action = "<action>cancel_request</action>";
-        tmp = Message_getTupleString(msg->tuple_request.t);
-        body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"cancel_request");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->tuple_request.ts);
+
+        Message_getElementString(doc, root, msg->tuple_request.t);
         break;
+        }
     case MULTIPLE_IN:
-        action = "<action>multiple_in</action>";
-        tmp = Message_getTupleString(msg->tuple_request.t);
-        body = (char*)malloc(14 + strlen(msg->tuple_request.ts) + strlen(tmp));
-        sprintf(body, "<ts id=\"%s\" />%s", msg->tuple_request.ts, tmp);
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"multiple_in");
+        xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
+        xmlAddChild(root, ts);
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->tuple_request.ts);
+
+        Message_getElementString(doc, root, msg->tuple_request.t);
+        }
         break;
     default:
         fprintf(stderr, "Get String: Error, invalid message type.\n");
     }
-    msgstr = (char*)malloc(4 + strlen(msgid) + strlen(action) + strlen(body) + 25);
-    sprintf(msgstr, "<msg>%s%s<body>%s</body></msg>", msgid, action, body);
-    free(body); free(tmp); free(msgid);
-    return msgstr;
-}
 
-char* Message_getTupleString(Tuple t) {
-    int i;
-    char* tuplestr;
-    char* elements = (char*)malloc(1);
-    char* tmp;
-    char* tmp2;
-    elements[0] = '\0';
-    for(i=0; i<t->size; i++) {
-        tmp = Message_getElementString(Tuple_get(t, i));
-        tmp2 = (char*)malloc(strlen(elements) + strlen(tmp) + 1);
-        sprintf(tmp2, "%s%s", elements, tmp);
-        free(elements); free(tmp);
-        elements = tmp2;
-    }
-    tuplestr = (char*)malloc(strlen(elements) + 16);
-    sprintf(tuplestr, "<tuple>%s</tuple>", elements);
-    free(elements);
-    return tuplestr;
-}
-
-char* Message_getElementString(Value* v) {
     int size;
-    char* tmp;
-    if(Value_is_nil(v)) {
-        tmp = (char*)malloc(8);
-        sprintf(tmp, "<nil />");
-    } else if(Value_is_bool(v)) {
-        if(Value_get_bool(v)) {
-            tmp = (char*)malloc(9);
-            sprintf(tmp, "<true />");
-        } else {
-            tmp = (char*)malloc(10);
-            sprintf(tmp, "<false />");
-        }
-    } else if(Value_is_int(v)) {
-        size = snprintf(NULL, 0, "%li", Value_get_int(v));
-        tmp = (char*)malloc(13 + size);
-        sprintf(tmp, "<int>%li</int>", Value_get_int(v));
-    } else if(Value_is_float(v)) {
-        size = snprintf(NULL, 0, "%f", Value_get_float(v));
-        tmp = (char*)malloc(16 + size);
-        sprintf(tmp, "<float>%f</float>", Value_get_float(v));
-    } else if(Value_is_string(v)) {
-        tmp = (char*)malloc(18 + Value_get_string_len(v));
-        sprintf(tmp, "<string>%s</string>", Value_get_string(v));
-    } else if(Value_is_type(v)) {
-        tmp = (char*)malloc(14 + strlen(Value_get_type(v)));
-        sprintf(tmp, "<type>%s</type>", Value_get_type(v));
-    } else if(Value_is_tsref(v)) {
-        tmp = (char*)malloc(13 + strlen(Value_get_tsref(v)));
-        sprintf(tmp, "<ts id=\"%s\" />", Value_get_tsref(v));
-    } else if(Value_is_tuple(v)) {
-        tmp = Message_getTupleString(Value_get_tuple(v));
-    } else {
-        fprintf(stderr, "Error, invalid value type (%i).\n", v->type);
-        tmp = (char*)malloc(1);
-        tmp[0] = '\0';
-    }
-    return tmp;
+    xmlChar* buf;
+    xmlDocDumpFormatMemory(doc, &buf, &size, 1);
+
+    char* outbuf = (char*)malloc(size+1);
+    memcpy(outbuf, buf, size);
+    outbuf[size] = '\0';
+
+    xmlFreeDoc(doc);
+    xmlFree(buf);
+
+    return outbuf;
+}
+
+void Message_getElementString(xmlDocPtr doc, xmlNodePtr parent, LindaValue v) {
+    Minimal_serialiseXML(doc, parent, v);
 }
 
 Message* Message_done() {
@@ -321,89 +362,84 @@ Message* Message_result_int(int i) {
     return m;
 }
 
-Message* Message_result_tuple(Tuple t) {
+Message* Message_result_tuple(LindaValue t) {
+    if(!Linda_isTuple(t)) {
+        fprintf(stderr, "PyLinda: Error, Message_result_tuple not passed a tuple.\n");
+        return NULL;
+    }
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = RESULT_TUPLE;
-    m->tuple = Tuple_copy(t);
+    m->tuple = Linda_copy(t);
     return m;
 }
 
-Message* Message_out(const Linda_tuplespace ts, Tuple t) {
+Message* Message_out(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = OUT;
-    m->out.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->out.ts, ts);
-    m->in.t = Tuple_copy(t);
+    m->out.ts = Linda_copy(m->out.ts);
+    m->in.t = Linda_copy(t);
     return m;
 }
 
-Message* Message_in(const Linda_tuplespace ts, Tuple t) {
+Message* Message_in(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = IN;
-    m->in.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->in.ts, ts);
-    m->in.t = Tuple_copy(t);
+    m->in.ts = Linda_copy(m->in.ts);
+    m->in.t = Linda_copy(t);
     m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->in.tid, tdata->thread_id);
     return m;
 }
 
-Message* Message_rd(const Linda_tuplespace ts, Tuple t) {
+Message* Message_rd(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = RD;
-    m->rd.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->rd.ts, ts);
-    m->rd.t = Tuple_copy(t);
+    m->rd.ts = Linda_copy(m->rd.ts);
+    m->rd.t = Linda_copy(t);
     m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->rd.tid, tdata->thread_id);
     return m;
 }
 
-Message* Message_inp(const Linda_tuplespace ts, Tuple t) {
+Message* Message_inp(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = INP;
-    m->in.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->in.ts, ts);
-    m->in.t = Tuple_copy(t);
+    m->in.ts = Linda_copy(m->in.ts);
+    m->in.t = Linda_copy(t);
     m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->in.tid, tdata->thread_id);
     return m;
 }
 
-Message* Message_rdp(const Linda_tuplespace ts, Tuple t) {
+Message* Message_rdp(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = RDP;
-    m->rd.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->rd.ts, ts);
-    m->rd.t = Tuple_copy(t);
+    m->rd.ts = Linda_copy(m->rd.ts);
+    m->rd.t = Linda_copy(t);
     m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->rd.tid, tdata->thread_id);
     return m;
 }
 
-Message* Message_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t) {
+Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = COLLECT;
-    m->collect.ts1 = (Linda_tuplespace)malloc(strlen(ts1) + 1);
-    strcpy(m->collect.ts1, ts1);
-    m->collect.ts2 = (Linda_tuplespace)malloc(strlen(ts2) + 1);
-    strcpy(m->collect.ts2, ts2);
-    m->collect.t = Tuple_copy(t);
+    m->collect.ts1 = Linda_copy(m->collect.ts1);
+    m->collect.ts2 = Linda_copy(m->collect.ts2);
+    m->collect.t = Linda_copy(t);
     return m;
 }
 
-Message* Message_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, Tuple t) {
+Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = COPY_COLLECT;
-    m->collect.ts1 = (Linda_tuplespace)malloc(strlen(ts1) + 1);
-    strcpy(m->collect.ts1, ts1);
-    m->collect.ts2 = (Linda_tuplespace)malloc(strlen(ts2) + 1);
-    strcpy(m->collect.ts2, ts2);
-    m->collect.t = Tuple_copy(t);
+    m->collect.ts1 = Linda_copy(m->collect.ts1);
+    m->collect.ts2 = Linda_copy(m->collect.ts2);
+    m->collect.t = Linda_copy(t);
     return m;
 }
 
@@ -422,33 +458,30 @@ Message* Message_createTuplespace() {
     return m;
 }
 
-Message* Message_addReference(const Linda_tuplespace ts) {
+Message* Message_addReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = ADD_REFERENCE;
-    m->ref.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
 }
 
-Message* Message_addReference2(const Linda_tuplespace ts, char* id) {
+Message* Message_addReference2(LindaValue ts, char* id) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = ADD_REFERENCE;
-    m->ref.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     m->ref.tid = (char*)malloc(strlen(id) + 1);
     strcpy(m->ref.tid, id);
     return m;
 }
 
-Message* Message_deleteReference(const Linda_tuplespace ts) {
+Message* Message_deleteReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = DELETE_REFERENCE;
-    m->ref.ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
@@ -466,11 +499,10 @@ Message* Message_list_ts() {
     return m;
 }
 
-Message* Message_inspect(const Linda_tuplespace ts) {
+Message* Message_inspect(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = INSPECT;
-    m->ts = (Linda_tuplespace)malloc(strlen(ts) + 1);
-    strcpy(m->ts, ts);
+    m->ts = Linda_copy(m->ts);
     return m;
 }
 
@@ -508,39 +540,35 @@ Message* Message_get_node_id() {
     return m;
 }
 
-Message* Message_register_partition(const Linda_tuplespace ts, char* ref) {
+Message* Message_register_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = REGISTER_PARTITION;
-    m->ref.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;
 }
 
-Message* Message_get_partitions(const Linda_tuplespace ts) {
+Message* Message_get_partitions(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = GET_PARTITIONS;
-    m->ref.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->ts, ts);
+    m->ref.ts = Linda_copy(m->ts);
     return m;
 }
 
-Message* Message_deleted_partition(const Linda_tuplespace ts, char* ref) {
+Message* Message_deleted_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = DELETED_PARTITION;
-    m->ref.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;
 }
 
-Message* Message_get_requests(const Linda_tuplespace ts) {
+Message* Message_get_requests(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = GET_REQUESTS;
-    m->ref.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->ref.ts, ts);
+    m->ref.ts = Linda_copy(m->ref.ts);
     return m;
 }
 
@@ -558,30 +586,27 @@ Message* Message_get_connection_details(char* id) {
     return m;
 }
 
-Message* Message_tuple_request(const Linda_tuplespace ts, Tuple t) {
+Message* Message_tuple_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = TUPLE_REQUEST;
-    m->tuple_request.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->tuple_request.ts, ts);
-    m->tuple_request.t = Tuple_copy(t);
+    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.t = Linda_copy(t);
     return m;
 }
 
-Message* Message_cancel_request(const Linda_tuplespace ts, Tuple t) {
+Message* Message_cancel_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = CANCEL_REQUEST;
-    m->tuple_request.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->tuple_request.ts, ts);
-    m->tuple_request.t = Tuple_copy(t);
+    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.t = Linda_copy(t);
     return m;
 }
 
-Message* Message_multiple_in(const Linda_tuplespace ts, Tuple t) {
+Message* Message_multiple_in(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = MULTIPLE_IN;
-    m->tuple_request.ts = (char*)malloc(strlen(ts)+1);
-    strcpy(m->tuple_request.ts, ts);
-    m->tuple_request.t = Tuple_copy(t);
+    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.t = Linda_copy(t);
     return m;
 }
 
@@ -600,31 +625,31 @@ void Message_free(Message* msg) {
     case RESULT_INT:
         break;
     case RESULT_TUPLE:
-        Tuple_free(msg->tuple);
+        Linda_delReference(msg->tuple);
         break;
     case UNBLOCK:
         break;
     case OUT:
         free(msg->out.ts);
-        Tuple_free(msg->out.t);
+        Linda_delReference(msg->out.t);
         break;
     case RD:
     case RDP:
         free(msg->rd.tid);
         free(msg->rd.ts);
-        Tuple_free(msg->rd.t);
+        Linda_delReference(msg->rd.t);
         break;
     case IN:
     case INP:
         free(msg->in.tid);
         free(msg->in.ts);
-        Tuple_free(msg->in.t);
+        Linda_delReference(msg->in.t);
         break;
     case COLLECT:
     case COPY_COLLECT:
         free(msg->collect.ts1);
         free(msg->collect.ts2);
-        Tuple_free(msg->collect.t);
+        Linda_delReference(msg->collect.t);
         break;
     case CREATE_TUPLESPACE:
         free(msg->string);
@@ -671,11 +696,11 @@ void Message_free(Message* msg) {
     case TUPLE_REQUEST:
     case CANCEL_REQUEST:
         free(msg->tuple_request.ts);
-        Tuple_free(msg->tuple_request.t);
+        Linda_delReference(msg->tuple_request.t);
         break;
     case MULTIPLE_IN:
         free(msg->tuple_request.ts);
-        Tuple_free(msg->tuple_request.t);
+        Linda_delReference(msg->tuple_request.t);
         break;
     default:
         fprintf(stderr, "Invalid message free (%i).\n", msg->type);

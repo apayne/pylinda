@@ -184,6 +184,22 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             Message_free(m); \
         }
 
+#define PYTHON_TO_MSG_TS(name, func) \
+    } else if(strcmp(action, name) == 0) { \
+        if(PyTuple_Size(tuple) != (offset+2)) { \
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments (%i not %i).\n", action, (int)PyTuple_Size(tuple), offset+2)); \
+            return NULL; \
+        } else if(!PyString_Check(PyTuple_GetItem(tuple, offset+1))) { \
+            PyObject* repr = PyObject_Repr(PyTuple_GetItem(tuple, offset+1)); \
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("'%s' is not a string.\n", PyString_AsString(repr))); \
+            Py_DecRef(repr); \
+            return NULL; \
+        } else { \
+            m = Message_##func(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1)))); \
+            Message_send(sd, msgid, m); \
+            Message_free(m); \
+        }
+
 PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     int sd;
     int offset;
@@ -247,40 +263,43 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             return NULL;
         }
     PYTHON_TO_MSG_NONE("CREATE_TUPLESPACE", createTuplespace)
-    PYTHON_TO_MSG_STRING("ADD_REFERENCE", addReference)
-    PYTHON_TO_MSG_STRING("DELETE_REFERENCE", deleteReference)
+    PYTHON_TO_MSG_TS("ADD_REFERENCE", addReference)
+    PYTHON_TO_MSG_TS("DELETE_REFERENCE", deleteReference)
     PYTHON_TO_MSG_NONE("MONITOR", monitor)
     PYTHON_TO_MSG_NONE("LIST_TS", list_ts)
-    PYTHON_TO_MSG_STRING("INSPECT", inspect)
+    PYTHON_TO_MSG_TS("INSPECT", inspect)
     PYTHON_TO_MSG_NONE("GET_ROUTES", get_routes)
     PYTHON_TO_MSG_STRING("MY_NAME_IS", my_name_is)
     PYTHON_TO_MSG_NONE("GET_NODE_ID", get_node_id)
     } else if(strcmp(action, "REGISTER_PARTITION") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2))) {
-            m = Message_register_partition(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
+            m = Message_register_partition(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
+                                            PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
             Message_send(sd, msgid, m);
             Message_free(m);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
-    PYTHON_TO_MSG_STRING("GET_PARTITIONS", get_partitions)
+    PYTHON_TO_MSG_TS("GET_PARTITIONS", get_partitions)
     } else if(strcmp(action, "DELETED_PARTITION") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2))) {
-            m = Message_deleted_partition(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
+            m = Message_deleted_partition(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
+                                            PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
             Message_send(sd, msgid, m);
             Message_free(m);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
-    PYTHON_TO_MSG_STRING("GET_REQUESTS", get_requests)
+    PYTHON_TO_MSG_TS("GET_REQUESTS", get_requests)
     PYTHON_TO_MSG_NONE("GET_NEIGHBOURS", get_neighbours)
     PYTHON_TO_MSG_STRING("GET_CONNECTION_DETAILS", get_connection_details)
     } else if(strcmp(action, "COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
-            m = Message_collect(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)), t);
+            m = Message_collect(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
+                                Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -291,7 +310,8 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "COPY_COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
-            m = Message_copy_collect(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), PyString_AsString(PyTuple_GetItem(tuple, offset+2)), t);
+            m = Message_copy_collect(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
+                                    Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -303,7 +323,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "TUPLE_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_tuple_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
+            m = Message_tuple_request(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -314,7 +334,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "CANCEL_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_cancel_request(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
+            m = Message_cancel_request(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -325,7 +345,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "MULTIPLE_IN") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_multiple_in(PyString_AsString(PyTuple_GetItem(tuple, offset+1)), t);
+            m = Message_multiple_in(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);

@@ -22,7 +22,7 @@
 
 namespace Linda {
 
-TupleSpace uts("UTS");
+TupleSpace uts(Linda_uts);
 
 bool connect(int port) {
     bool r = Linda_connect(port);

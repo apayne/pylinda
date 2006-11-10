@@ -35,14 +35,14 @@ extern int LindaPython_is_server;
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
-    Linda_tuplespace ts;
+    LindaValue ts;
 } linda_TupleSpaceObject;
 PyTypeObject linda_TupleSpaceType;
 
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */
-    Linda_tuplespace ts;
+    LindaValue ts;
 } linda_TSRefObject;
 PyTypeObject linda_TSRefType;
 

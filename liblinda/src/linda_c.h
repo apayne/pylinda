@@ -79,28 +79,26 @@ extern int Linda_port;
 void Linda_disconnect();
 #endif
 
-typedef char* Linda_tuplespace;
+LindaValue Linda_createTuplespace();
 
-Linda_tuplespace Linda_createTuplespace();
-
-void Linda_addTSReference(const Linda_tuplespace ts);
-void Linda_delTSReference(const Linda_tuplespace ts);
+void Linda_addTSReference(LindaValue ts);
+void Linda_delTSReference(LindaValue ts);
 
 #define Linda_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
 void Linda_addReference2(MinimalObject ptr, char* file, int line);
 int Linda_getReferenceCount(MinimalObject ptr);
 void Linda_delReference(MinimalObject ptr);
 
-void Linda_out(const Linda_tuplespace ts, LindaValue t);
-LindaValue Linda_in(const Linda_tuplespace ts, LindaValue t);
-LindaValue Linda_rd(const Linda_tuplespace ts, LindaValue t);
-LindaValue Linda_inp(const Linda_tuplespace ts, LindaValue t);
-LindaValue Linda_rdp(const Linda_tuplespace ts, LindaValue t);
+void Linda_out(LindaValue ts, LindaValue t);
+LindaValue Linda_in(LindaValue ts, LindaValue t);
+LindaValue Linda_rd(LindaValue ts, LindaValue t);
+LindaValue Linda_inp(LindaValue ts, LindaValue t);
+LindaValue Linda_rdp(LindaValue ts, LindaValue t);
 
-int Linda_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
-int Linda_copy_collect(const Linda_tuplespace ts1, const Linda_tuplespace ts2, LindaValue t);
+int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
 
-extern Linda_tuplespace Linda_uts;
+extern LindaValue Linda_uts;
 
 extern LindaValue Linda_boolType;
 extern LindaValue Linda_intType;

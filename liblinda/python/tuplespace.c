@@ -52,8 +52,7 @@ static int linda_TupleSpace_init(linda_TupleSpaceObject* self, PyObject* args, P
             return 0;
         }
     } else {
-        self->ts = malloc(strlen(id)+1);
-        strcpy(self->ts, id);
+        self->ts = Linda_tupleSpace(id);
         Linda_addReference(id);
         return 0; 
     }
@@ -320,7 +319,7 @@ static void linda_TupleSpace_dealloc(linda_TupleSpaceObject* self)
 }
 
 static PyObject* linda_TupleSpace_str(linda_TupleSpaceObject* self) {
-    return PyString_FromFormat("<TupleSpace %s>", self->ts);
+    return PyString_FromFormat("<TupleSpace %s>", Linda_getTupleSpace(self->ts));
 }
 
 static PyMethodDef tuplespace_methods[] = {
@@ -334,9 +333,8 @@ static PyMethodDef tuplespace_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyObject* linda_TupleSpace_getid(linda_TupleSpaceObject *self, void *closure)
-{
-    return PyString_FromString(self->ts);
+static PyObject* linda_TupleSpace_getid(linda_TupleSpaceObject *self, void *closure) {
+    return PyString_FromString(Linda_getTupleSpace(self->ts));
 }
 
 static PyGetSetDef tuplespace_getseters[] = {
@@ -397,7 +395,7 @@ void inittuplespace(PyObject* m) {
     PyModule_AddObject(m, "TupleSpace", (PyObject*)&linda_TupleSpaceType);
 
     uts = (linda_TupleSpaceObject*)linda_TupleSpaceType.tp_alloc(&linda_TupleSpaceType, 0);
-    uts->ts = (char*)malloc(4);
-    strcpy(uts->ts, "UTS");
+    Linda_addReference(Linda_uts);
+    uts->ts = Linda_uts;
     PyModule_AddObject(m, "uts", (PyObject*)uts);
 }

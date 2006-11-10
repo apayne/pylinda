@@ -26,27 +26,27 @@
 namespace Linda {
 
 Tuple::Tuple(int size) {
-    this->values = Tuple_new(size);
+    this->values = Linda_tuple(size);
 }
 
 Tuple::Tuple(const Tuple& t) {
-    this->values = Tuple_copy((struct Tuple_t*)t.values);
+    this->values = Linda_copy(t.values);
 }
 
-Tuple::Tuple(struct Tuple_t* t) {
-    this->values = Tuple_copy(t);
+Tuple::Tuple(LindaValue t) {
+    this->values = Linda_copy(t);
 }
 
 Tuple::~Tuple() {
-    Tuple_free((struct Tuple_t*)this->values);
+    Linda_delReference(this->values);
 }
 
 void Tuple::set(int i, const Value& v) {
-    Tuple_set((struct Tuple_t*)this->values, i, *((struct Value_t*)v.value));
+    Linda_tupleSet(this->values, i, v.value);
 }
 
 Value Tuple::get(int i) {
-    return Tuple_get(this->values, i);
+    return Linda_tupleGet(this->values, i);
 }
 
 }

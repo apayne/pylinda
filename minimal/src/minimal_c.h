@@ -20,7 +20,8 @@
 
 #include "libxml/tree.h"
 
-#ifndef MINIMAL_H
+#ifndef MINIMAL_C_H
+#define MINIMAL_C_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,7 +90,7 @@ struct MinimalValue_t {
 
 extern MinimalValue Minimal_Nil;
 
-unsigned char Minimal_isNil();
+unsigned char Minimal_isNil(MinimalValue v);
 MinimalValue Minimal_nil();
 
 unsigned char Minimal_isBool(MinimalValue v);

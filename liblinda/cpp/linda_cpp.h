@@ -56,7 +56,7 @@ public:
 
     template<typename T> T get();
 protected:
-    struct Value_t* value;
+    LindaValue value;
 };
 
 class Tuple {
@@ -64,20 +64,20 @@ class Tuple {
 public:
     Tuple(int size=0);
     Tuple(const Tuple& t);
-    Tuple(struct Tuple_t* t);
+    Tuple(LindaValue t);
     ~Tuple();
 
     void add(Value& v);
     void set(int i, const Value& v);
     Value get(int i);
 protected:
-    struct Tuple_t* values;
+    LindaValue values;
 };
 
 class TupleSpace {
 public:
     TupleSpace();
-    TupleSpace(std::string tsid);
+    TupleSpace(LindaValue tsid);
     TupleSpace(const TupleSpace& ts);
     ~TupleSpace();
 
@@ -93,7 +93,7 @@ public:
     TupleSpace& operator=(const TupleSpace& ts);
 
 private:
-    std::string tsid;
+    LindaValue tsid;
     bool initialised;
 };
 
