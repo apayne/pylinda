@@ -103,6 +103,15 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         free(integer);
         return;
         }
+    case STRING:
+        {
+        xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"string", (xmlChar*)f->string);
+        xmlAddChild(parent, node);
+        AddTypeObj(node);
+        AddSumPos(node);
+        AddId(node);
+        return;
+        }
     case TUPLE:
         {
         int i;

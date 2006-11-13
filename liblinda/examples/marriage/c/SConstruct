@@ -1,1 +1,1 @@
-Program("marriage", "marriage.c", CPPPATH="/usr/aw/include", LIBS=["linda", "expat"])
+Program("marriage", "marriage.c", CPPPATH="/usr/aw/include", LIBS=["linda", "expat", "pthread"])

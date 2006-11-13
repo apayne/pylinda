@@ -123,19 +123,19 @@ int TupleSpace::copy_collect(TupleSpace& ts, Tuple& t) {
 
 TupleSpace& TupleSpace::operator=(const TupleSpace& ts) {
     if(ts.initialised) {
-        Linda_addReference((const Linda_tuplespace)ts.tsid.c_str());
+        Linda_addTSReference(ts.tsid);
         if(this->initialised) {
-            Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+            Linda_delTSReference(this->tsid);
         }
 
         this->tsid = ts.tsid;
         this->initialised = true;
     } else {
         if(this->initialised) {
-            Linda_deleteReference((const Linda_tuplespace)this->tsid.c_str());
+            Linda_delTSReference(this->tsid);
         }
 
-        this->tsid = "";
+        this->tsid = NULL;
         this->initialised = false;
     }
 

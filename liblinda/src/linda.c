@@ -38,14 +38,35 @@ int Linda_port = 2102;
 
 int Linda_active_connections = 0;
 
+unsigned char Linda_inited = 0;
+
 LindaValue Linda_uts;
+LindaValue Linda_boolType;
+LindaValue Linda_intType;
+LindaValue Linda_floatType;
+LindaValue Linda_stringType;
+LindaValue Linda_tupleSpaceType;
+
+void Linda_init() {
+    if(Linda_inited) { return; }
+    Linda_inited = 1;
+
+    Minimal_init();
+
+    Linda_uts = Linda_tupleSpace("UTS");
+    Linda_boolType = Linda_type("booltype :: bool;");
+    Linda_intType = Linda_type("inttype :: int;");
+    Linda_floatType = Linda_type("floattype :: float;");
+    Linda_stringType = Linda_type("stringtype :: string;");
+    Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
+}
 
 unsigned char Linda_connect(int port) {
     int err;
     Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
 
-    Minimal_init();
+    Linda_init();
 
     if(tdata->sd != 0) { return 1; }
 

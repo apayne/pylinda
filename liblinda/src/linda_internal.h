@@ -173,10 +173,6 @@ struct Tuplequeue_t {
 };
 typedef struct Tuplequeue_t* Tuplequeue;
 
-Tuplequeue Tuplequeue_push(Tuplequeue tq);
-Tuplequeue Tuplequeue_pop(Tuplequeue tq);
-LindaValue Tuplequeue_top(Tuplequeue tq);
-
 struct Linda_thread_data_t {
     int sd;
     char* thread_id;

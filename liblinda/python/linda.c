@@ -67,6 +67,8 @@ static PyMethodDef LindaMethods[] = {
 
 PyMODINIT_FUNC init_linda(void)
 {
+    Linda_init();
+
     Linda_module = Py_InitModule("_linda", LindaMethods);
 
     PyModule_AddObject(Linda_module, "version", PyString_FromString(version));

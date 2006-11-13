@@ -64,25 +64,25 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(OsO)", msgid, "RESULT_TUPLE", Tuple2PyO(m->tuple));
             break;
         case OUT:
-            t = Py_BuildValue("(OssO)", msgid, "OUT", m->out.ts, Tuple2PyO(m->out.t));
+            t = Py_BuildValue("(OssO)", msgid, "OUT", Linda_getTupleSpace(m->out.ts), Tuple2PyO(m->out.t));
             break;
         case IN:
-            t = Py_BuildValue("(OssOs)", msgid, "IN", m->in.ts, Tuple2PyO(m->in.t), m->in.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "IN", Linda_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->in.tid);
             break;
         case RD:
-            t = Py_BuildValue("(OssOs)", msgid, "RD", m->rd.ts, Tuple2PyO(m->rd.t), m->in.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "RD", Linda_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->in.tid);
             break;
         case INP:
-            t = Py_BuildValue("(OssOs)", msgid, "INP", m->in.ts, Tuple2PyO(m->in.t), m->rd.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "INP", Linda_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->rd.tid);
             break;
         case RDP:
-            t = Py_BuildValue("(OssOs)", msgid, "RDP", m->rd.ts, Tuple2PyO(m->rd.t), m->rd.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "RDP", Linda_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->rd.tid);
             break;
         case COLLECT:
-            t = Py_BuildValue("(OsssO)", msgid, "COLLECT", m->collect.ts1, m->collect.ts2, Tuple2PyO(m->collect.t));
+            t = Py_BuildValue("(OsssO)", msgid, "COLLECT", Linda_getTupleSpace(m->collect.ts1), Linda_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
         case COPY_COLLECT:
-            t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", m->collect.ts1, m->collect.ts2, Tuple2PyO(m->collect.t));
+            t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", Linda_getTupleSpace(m->collect.ts1), Linda_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
         case UNBLOCK:
             t = Py_BuildValue("(Os)", msgid, "UNBLOCK");
@@ -91,10 +91,10 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "CREATE_TUPLESPACE", m->string);
             break;
         case ADD_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", m->ref.ts, m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", Linda_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case DELETE_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", m->ref.ts, m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", Linda_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case MONITOR:
             t = Py_BuildValue("(Os)", msgid, "MONITOR");
@@ -103,7 +103,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Os)", msgid, "LIST_TS");
             break;
         case INSPECT:
-            t = Py_BuildValue("(Oss)", msgid, "INSPECT", m->string);
+            t = Py_BuildValue("(Oss)", msgid, "INSPECT", Linda_getTupleSpace(m->ts));
             break;
         case GET_ROUTES:
             t = Py_BuildValue("(Os)", msgid, "GET_ROUTES");

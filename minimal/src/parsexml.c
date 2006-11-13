@@ -27,7 +27,7 @@
 #include "minimal_internal.h"
 
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node);
-MinimalValue Minimal_xmlToValue(xmlNodePtr node, ValueMemo* memo);
+MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
     xmlDocPtr doc = xmlReadMemory(code, strlen(code), NULL, NULL, 0);
@@ -50,7 +50,6 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_SEQENTIAL_DEFS;
-
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
@@ -168,11 +167,20 @@ MinimalValue Minimal_parseXMLValue(const char* code) {
         return NULL;
     }
 
+    value = Minimal_xmlToValue(node);
+
+    xmlFreeDoc(doc);
+
+    return value;
+}
+
+MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
+    MinimalValue value;
     ValueMemo memo;
     memo.found = NULL;
     memo.waiting = NULL;
 
-    value = Minimal_xmlToValue(node, &memo);
+    value = Minimal_xmlToValue2(node, &memo);
 
     if(memo.found != NULL) {
         free(memo.found);
@@ -181,18 +189,16 @@ MinimalValue Minimal_parseXMLValue(const char* code) {
         free(memo.waiting);
     }
 
-    xmlFreeDoc(doc);
-
     return value;
 }
 
-MinimalValue Minimal_xmlToValue(xmlNodePtr node, ValueMemo* memo) {
+MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
     MinimalValue value = NULL;
     if(strcmp((char*)(node->name), "minimal") == 0) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && value == NULL) {
-                value = Minimal_xmlToValue(cur_node, memo);
+                value = Minimal_xmlToValue2(cur_node, memo);
             } else if(cur_node->type == XML_ELEMENT_NODE && value != NULL) {
                 fprintf(stderr, "Error: Minimal_xmlToValue can only parse only value.\n");
                 Minimal_delReference(value);
@@ -203,15 +209,25 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node, ValueMemo* memo) {
     } else if(strcmp((char*)(node->name), "nil") == 0) {
         Minimal_addReference(Minimal_Nil)
         value = Minimal_Nil;
+    } else if(strcmp((char*)(node->name), "string") == 0) {
+        xmlNodePtr cur_node = node->children;
+        char* text = NULL;
+        while(cur_node) {
+            if(cur_node->type == XML_TEXT_NODE) {
+                text = (char*)cur_node->content;
+            }
+            cur_node = cur_node->next;
+        }
+        value = Minimal_string(text);
     } else if(strcmp((char*)(node->name), "tuple") == 0) {
         value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 if(strcmp((char*)(cur_node->name), "type") == 0) {
-                    value->typeobj = Minimal_xmlToValue(cur_node, memo);
+                    value->typeobj = Minimal_xmlToValue2(cur_node, memo);
                 } else {
-                    Minimal_tupleAdd(value, Minimal_xmlToValue(cur_node, memo));
+                    Minimal_tupleAdd(value, Minimal_xmlToValue2(cur_node, memo));
                 }
             }
             cur_node = cur_node->next;

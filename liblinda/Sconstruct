@@ -5,7 +5,7 @@ defines = {"PYTHON_VERSION": "%s.%s" % (sys.version_info[0], sys.version_info[1]
 text = open(str("config.h.in"), "r").read() % defines
 open(str("config.h"), "w").write(text)
 
-env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"], LIBPATH=".")
+env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"], LIBPATH=[".", "/home/andrew/lib"])
 cppenv = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"])
 
 Export("env")
@@ -19,5 +19,5 @@ env.SharedLibrary(target = "linda", source = clientobjs)
 cppenv.SharedLibrary(target = "linda++", source = cppclientobjs)
 env.SharedLibrary(target = "linda-server", source = serverobjs)
 
-env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["liblinda", "expat", "python2.4"])
-env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["liblinda-server", "expat"])
+env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["linda", "minimal", "xml2", "python2.5", "readline", "fl"])
+env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["linda-server", "minimal", "xml2"])

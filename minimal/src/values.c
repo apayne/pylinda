@@ -26,6 +26,10 @@
 
 MinimalValue Minimal_Nil;
 
+unsigned char Minimal_isNil(MinimalValue v) {
+    return v->type == NIL;
+}
+
 MinimalValue Minimal_nil() {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = NIL;
@@ -173,6 +177,10 @@ MinimalValue Minimal_type(const char* typespec) {
     return v;
 }
 
+unsigned char Minimal_isTuple(MinimalValue v) {
+    return v->type == TUPLE;
+}
+
 MinimalValue Minimal_tuple(int size) {
     int i;
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
@@ -189,6 +197,10 @@ MinimalValue Minimal_tuple(int size) {
     v->typeobj = NULL;
     v->sum_pos = -1;
     return v;
+}
+
+int Minimal_getTupleSize(MinimalValue tuple) {
+    return tuple->size;
 }
 
 void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value) {
@@ -247,6 +259,24 @@ MinimalValue Minimal_getPtr(MinimalValue v) {
 
 MinimalValue Minimal_getPtrType(MinimalValue v) {
     return v->ptr_type;
+}
+
+unsigned char Minimal_isTupleSpace(MinimalValue v) {
+    return v->type == TSREF;
+}
+
+MinimalValue Minimal_tupleSpace(const char* ts) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = TSREF;
+    v->string = malloc(strlen(ts)+1);
+    strcpy(v->string, ts);
+    v->typeobj = NULL;
+    v->sum_pos = -1;
+    return v;
+}
+
+char* Minimal_getTupleSpace(MinimalValue v) {
+    return v->string;
 }
 
 void Minimal_setType(MinimalValue value, MinimalValue type) {
@@ -345,6 +375,72 @@ char* Minimal_Value_string(MinimalValue v) {
     }
 }
 
+MinimalValue Minimal_copy(MinimalValue v) {
+    if(v == NULL) { return NULL; }
+
+    MinimalValue nv = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    nv->type = v->type;
+    nv->typeobj = Minimal_copy(v->typeobj);
+    nv->sum_pos = v->sum_pos;
+
+    switch(v->type) {
+    case NIL:
+        break;
+    case BOOLEAN:
+        nv->boolean = v->boolean;
+        break;
+    case INTEGER:
+        nv->integer = v->integer;
+        break;
+    case FLOAT:
+        nv->floating = v->floating;
+        break;
+    case STRING:
+        nv->string = (char*)malloc(v->length);
+        memcpy(nv->string, v->string, v->length);
+        nv->length = v->length;
+        break;
+    case TYPE:
+        nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
+        strcpy(nv->type_name, v->type_name);
+        nv->integer = v->integer;
+        nv->type_spec = Minimal_SyntaxTree_copy(v->type_spec);
+        break;
+    case TSREF:
+        nv->string = (char*)malloc(strlen(v->string) + 1);
+        strcpy(nv->string, v->string);
+        break;
+    case TUPLE:
+        {
+        int i;
+        nv->size = v->size;
+        nv->values = malloc(sizeof(void*)*v->size);
+        for(i=0; i<v->size; i++) {
+            nv->values[i] = Minimal_copy(v->values[i]);
+        }
+        break;
+        }
+    case FUNCTION:
+        nv->func_name = (char*)malloc(strlen(v->func_name) + 1);
+        strcpy(nv->func_name, v->func_name);
+
+        nv->func_type = Minimal_SyntaxTree_copy(v->func_type);
+        nv->parameter_list = Minimal_SyntaxTree_copy(v->parameter_list);
+        nv->code = Minimal_SyntaxTree_copy(v->code);
+        nv->layer = v->layer;
+        Minimal_delReference(nv->layer);
+        break;
+    case POINTER:
+        Minimal_delReference(v->ptr_type);
+        Minimal_delReference(v->ptr);
+        break;
+    default:
+        fprintf(stderr, "Unknown value type in Minimal_copy (%i)\n", v->type);
+        return NULL;
+    }
+    return nv;
+}
+
 void Minimal_Value_free(MinimalValue v) {
     if(v == NULL) { return; }
 
@@ -369,6 +465,7 @@ void Minimal_Value_free(MinimalValue v) {
         Minimal_SyntaxTree_free(v->type_spec);
         break;
     case TSREF:
+        free(v->string);
         break;
     case TUPLE:
         {

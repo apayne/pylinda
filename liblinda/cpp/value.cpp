@@ -27,47 +27,41 @@
 namespace Linda {
 
 Value::Value(bool b) {
-    this->value = new struct Value_t;
-    *(this->value) = Value_bool(b);
+    this->value = Linda_bool(b);
 }
 
 Value::Value(int i) {
-    this->value = new struct Value_t;
-    *(this->value) = Value_int(i);
+    this->value = Linda_int(i);
 }
 
 Value::Value(char* s) {
-    this->value = new struct Value_t;
-    *(this->value) = Value_string(s);
+    this->value = Linda_string(s);
 }
 
-Value::Value(const Value& v) {
-    this->value = Value_copyptr((struct Value_t*)v.value);
-}
-
-Value::Value(const struct Value_t& v) {
-    this->value = Value_copyptr(&v);
+Value::Value(const LindaValue v) {
+    this->value = Linda_copy(v);
 }
 
 Value::~Value() {
-    Value_free((struct Value_t*)this->value);
+    Linda_delReference(this->value);
 }
 
 template<> int Value::get() {
-    return Value_get_int(this->value);
-}
-template<> double Value::get() {
-    return (double)Value_get_float(this->value);
-}
-template<> TupleSpace Value::get() {
-    return TupleSpace(Value_get_tsref(this->value));
+    return Linda_getInt(this->value);
 }
 
-Value boolType(Value_boolType);
-Value intType(Value_intType);
-Value floatType(Value_floatType);
-Value stringType(Value_stringType);
-Value tuplespaceType(Value_tuplespaceType);
+template<> double Value::get() {
+    return (double)Linda_getFloat(this->value);
+}
+template<> TupleSpace Value::get() {
+    return TupleSpace(Linda_copy(this->value));
+}
+
+Value boolType(Linda_boolType);
+Value intType(Linda_intType);
+Value floatType(Linda_floatType);
+Value stringType(Linda_stringType);
+Value tuplespaceType(Linda_tupleSpaceType);
 
 }
 

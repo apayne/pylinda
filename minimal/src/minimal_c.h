@@ -52,8 +52,7 @@ struct MinimalValue_t {
         TSREF,
         TUPLE,
         FUNCTION,
-        POINTER,
-        TUPLESPACE
+        POINTER
     } type;
     MinimalValue typeobj;
     int sum_pos;
@@ -228,6 +227,7 @@ MinimalValue Minimal_getFunction(char* funcname);
 void Minimal_addReference2(MinimalObject ptr, char* file, int line);
 int Minimal_getReferenceCount(MinimalObject ptr);
 void Minimal_delReference(MinimalObject ptr);
+MinimalValue Minimal_copy(MinimalValue v);
 
 MinimalLayer Minimal_getCurrentLayer();
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
@@ -237,6 +237,7 @@ char* Minimal_serialise(MinimalValue f);
 xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code);
+MinimalValue Minimal_xmlToValue(xmlNodePtr node);
 
 #ifdef __cplusplus
 }

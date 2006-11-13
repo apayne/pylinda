@@ -27,7 +27,7 @@
 #include "linda.h"
 #include "linda_python.h"
 
-PyObject* Linda2PyO(LindaValue v) {
+PyObject* Value2PyO(LindaValue v) {
     if(Linda_isNil(v)) {
         Py_INCREF(Py_None);
         return Py_None;
@@ -36,7 +36,11 @@ PyObject* Linda2PyO(LindaValue v) {
     } else if(Linda_isFloat(v)) {
         return Py_BuildValue("f", Linda_getFloat(v));
     } else if(Linda_isString(v)) {
-        return PyString_FromStringAndSize(Linda_getString(v), Linda_getStringLen(v));
+        if(Linda_getString(v)[Linda_getStringLen(v)-1] == '\0') {
+            return PyString_FromStringAndSize(Linda_getString(v), Linda_getStringLen(v)-1);
+        } else {
+            return PyString_FromStringAndSize(Linda_getString(v), Linda_getStringLen(v));
+        }
     } else if(Linda_isTypeSpec(v)) {
         if(v->type_spec->type == ST_IDENTIFIER && strcmp(v->type_spec->string, "int") == 0) {
             Py_INCREF(&PyInt_Type);
@@ -81,7 +85,7 @@ PyObject* Linda2PyO(LindaValue v) {
         int i;
         PyObject* pyt = PyTuple_New(Linda_getTupleSize(v));
         for(i=0; i<Linda_getTupleSize(v); i++) {
-            PyTuple_SetItem(pyt, i, Linda2PyO(Linda_tupleGet(v, i)));
+            PyTuple_SetItem(pyt, i, Value2PyO(Linda_tupleGet(v, i)));
         }
         return pyt;
     } else {
@@ -91,7 +95,7 @@ PyObject* Linda2PyO(LindaValue v) {
     }
 }
 
-LindaValue PyO2Linda(PyObject* obj) {
+LindaValue PyO2Value(PyObject* obj) {
     int i;
     LindaValue v;
     if(obj == Py_None) {
@@ -141,7 +145,7 @@ PyObject* Tuple2PyO(LindaValue t) {
     PyObject* pyt = PyTuple_New(Linda_getTupleSize(t));
 
     for(i=0; i<Linda_getTupleSize(t); i++) {
-        PyTuple_SetItem(pyt, i, Linda2PyO(Linda_tupleGet(t, i)));
+        PyTuple_SetItem(pyt, i, Value2PyO(Linda_tupleGet(t, i)));
     }
 
     return pyt;
@@ -152,10 +156,9 @@ LindaValue PyO2Tuple(PyObject* tup) {
     LindaValue t = Linda_tuple(PyTuple_Size(tup));
     for(i=0; i<PyTuple_Size(tup); i++) {
         LindaValue v;
-        v = PyO2Linda(PyTuple_GetItem(tup, i));
+        v = PyO2Value(PyTuple_GetItem(tup, i));
         if(v == NULL) { Linda_delReference(t); return NULL; }
         Linda_tupleSet(t, i, v);
-        Linda_delReference(v);
     }
     return t;
 }

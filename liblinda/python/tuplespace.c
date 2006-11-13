@@ -53,8 +53,8 @@ static int linda_TupleSpace_init(linda_TupleSpaceObject* self, PyObject* args, P
         }
     } else {
         self->ts = Linda_tupleSpace(id);
-        Linda_addReference(id);
-        return 0; 
+        Linda_addReference(self->ts);
+        return 0;
     }
 }
 

@@ -65,6 +65,10 @@ static inline void Linda_tupleSet(LindaValue t, int i, LindaValue v) { Minimal_t
 static inline LindaValue Linda_tupleGet(LindaValue t, int i) { return Minimal_tupleGet(t, i); }
 
 static inline LindaValue Linda_copy(LindaValue v) { return Minimal_copy(v); }
+#define Linda_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
+static inline void Linda_addReference2(LindaValue v, char* file, int line) { Minimal_addReference2(v, file, line); }
+static inline int Linda_getReferenceCount(LindaValue v) { return Minimal_getReferenceCount(v); }
+static inline void Linda_delReference(LindaValue v) { Minimal_delReference(v); }
 
 extern char* version;
 extern char* process_id;
@@ -74,6 +78,7 @@ extern char* process_id;
 #endif
 
 #ifndef LINDA_SERVER
+void Linda_init();
 unsigned char Linda_connect(int port);
 extern int Linda_port;
 void Linda_disconnect();
@@ -83,11 +88,6 @@ LindaValue Linda_createTuplespace();
 
 void Linda_addTSReference(LindaValue ts);
 void Linda_delTSReference(LindaValue ts);
-
-#define Linda_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
-void Linda_addReference2(MinimalObject ptr, char* file, int line);
-int Linda_getReferenceCount(MinimalObject ptr);
-void Linda_delReference(MinimalObject ptr);
 
 void Linda_out(LindaValue ts, LindaValue t);
 LindaValue Linda_in(LindaValue ts, LindaValue t);

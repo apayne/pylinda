@@ -9,16 +9,16 @@
 char* men[] = {"AIDAN", "JADEN", "CADEN", "ETHAN", "CALEB", "DYLAN", "JACOB", "JORDAN", "LOGAN", "HAYDEN", "CONNOR", "RYAN", "MORGAN", "CAMERON", "ANDREW", "JOSHUA", "NOAH", "MATTHEW", "ADDISON", "ASHTON"};
 char* women[] = {"MADISON", "EMMA", "ABIGAIL", "RILEY", "CHLOE", "HANNAH", "ALEXIS", "ISABELLA", "MACKENZIE", "TAYLOR", "OLIVIA", "HAILEY", "PAIGE", "EMILY", "GRACE", "AVA", "AALIYAH", "ALYSSA", "FAITH", "BRIANNA"};
 
-void makeOrderList(int* list);
+void makeOrderList(int len, int* list);
 
 void Man(int id) {
     int order[count];
 
     printf("Man %i.\n", id);
 
-    makeOrderList(order);
+    makeOrderList(count, order);
 
-    if(!Linda_connect()) {
+    if(!Linda_connect(Linda_port)) {
         fprintf(stderr, "Unable to connect to Linda server.\n");
     }
 
@@ -30,9 +30,9 @@ void Woman(int id) {
 
     printf("Woman %i.\n", id);
 
-    makeOrderList(order);
+    makeOrderList(count, order);
 
-    if(!Linda_connect()) {
+    if(!Linda_connect(Linda_port)) {
         fprintf(stderr, "Unable to connect to Linda server.\n");
     }
 
@@ -86,13 +86,12 @@ void makeOrderList(int len, int* list) {
     int i;
     int tmp;
     for(i=0; i<len*len; i++) {
-        int a = randint(len);
-        int b = randint(len);
+        int a = (int)(rand() % len);
+        int b = (int)(rand() % len);
         tmp = list[a];
         list[a] = list[b];
         list[b] = tmp;
     }
-    int i;
     for(i=0; i<count; i++) {
         list[i] = i;
     }

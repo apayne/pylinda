@@ -48,7 +48,7 @@ public:
     Value(char* s);
     Value(char* s, int len);
     Value(const Value& v);
-    Value(const struct Value_t& t);
+    Value(const LindaValue t);
 
     ~Value();
 

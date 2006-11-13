@@ -43,6 +43,13 @@ int Linda_active_connections;
 char* process_id;
 char* thread_id;
 
+LindaValue Linda_uts;
+LindaValue Linda_boolType;
+LindaValue Linda_intType;
+LindaValue Linda_floatType;
+LindaValue Linda_stringType;
+LindaValue Linda_tupleSpaceType;
+
 unsigned char Linda_serve(unsigned char use_domain, int port) {
     int err;
 
