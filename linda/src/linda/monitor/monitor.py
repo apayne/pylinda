@@ -26,7 +26,7 @@ import time
 import os.path
 import grammer
 
-from linda import utils
+from linda import utils, options
 import _linda as linda
 
 keyboard_interrupt = False
@@ -67,9 +67,15 @@ class Thread:
         print "Released under the terms of the GNU General Public License."
         print "Type help for instructions."
 
+        cmds = options.getOptions().execute
+
         while True:
             try:
-                text = raw_input("> ")
+                if len(cmds) > 0:
+                    text, cmds = cmds[0], cmds[1:]
+                    print "> %s" % (text, )
+                else:
+                    text = raw_input("> ")
             except (KeyboardInterrupt, EOFError):
                 if self.doCommand(sd, ("quit", )):
                     break

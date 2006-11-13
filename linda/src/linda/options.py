@@ -81,6 +81,9 @@ def getOptions():
     parser.add_option("-D", "--daemon", default=False, action="store_true", dest="daemon",
                       help="Disable the interactive shell for the server. Default: Enabled.")
 
+    parser.add_option("-e", "--execute", default=[], action="append", dest="execute",
+                      help="Execute these commands in the monitor on start up. Multiple options are executed in order.")
+
     parser.add_option("-v", "--verbose",
                       action="store_false", dest="verbose")
 
