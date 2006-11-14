@@ -110,7 +110,7 @@ MinimalValue Minimal_string2(char* s, unsigned int len);
 char* Minimal_getString(MinimalValue v);
 unsigned int Minimal_getStringLen(MinimalValue v);
 
-unsigned char Minimal_isTypeSpec(MinimalValue v);
+unsigned char Minimal_isType(MinimalValue v);
 MinimalValue Minimal_type(const char* typespec);
 MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec);
 MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
@@ -135,6 +135,7 @@ MinimalValue Minimal_tupleSpace(const char* ts);
 char* Minimal_getTupleSpace(MinimalValue v);
 
 void Minimal_setType(MinimalValue value, MinimalValue type);
+MinimalValue Minimal_getType(MinimalValue value);
 void Minimal_setSumPos(MinimalValue value, int sum_pos);
 
 struct Minimal_SyntaxTree_t {
@@ -226,7 +227,8 @@ MinimalValue Minimal_getFunction(char* funcname);
 #define Minimal_addReference(obj) Minimal_addReference2(obj, __FILE__, __LINE__);
 void Minimal_addReference2(MinimalObject ptr, char* file, int line);
 int Minimal_getReferenceCount(MinimalObject ptr);
-void Minimal_delReference(MinimalObject ptr);
+#define Minimal_delReference(ptr) Minimal_delReference2(ptr, __FILE__, __LINE__);
+void Minimal_delReference2(MinimalObject ptr, char* file, int line);
 MinimalValue Minimal_copy(MinimalValue v);
 
 MinimalLayer Minimal_getCurrentLayer();

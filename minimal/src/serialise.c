@@ -79,7 +79,6 @@ char* Minimal_serialise(MinimalValue f) {
                         free(id); \
                      }
 void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
-
     switch(f->type) {
     case NIL:
         {
@@ -110,6 +109,18 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         AddTypeObj(node);
         AddSumPos(node);
         AddId(node);
+        return;
+        }
+    case TYPE:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"typeobj", NULL);
+        xmlAddChild(parent, node);
+        AddTypeObj(node);
+        AddSumPos(node);
+        AddId(node);
+
+        xmlNewProp(node, (xmlChar*)"name", (xmlChar*)f->type_name);
+        Minimal_serialiseTypeSpec(doc, node, f->type_spec);
         return;
         }
     case TUPLE:

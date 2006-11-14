@@ -22,8 +22,10 @@
 
 void inittuplespace(PyObject* m);
 void inittsref(PyObject* m);
+void initvalue(PyObject* m);
 
 LindaValue PyO2Value(PyObject* obj);
+PyObject* Value2PyO(LindaValue obj);
 LindaValue PyO2Tuple(PyObject* tup);
 PyObject* Tuple2PyO(LindaValue t);
 
@@ -45,5 +47,12 @@ typedef struct {
     LindaValue ts;
 } linda_TSRefObject;
 PyTypeObject linda_TSRefType;
+
+typedef struct {
+    PyObject_HEAD
+    /* Type-specific fields go here. */
+    LindaValue val;
+} linda_ValueObject;
+PyTypeObject linda_ValueType;
 
 #endif

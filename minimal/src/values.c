@@ -123,7 +123,7 @@ unsigned int Minimal_getStringLen(MinimalValue v) {
     return v->length;
 }
 
-unsigned char Minimal_isTypeSpec(MinimalValue v) {
+unsigned char Minimal_isType(MinimalValue v) {
     return v->type == TYPE;
 }
 
@@ -287,6 +287,10 @@ void Minimal_setType(MinimalValue value, MinimalValue type) {
     value->typeobj = type;
 }
 
+MinimalValue Minimal_getType(MinimalValue value) {
+    return value->typeobj;
+}
+
 void Minimal_setSumPos(MinimalValue value, int sum_pos) {
     value->sum_pos = sum_pos;
 }
@@ -380,7 +384,10 @@ MinimalValue Minimal_copy(MinimalValue v) {
 
     MinimalValue nv = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     nv->type = v->type;
-    nv->typeobj = Minimal_copy(v->typeobj);
+    if(v->typeobj != NULL) {
+        Minimal_addReference(v->typeobj)
+    }
+    nv->typeobj = v->typeobj;
     nv->sum_pos = v->sum_pos;
 
     switch(v->type) {

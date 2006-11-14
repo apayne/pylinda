@@ -56,12 +56,23 @@ static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
     return PyInt_FromLong(tdata->sd);
 }
 
+static PyObject* linda_Type(PyObject* self, PyObject* args) {
+    char* typespec;
+
+    if(!PyArg_ParseTuple(args, "s", &typespec)) {
+        return NULL;
+    }
+
+    return Value2PyO(Linda_type(typespec));
+}
+
 static PyMethodDef LindaMethods[] = {
     {"connect",  LindaPython_connect, METH_VARARGS, "Connect to the local kernel."},
     {"disconnect",  LindaPython_disconnect, METH_NOARGS, "Disconnect from the Linda network."},
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
     {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the server."},
+    {"Type", linda_Type, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -75,4 +86,5 @@ PyMODINIT_FUNC init_linda(void)
 
     inittuplespace(Linda_module);
     inittsref(Linda_module);
+    initvalue(Linda_module);
 }

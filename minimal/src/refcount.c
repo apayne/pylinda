@@ -91,7 +91,9 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
             tree = tree->right;
         }
     }
-    fprintf(stderr, "Error: addReference to pointer not allocated with Minimal_newReference (%s:%i).\n", file, line);
+    fprintf(stderr, "Error: addReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
+    int i = *((int*)ptr);
+    i = i + 1;
 }
 
 int Minimal_getReferenceCount(MinimalObject ptr) {
@@ -108,7 +110,7 @@ int Minimal_getReferenceCount(MinimalObject ptr) {
     return -1;
 }
 
-void Minimal_delReference(MinimalObject ptr) {
+void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
     struct MinimalRefCount* parent = NULL;
     struct MinimalRefCount* tree = Minimal_refCountTree;
     while(tree != NULL) {
@@ -159,7 +161,9 @@ void Minimal_delReference(MinimalObject ptr) {
             tree = tree->right;
         }
     }
-    fprintf(stderr, "Error: delReference to pointer not allocated with Minimal_newReference.\n");
+    fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
+    int i = *((int*)ptr);
+    i = i + 1;
 }
 
 void Minimal_delObject(MinimalTypeId type_id, void* ptr) {

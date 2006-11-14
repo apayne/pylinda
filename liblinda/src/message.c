@@ -377,7 +377,7 @@ Message* Message_out(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = OUT;
     m->out.ts = Linda_copy(ts);
-    m->in.t = Linda_copy(t);
+    m->out.t = Linda_copy(t);
     return m;
 }
 

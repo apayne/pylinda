@@ -41,6 +41,7 @@ int Linda_active_connections = 0;
 unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
+LindaValue Linda_typeType = NULL;
 LindaValue Linda_boolType;
 LindaValue Linda_intType;
 LindaValue Linda_floatType;
@@ -53,12 +54,14 @@ void Linda_init() {
 
     Minimal_init();
 
-    Linda_uts = Linda_tupleSpace("UTS");
+    Linda_typeType = Linda_type("typetype :: type;");
+    Linda_typeType->typeobj = Linda_typeType;
     Linda_boolType = Linda_type("booltype :: bool;");
     Linda_intType = Linda_type("inttype :: int;");
     Linda_floatType = Linda_type("floattype :: float;");
     Linda_stringType = Linda_type("stringtype :: string;");
     Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
+    Linda_uts = Linda_tupleSpace("UTS");
 }
 
 unsigned char Linda_connect(int port) {
@@ -140,6 +143,7 @@ void Linda_disconnect() {
 
 void Linda_out(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
+    Linda_addReference(t);
     Linda_scanTuple(t, ts);
     Message* m = Message_out(ts, t);
     Message_send(tdata->sd, NULL, m);
@@ -151,6 +155,7 @@ void Linda_out(LindaValue ts, LindaValue t) {
 LindaValue Linda_in(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
+    Linda_addReference(t);
     Message* m = Message_in(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
@@ -164,6 +169,7 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
 LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
+    Linda_addReference(t);
     Message* m = Message_rd(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);

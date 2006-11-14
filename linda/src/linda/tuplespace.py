@@ -27,7 +27,7 @@
 import threading
 
 from connections import broadcast_message, broadcast_firstreplyonly, broadcast_tonodes, sendMessageToNode
-from tuplecontainer import TupleContainer, doesMatch, NoTuple
+from tuplecontainer import TupleContainer, doesMatch
 from messages import *
 
 ## \class TupleSpace
@@ -146,7 +146,7 @@ class TupleSpace:
             try:
                 # try to match a tuple
                 r = self.ts.matchOneTuple(pattern)
-            except NoTuple:
+            except StopIteration:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
@@ -176,7 +176,7 @@ class TupleSpace:
             try:
                 # try to match a tuple
                 r = self.ts.matchOneTuple(pattern)
-            except NoTuple:
+            except StopIteration:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
@@ -233,7 +233,7 @@ class TupleSpace:
                 m = self.ts.matchTuples(pattern) # Create the iterator
                 while True: # Keep iterating and adding tuples to the list
                     tups.append(m.next())
-            except (NoTuple, StopIteration): # Stop when we get a NoTuple or a StopIteration exception
+            except StopIteration: # Stop when we get a StopIteration exception
                 for t in tups: # Delete the tuples we've found
                     self.ts.delete(t)
                 return tups # return the list of tuples
@@ -251,7 +251,7 @@ class TupleSpace:
                 m = self.ts.matchTuples(pattern) # Create the iterator
                 while True: # Keep iterating and adding tuples to the list
                     tups.append(m.next())
-            except (NoTuple, StopIteration): # Stop when we get a NoTuple or a StopIteration exception
+            except StopIteration: # Stop when we get a StopIteration exception
                 return tups # return the list of tuples
         finally:
             self.lock.release()
@@ -405,7 +405,7 @@ class TupleSpace:
         try:
             try:
                 t = self.ts.matchOneTuple(pattern) # Create the iterator
-            except NoTuple: # Stop when we get a NoTuple or a StopIteration exception
+            except StopIteration: # Stop when we get a StopIteration exception
                 return []
             else:
                 self.ts.delete(t)

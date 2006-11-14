@@ -197,7 +197,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
     if(strcmp((char*)(node->name), "minimal") == 0) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE && value == NULL) {
+            if(cur_node->type == XML_ELEMENT_NODE && value == NULL && strcmp((char*)cur_node->name, "type") != 0) {
                 value = Minimal_xmlToValue2(cur_node, memo);
             } else if(cur_node->type == XML_ELEMENT_NODE && value != NULL) {
                 fprintf(stderr, "Error: Minimal_xmlToValue can only parse only value.\n");
@@ -223,12 +223,8 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE) {
-                if(strcmp((char*)(cur_node->name), "type") == 0) {
-                    value->typeobj = Minimal_xmlToValue2(cur_node, memo);
-                } else {
-                    Minimal_tupleAdd(value, Minimal_xmlToValue2(cur_node, memo));
-                }
+            if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "type") != 0) {
+                Minimal_tupleAdd(value, Minimal_xmlToValue2(cur_node, memo));
             }
             cur_node = cur_node->next;
         }
@@ -237,6 +233,19 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
+                tree = Minimal_xmlToSyntaxTree(cur_node);
+            }
+            cur_node = cur_node->next;
+        }
+        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+        value = Minimal_typeSpec((char*)name, tree);
+        Minimal_SyntaxTree_free(tree);
+        free(name);
+    } else if(strcmp((char*)(node->name), "typeobj") == 0) {
+        Minimal_SyntaxTree* tree = NULL;
+        xmlNode* cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE && tree == NULL && strcmp((char*)cur_node->name, "type") != 0) {
                 tree = Minimal_xmlToSyntaxTree(cur_node);
             }
             cur_node = cur_node->next;
@@ -295,11 +304,23 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
                 }
             }
         }
-
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Values (%s).\n", node->name);
         return NULL;
     }
+
+    {
+    MinimalValue type = NULL;
+    xmlNode* cur_node = node->children;
+    while(cur_node) {
+        if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {
+            type = Minimal_xmlToValue2(cur_node, memo);
+        }
+        cur_node = cur_node->next;
+    }
+    if(type != NULL) { Minimal_setType(value, type); }
+    }
+
     xmlChar* cid = xmlGetProp(node, (xmlChar*)"id");
     if(cid != NULL) {
         unsigned long id;

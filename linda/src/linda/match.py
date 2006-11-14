@@ -16,12 +16,23 @@
 #    along with PyLinda; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-## \namespace linda
-## \brief The core module imported by all programs wishing to connect to a linda system
-##
-## The elements in the module are actually imported from \ref kernel
-## \author Andrew Wilkinson <aw@cs.york.ac.uk>
+builtin = ["bool", "int", "float", "string"]
 
-from _linda import connect, disconnect, uts, TupleSpace, version, Type, Value
+def compare(t1, t2):
+    assert t1.isType()
+    assert t2.isType()
 
-import utils
+    if t1.isNil() and t2.isNil():
+        return True
+    elif t1.isId() and t2.isId():
+        return t1.id in builtin and t1.id == t2.id
+    elif t1.isProductType() and t2.isProductType():
+        raise NotImplementedError
+    elif t1.isSumType() and t2.isSumType():
+        raise NotImplementedError
+    elif t1.isPtr() and t2.isPtr():
+        raise NotImplementedError
+    elif t1.isFunction() and t2.isFunction():
+        raise NotImplementedError
+    else:
+        return False

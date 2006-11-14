@@ -43,15 +43,36 @@ int Linda_active_connections;
 char* process_id;
 char* thread_id;
 
+unsigned char Linda_inited = 0;
+
 LindaValue Linda_uts;
+LindaValue Linda_typeType = NULL;
 LindaValue Linda_boolType;
 LindaValue Linda_intType;
 LindaValue Linda_floatType;
 LindaValue Linda_stringType;
 LindaValue Linda_tupleSpaceType;
 
+void Linda_init() {
+    if(Linda_inited) { return; }
+    Linda_inited = 1;
+
+    Minimal_init();
+
+    Linda_typeType = Linda_type("typetype :: type;");
+    Linda_typeType->typeobj = Linda_typeType;
+    Linda_boolType = Linda_type("booltype :: bool;");
+    Linda_intType = Linda_type("inttype :: int;");
+    Linda_floatType = Linda_type("floattype :: float;");
+    Linda_stringType = Linda_type("stringtype :: string;");
+    Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
+    Linda_uts = Linda_tupleSpace("UTS");
+}
+
 unsigned char Linda_serve(unsigned char use_domain, int port) {
     int err;
+
+    Linda_init();
 
 #ifdef USE_DOMAIN_SOCKETS
     if(use_domain) {
@@ -110,6 +131,9 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
 
 int Linda_accept(int sd) {
     int s = accept(sd, NULL, NULL);
+
+    Linda_init();
+
     if(s == -1) { fprintf(stderr, "Error in accept(%i): %s\n", sd, strerror(errno)); }
     return s;
 }
