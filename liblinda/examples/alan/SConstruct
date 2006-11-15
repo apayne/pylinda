@@ -1,0 +1,3 @@
+Program("simple", "simple.c", CCFLAGS="-g", CPPPATH=["/home/andrew/include", "/usr/include/libxml2"], LIBPATH="/home/andrew/lib", LIBS=["linda", "minimal", "xml2", "pthread", "fl", "readline"])
+
+Program("func", "func.c", CCFLAGS="-g", CPPPATH=["/home/andrew/include", "/usr/include/libxml2"], LIBPATH="/home/andrew/lib", LIBS=["linda", "minimal", "xml2", "pthread", "fl", "readline"])

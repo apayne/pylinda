@@ -42,6 +42,7 @@ unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
 LindaValue Linda_typeType = NULL;
+LindaValue Linda_nilType;
 LindaValue Linda_boolType;
 LindaValue Linda_intType;
 LindaValue Linda_floatType;
@@ -56,12 +57,28 @@ void Linda_init() {
 
     Linda_typeType = Linda_type("typetype :: type;");
     Linda_typeType->typeobj = Linda_typeType;
+    Linda_nilType = Linda_type("niltype :: Nil;");
     Linda_boolType = Linda_type("booltype :: bool;");
     Linda_intType = Linda_type("inttype :: int;");
     Linda_floatType = Linda_type("floattype :: float;");
     Linda_stringType = Linda_type("stringtype :: string;");
     Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
     Linda_uts = Linda_tupleSpace("UTS");
+}
+
+void Linda_finalise() {
+    if(!Linda_inited) { return; }
+    Linda_inited = 0;
+
+    Linda_delReference(Linda_typeType);
+    Linda_delReference(Linda_boolType);
+    Linda_delReference(Linda_intType);
+    Linda_delReference(Linda_floatType);
+    Linda_delReference(Linda_stringType);
+    Linda_delReference(Linda_tupleSpaceType);
+    Linda_delReference(Linda_uts);
+
+    Minimal_finalise();
 }
 
 unsigned char Linda_connect(int port) {
@@ -138,7 +155,9 @@ void Linda_disconnect() {
 
     Linda_active_connections -= 1;
 
-    Minimal_finalise();
+    if(Linda_active_connections == 0) {
+        Linda_finalise();
+    }
 }
 
 void Linda_out(LindaValue ts, LindaValue t) {

@@ -81,7 +81,13 @@ typespec_def: YY_ID YY_TYPESPEC typespec {
     }
 ;
 
-typespec: YY_ID { $$ = $1 }
+typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
+                    Minimal_SyntaxTree_clear(&$1);
+                    $$.type = ST_NIL;
+                  } else {
+                    $$ = $1;
+                  }
+                }
         | typespec YY_FUNCTION typespec {
                         $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                         $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
@@ -138,7 +144,13 @@ expr: value { $$ = $1; }
     | tuple { $$ = $1; }
 ;
 
-value: YY_ID { $$ = $1; }
+value: YY_ID { if(strcmp($1.string, "Nil") == 0) {
+                    Minimal_SyntaxTree_clear(&$1);
+                    $$.type = ST_NIL;
+                  } else {
+                    $$ = $1;
+                  }
+             }
      | YY_INTEGER { $$ = $1; }
 ;
 

@@ -66,6 +66,16 @@ static PyObject* linda_Type(PyObject* self, PyObject* args) {
     return Value2PyO(Linda_type(typespec));
 }
 
+static PyObject* linda_Function(PyObject* self, PyObject* args) {
+    char* code;
+
+    if(!PyArg_ParseTuple(args, "s", &code)) {
+        return NULL;
+    }
+
+    return Value2PyO(Linda_function(code));
+}
+
 static PyMethodDef LindaMethods[] = {
     {"connect",  LindaPython_connect, METH_VARARGS, "Connect to the local kernel."},
     {"disconnect",  LindaPython_disconnect, METH_NOARGS, "Disconnect from the Linda network."},
@@ -73,6 +83,7 @@ static PyMethodDef LindaMethods[] = {
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
     {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the server."},
     {"Type", linda_Type, METH_VARARGS, ""},
+    {"Function", linda_Function, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

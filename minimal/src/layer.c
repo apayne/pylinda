@@ -76,7 +76,7 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
             tree->type_def = typespec->type_spec;
             Minimal_delReference(typespec);
         }
-        f = Minimal_function(tree->func_name, tree->type_def, tree->parameter_list, tree->body);
+        f = Minimal_function2(tree->func_name, tree->type_def, tree->parameter_list, tree->body);
         f->layer = layer;
         Minimal_addName(&(layer->map), tree->func_name, f);
         }

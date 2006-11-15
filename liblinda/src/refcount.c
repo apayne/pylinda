@@ -37,6 +37,7 @@ void Linda_scanTuple(LindaValue t, LindaValue ref) {
         case FLOAT:
         case STRING:
         case TYPE:
+        case FUNCTION:
             break;
         case TSREF:
             tdata = Linda_get_thread_data();

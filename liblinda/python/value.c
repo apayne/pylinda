@@ -27,6 +27,8 @@
 #include "linda.h"
 #include "linda_python.h"
 
+#include "../../minimal/src/minimal_internal.h"
+
 static PyObject* linda_Value_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
     linda_ValueObject* self;
@@ -58,9 +60,10 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
     } else if(PyTuple_Check(obj)) {
         self->val = Linda_tuple(PyTuple_Size(obj));
         for(i = 0; i < PyTuple_Size(obj); i++) {
-            LindaValue nv = PyO2Value(PyTuple_GetItem(obj, i));
-            Linda_tupleSet(self->val, i, nv);
-            Minimal_delReference(nv);
+            PyObject* o = PyTuple_GetItem(obj, i);
+            LindaValue nv = PyO2Value(o);
+            Py_DECREF(o);
+            Linda_tupleSet(self->val, i, nv); /* Steals reference to nv. */
         }
     } else if(PyType_Check(obj)) {
         if(obj == (PyObject*)&PyInt_Type) {
@@ -127,6 +130,27 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
+    } else if(self->val->type == TUPLE) {
+        if(self->val->size < other->val->size) {
+            return -1;
+        } else if(self->val->size > other->val->size) {
+            return 1;
+        } else {
+            int i;
+            for(i=0; i<self->val->size; i++) {
+                int c;
+                PyObject* c1 = Value2PyO(self->val->values[i]);
+                PyObject* c2 = Value2PyO(other->val->values[i]);
+                c = linda_Value_cmp((linda_ValueObject*)c1, (linda_ValueObject*)c2);
+                Py_DECREF(c1); Py_DECREF(c2);
+                if(c != 0) {
+                    return c;
+                }
+            }
+            return 0;
+        }
+    } else if(self->val->type == FUNCTION) {
+        return strcmp(self->val->func_name, other->val->func_name);
     } else {
         fprintf(stderr, "PyLibLinda: Unknown type (%i) in comparison.\n", self->val->type);
         return 0;
@@ -140,6 +164,19 @@ static PyObject* linda_Value_str(linda_ValueObject* self) {
 
 static PyObject* linda_Value_repr(linda_ValueObject* self) {
     return PyString_FromFormat("%s", Minimal_Value_string(self->val));
+}
+
+static PyObject* linda_Value_setSumPos(linda_ValueObject* self, PyObject* args) {
+    int i;
+
+    if(!PyArg_ParseTuple(args, "i", &i)) {
+        return NULL;
+    }
+
+    Linda_setSumPos(self->val, i);
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 static PyObject* linda_Value_isType(linda_ValueObject* self) {
@@ -156,7 +193,7 @@ static PyObject* linda_Value_isType(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isNil(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_IDENTIFIER && strcmp(self->val->type_spec->string, "Nil") == 0) {
+    if(self->val->type_spec->type == ST_NIL) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -167,7 +204,7 @@ static PyObject* linda_Value_isNil(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isId(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_IDENTIFIER && strcmp(self->val->type_spec->string, "Nil") != 0) {
+    if(self->val->type_spec->type == ST_IDENTIFIER) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -198,7 +235,7 @@ static PyObject* linda_Value_isSumType(linda_ValueObject* self) {
     }
 }
 
-static PyObject* linda_Value_isPtr(linda_ValueObject* self) {
+static PyObject* linda_Value_isPtrType(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
     if(self->val->type_spec->type == ST_POINTER) {
         Py_INCREF(Py_True);
@@ -221,12 +258,13 @@ static PyObject* linda_Value_isFunctionType(linda_ValueObject* self) {
 }
 
 static PyMethodDef value_methods[] = {
+    {"setSumPos", (PyCFunction)linda_Value_setSumPos, METH_VARARGS, ""},
     {"isType", (PyCFunction)linda_Value_isType, METH_NOARGS, ""},
     {"isNil", (PyCFunction)linda_Value_isNil, METH_NOARGS, ""},
     {"isId", (PyCFunction)linda_Value_isId, METH_NOARGS, ""},
     {"isProductType", (PyCFunction)linda_Value_isProductType, METH_NOARGS, ""},
     {"isSumType", (PyCFunction)linda_Value_isSumType, METH_NOARGS, ""},
-    {"isPtr", (PyCFunction)linda_Value_isPtr, METH_NOARGS, ""},
+    {"isPtrType", (PyCFunction)linda_Value_isPtrType, METH_NOARGS, ""},
     {"isFunctionType", (PyCFunction)linda_Value_isFunctionType, METH_NOARGS, ""},
     {NULL}  /* Sentinel */
 };
@@ -241,10 +279,70 @@ static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
     return PyString_FromString(self->val->type_spec->string);
 }
 
+static PyObject* linda_Value_getstring(linda_ValueObject *self, void *closure) {
+    if(!Linda_isString(self->val)) { return NULL; }
+    return PyString_FromString(Linda_getString(self->val));
+}
+
+static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
+    if(!Linda_isType(self->val)) { return NULL; }
+    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { return NULL; }
+    return Value2PyO(Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch1)));
+}
+
+static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
+    if(!Linda_isType(self->val)) { return NULL; }
+    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { return NULL; }
+    return Value2PyO(Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch2)));
+}
+
 static PyGetSetDef value_getseters[] = {
-    {"type", (getter)linda_Value_gettype, (setter)NULL, "", NULL},
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
+    {"type", (getter)linda_Value_gettype, (setter)NULL, "", NULL},
+    {"string", (getter)linda_Value_getstring, (setter)NULL, "", NULL},
+    {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
+    {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
     {NULL}  /* Sentinel */
+};
+
+static Py_ssize_t linda_Value_len(linda_ValueObject *self) {
+    if(Linda_isType(self->val)) {
+        if(self->val->type_spec->branch2 != NULL) {
+            return 2;
+        } else {
+            return 1;
+        }
+    } else {
+        return Linda_getTupleSize(self->val);
+    }
+}
+
+static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
+    if(index < 0 || index >= linda_Value_len(self)) {
+        PyErr_SetString(PyExc_IndexError, "Index out of range for tuple.");
+        return NULL;
+    } else if(Linda_isType(self->val)) {
+        if(index == 0) {
+            return Value2PyO(Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch1)));
+        } else {
+            return Value2PyO(Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch2)));
+        }
+    } else {
+        return Value2PyO(Linda_tupleGet(self->val, index));
+    }
+}
+
+PySequenceMethods linda_ValueSeq = {
+        (lenfunc)linda_Value_len,  /* lenfunc sq_length; */
+        0,                /*binaryfunc sq_concat; */
+        0,                /*ssizeargfunc sq_repeat; */
+        (ssizeargfunc)linda_Value_item, /*ssizeargfunc sq_item; */
+        0,                /*ssizessizeargfunc sq_slice; */
+        0,                /*ssizeobjargproc sq_ass_item; */
+        0,                /*ssizessizeobjargproc sq_ass_slice; */
+        0,                /*objobjproc sq_contains; */
+        0,                /*binaryfunc sq_inplace_concat; */
+        0,                /*ssizeargfunc sq_inplace_repeat; */
 };
 
 PyTypeObject linda_ValueType = {
@@ -260,7 +358,7 @@ PyTypeObject linda_ValueType = {
     (cmpfunc)linda_Value_cmp,  /*tp_compare*/
     (reprfunc)linda_Value_repr,/*tp_repr*/
     0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
+    &linda_ValueSeq,            /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     0,                         /*tp_hash */
     0,                         /*tp_call*/

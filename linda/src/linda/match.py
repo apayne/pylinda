@@ -25,14 +25,28 @@ def compare(t1, t2):
     if t1.isNil() and t2.isNil():
         return True
     elif t1.isId() and t2.isId():
-        return t1.id in builtin and t1.id == t2.id
+        return t1.id == t2.id
     elif t1.isProductType() and t2.isProductType():
-        raise NotImplementedError
+        if len(t1) != len(t2):
+            return False
+        for i in range(len(t1)):
+            e1, e2 = t1[i], t2[i]
+            if not compare(e1, e2):
+                return False
+        return True
     elif t1.isSumType() and t2.isSumType():
+        if len(t1) != len(t2):
+            return False
+        for i in range(len(t1)):
+            e1, e2 = t1[i], t2[i]
+            if not compare(e1, e2):
+                return False
+        return True
+    elif t1.isPtrType() and t2.isPtrType():
         raise NotImplementedError
-    elif t1.isPtr() and t2.isPtr():
-        raise NotImplementedError
-    elif t1.isFunction() and t2.isFunction():
-        raise NotImplementedError
+    elif t1.isFunctionType() and t2.isFunctionType():
+        print t1.arg, t2.arg
+        print t1.result, t2.result
+        return compare(t1.arg, t2.arg) and compare(t1.result, t2.result)
     else:
         return False

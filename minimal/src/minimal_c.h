@@ -113,7 +113,8 @@ unsigned int Minimal_getStringLen(MinimalValue v);
 unsigned char Minimal_isType(MinimalValue v);
 MinimalValue Minimal_type(const char* typespec);
 MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec);
-MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
+MinimalValue Minimal_function(char* code);
+MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 
 MinimalValue Minimal_copy(MinimalValue v);
 char* Minimal_Value_string(MinimalValue v);
@@ -141,6 +142,7 @@ void Minimal_setSumPos(MinimalValue value, int sum_pos);
 struct Minimal_SyntaxTree_t {
     enum {
         ST_BLANK,
+        ST_NIL,
         ST_IDENTIFIER,
         ST_INTEGER,
         ST_SEQENTIAL_DEFS,
@@ -220,6 +222,7 @@ Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
 MinimalValue Minimal_parseValue(char* code);
 
+MinimalValue Minimal_eval(MinimalValue func, MinimalValue args);
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
 MinimalValue Minimal_getFunction(char* funcname);

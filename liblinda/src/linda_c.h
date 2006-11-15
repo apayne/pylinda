@@ -18,6 +18,8 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <stdlib.h>
+
 #include "minimal.h"
 
 #ifndef __LINDA_C_H__
@@ -30,6 +32,7 @@ extern "C" {
 typedef MinimalValue LindaValue;
 
 extern LindaValue Linda_typeType;
+extern LindaValue Linda_nilType;
 extern LindaValue Linda_boolType;
 extern LindaValue Linda_intType;
 extern LindaValue Linda_floatType;
@@ -37,10 +40,11 @@ extern LindaValue Linda_stringType;
 extern LindaValue Linda_tupleSpaceType;
 
 static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_setType(value, type); }
+static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
 static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
 
 static inline unsigned char Linda_isNil(LindaValue v) { return Minimal_isNil(v); }
-static inline LindaValue Linda_nil() { return Minimal_nil(); }
+static inline LindaValue Linda_nil() { LindaValue v = Minimal_nil(); Linda_setType(v, Linda_nilType); return v; }
 
 static inline unsigned char Linda_isBool(LindaValue v) { return Minimal_isBool(v); }
 static inline LindaValue Linda_bool(unsigned char b) { LindaValue v = Minimal_bool(b); Linda_setType(v, Linda_boolType); return v; }
@@ -74,12 +78,16 @@ static inline void Linda_tupleAdd(LindaValue t, LindaValue v) { Minimal_tupleAdd
 static inline void Linda_tupleSet(LindaValue t, int i, LindaValue v) { Minimal_tupleSet(t, i, v); }
 static inline LindaValue Linda_tupleGet(LindaValue t, int i) { return Minimal_tupleGet(t, i); }
 
+static inline LindaValue Linda_function(char* code) { return Minimal_function(code); }
+
 static inline LindaValue Linda_copy(LindaValue v) { return Minimal_copy(v); }
 #define Linda_addReference(obj) Linda_addReference2(obj, __FILE__, __LINE__);
 static inline void Linda_addReference2(LindaValue v, char* file, int line) { Minimal_addReference2(v, file, line); }
 static inline int Linda_getReferenceCount(LindaValue v) { return Minimal_getReferenceCount(v); }
 #define Linda_delReference(ptr) Linda_delReference2(ptr, __FILE__, __LINE__);
 static inline void Linda_delReference2(LindaValue v, char* file, int line) { Minimal_delReference2(v, file, line); }
+
+static inline LindaValue Linda_eval(LindaValue func, LindaValue args) { return Minimal_eval(func, args); }
 
 extern char* version;
 extern char* process_id;

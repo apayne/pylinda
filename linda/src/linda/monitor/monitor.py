@@ -118,11 +118,11 @@ class Thread:
                 print "Invalid reply: '%s'" % (r, )
                 return
             r = r[2]
-            print "References:", [x for x in eval(r[0]) if x != linda.process_id] + ["Monitor" for x in eval(r[0]) if x == linda.process_id]
-            print "Threads Blocked:", eval(r[1])
-            print "Servers Blocked:", eval(r[4])
-            print "Partitions", eval(r[3])
-            print "Tuples:", r[2]
+            print "References:", [x for x in eval(r[0].string) if x != linda.process_id] + ["Monitor" for x in eval(r[0].string) if x == linda.process_id]
+            print "Threads Blocked:", eval(r[1].string)
+            print "Servers Blocked:", eval(r[4].string)
+            print "Partitions", eval(r[3].string)
+            print "Tuples:", r[2].string
             print ""
         elif command[0] == "details":
             print "Node Id:", server.node_id

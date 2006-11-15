@@ -26,7 +26,14 @@
 from match import compare
 
 def doesMatch(e1, e2):
-    if e1.isType():
+    if isinstance(e1, tuple):
+        if len(e1) != len(e2):
+            return False
+        for t1, t2 in zip(e1, e2):
+            if not doesMatch(t1, t2):
+                return False
+        return True
+    elif e1.isType():
         if compare(e1, e2.type):
             return True
     else:
@@ -55,7 +62,10 @@ class TupleContainer:
                 else:
                     break
             if sucess == len(template):
+                print "yes"
                 yield t
+            else:
+                print "no"
 
     def matchAllTuples(self):
         return self.contain[:]

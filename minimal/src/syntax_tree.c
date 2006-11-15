@@ -89,6 +89,9 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     case ST_BLANK:
         ntree->type = ST_BLANK;
         return ntree;
+    case ST_NIL:
+        ntree->type = ST_NIL;
+        return ntree;
     case ST_IDENTIFIER:
         ntree->type = ST_IDENTIFIER;
         ntree->string = (char*)malloc(strlen(tree->string)+1);
@@ -180,6 +183,7 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     switch(tree->type) {
     case ST_BLANK:
+    case ST_NIL:
         break;
     case ST_IDENTIFIER:
         free(tree->string);

@@ -47,6 +47,7 @@ unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
 LindaValue Linda_typeType = NULL;
+LindaValue Linda_nilType;
 LindaValue Linda_boolType;
 LindaValue Linda_intType;
 LindaValue Linda_floatType;
@@ -61,6 +62,7 @@ void Linda_init() {
 
     Linda_typeType = Linda_type("typetype :: type;");
     Linda_typeType->typeobj = Linda_typeType;
+    Linda_nilType = Linda_type("niltype :: Nil;");
     Linda_boolType = Linda_type("booltype :: bool;");
     Linda_intType = Linda_type("inttype :: int;");
     Linda_floatType = Linda_type("floattype :: float;");

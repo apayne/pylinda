@@ -138,7 +138,37 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_sp
     return v;
 }
 
-MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Minimal_SyntaxTree* parameter_list, Minimal_SyntaxTree* code) {
+MinimalValue Minimal_function(char* code) {
+    Minimal_SyntaxTree* tree = Minimal_parseCode(code);
+    Minimal_SyntaxTree* tree2;
+    if(tree == NULL) {
+        return NULL;
+    }
+    Minimal_Layer_addTree(Minimal_defaultLayer, tree);
+
+    tree2 = tree;
+    while(tree2->type != ST_TYPE_SPEC && tree2->type != ST_FUNCTION_DEF) {
+        switch(tree2->type) {
+        case ST_SEQENTIAL_DEFS:
+            tree2 = tree2->branch1;
+            break;
+        default:
+            fprintf(stderr, "Error: Tried to parse function but didn't get a function back - got %i.\n", tree2->type);
+            return NULL;
+        }
+    }
+
+    MinimalValue f;
+    if(tree2->type == ST_TYPE_SPEC) {
+        f = Minimal_getName(Minimal_defaultLayer, tree2->type_name);
+    } else {
+        f = Minimal_getName(Minimal_defaultLayer, tree2->func_name);
+    }
+    Minimal_SyntaxTree_free(tree);
+    return f;
+}
+
+MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* func_type, Minimal_SyntaxTree* parameter_list, Minimal_SyntaxTree* code) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = FUNCTION;
     v->func_name = (char*)malloc(strlen(func_name)+1);
@@ -149,6 +179,8 @@ MinimalValue Minimal_function(char* func_name, Minimal_SyntaxTree* func_type, Mi
         v->func_type = NULL;
     }
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
+    Minimal_addReference(Minimal_defaultLayer);
+    v->layer = Minimal_defaultLayer;
     v->code = Minimal_SyntaxTree_copy(code);
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -340,9 +372,12 @@ char* Minimal_Value_string(MinimalValue v) {
         return r;
         }
     case TYPE:
-        r = (char*)malloc(strlen("<Type>")+1);
-        strcpy(r, "<Type>");
+        {
+        int size = snprintf(r, 0, "<Type %s>", v->type_name);
+        r = (char*)malloc(size + 1);
+        sprintf(r, "<Type %s>", v->type_name);
         return r;
+        }
     case TSREF:
         r = (char*)malloc(strlen("<TSRef>")+1);
         strcpy(r, "<TSRef>");
@@ -410,7 +445,6 @@ MinimalValue Minimal_copy(MinimalValue v) {
     case TYPE:
         nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
         strcpy(nv->type_name, v->type_name);
-        nv->integer = v->integer;
         nv->type_spec = Minimal_SyntaxTree_copy(v->type_spec);
         break;
     case TSREF:
@@ -435,7 +469,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->parameter_list = Minimal_SyntaxTree_copy(v->parameter_list);
         nv->code = Minimal_SyntaxTree_copy(v->code);
         nv->layer = v->layer;
-        Minimal_delReference(nv->layer);
+        Minimal_addReference(nv->layer);
         break;
     case POINTER:
         Minimal_delReference(v->ptr_type);
