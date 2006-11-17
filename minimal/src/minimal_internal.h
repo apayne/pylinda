@@ -26,6 +26,7 @@
 
 void Minimal_Layer_init();
 void Minimal_Layer_finalise();
+void Minimal_refCountFinalise();
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);

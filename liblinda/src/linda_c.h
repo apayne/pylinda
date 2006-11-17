@@ -87,7 +87,7 @@ static inline int Linda_getReferenceCount(LindaValue v) { return Minimal_getRefe
 #define Linda_delReference(ptr) Linda_delReference2(ptr, __FILE__, __LINE__);
 static inline void Linda_delReference2(LindaValue v, char* file, int line) { Minimal_delReference2(v, file, line); }
 
-static inline LindaValue Linda_eval(LindaValue func, LindaValue args) { return Minimal_eval(func, args); }
+static inline LindaValue Linda_apply(LindaValue func, LindaValue args) { return Minimal_apply(func, args); }
 
 extern char* version;
 extern char* process_id;

@@ -165,6 +165,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
         tree->type_name = (char*)malloc(strlen((char*)name)+1);
         strcpy(tree->type_name, (char*)name);
+        free(name);
 
         xmlNode* cur_node = node->children;
         while(cur_node) {
@@ -208,10 +209,10 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         }
         return tree;
     } else if(strcmp((char*)(node->name), "code") == 0) {
-        Minimal_SyntaxTree* tree;
+        Minimal_SyntaxTree* tree = NULL;
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE) {
+            if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
                 tree = Minimal_xmlToSyntaxTree(cur_node);
             }
             cur_node = cur_node->next;
@@ -416,6 +417,10 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         }
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
         value = Minimal_function2((char*)name, type, params, code);
+        Minimal_SyntaxTree_free(type);
+        Minimal_SyntaxTree_free(params);
+        Minimal_SyntaxTree_free(code);
+        free(name);
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Values (%s).\n", node->name);
         return NULL;
@@ -430,7 +435,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         }
         cur_node = cur_node->next;
     }
-    if(type != NULL) { Minimal_setType(value, type); }
+    if(type != NULL) { Minimal_setType(value, type); Minimal_delReference(type); }
     }
 
     xmlChar* cid = xmlGetProp(node, (xmlChar*)"id");

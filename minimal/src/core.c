@@ -37,4 +37,6 @@ void Minimal_finalise() {
     Minimal_Layer_finalise();
 
     xmlCleanupParser();
+
+    Minimal_refCountFinalise();
 }

@@ -25,6 +25,23 @@
 
 #include "minimal_internal.h"
 
+MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
+    if(func->type != FUNCTION) { fprintf(stderr, "Error: Minimal_eval didn't get function for function call.\n"); return NULL; }
+    MinimalLayer new_layer = Minimal_createLayer2(func->layer);
+    Minimal_SyntaxTree* param = func->parameter_list;
+    int i;
+    for(i=0; i < args->size; i++) {
+        MinimalValue param_val = Minimal_tupleGet(args, i);
+        Minimal_addReference(param_val);
+        Minimal_addName(&(new_layer->map), param->var_name, param_val);
+
+        param = param->next_var;
+    }
+    MinimalValue r = Minimal_evaluate(func->code, new_layer);
+    Minimal_delReference(new_layer);
+    return r;
+}
+
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     switch(tree->type) {
     case ST_BLANK:

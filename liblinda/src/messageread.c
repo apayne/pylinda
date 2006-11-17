@@ -90,11 +90,13 @@ Message* Message_recv(int s) {
         bytesread += bytesrecv;
     }
 
+#ifdef DEBUG
     int i;
     for(i = 0; i < bytesrecv; i++) {
         printf("%c", buf[i]);
     }
     printf("\n---\n");
+#endif
 
     xmlDocPtr doc = xmlReadMemory(buf, bytesread, NULL, NULL, 0);
     free(buf);

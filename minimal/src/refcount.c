@@ -71,6 +71,11 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
                 } else {
                     tree = tree->right;
                 }
+            } else if(tree->count == 0) {
+                tree->type_id = type_id;
+                tree->ptr = ptr;
+                tree->count = 1;
+                return ptr;
             } else {
                 fprintf(stderr, "Error: New reference in the same location as an unfreed reference.\n");
                 exit(1);
@@ -115,41 +120,21 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
     struct MinimalRefCount* tree = Minimal_refCountTree;
     while(tree != NULL) {
         if(tree->ptr == ptr) {
+            if(tree->count < 0) {
+                return;
+            }
             tree->count--;
             if(tree->count == 0) {
                 Minimal_delObject(tree->type_id, ptr);
                 if(tree->left == NULL && tree->right == NULL) {
-                    if(parent == NULL) {
-                        free(tree); Minimal_refCountTree = NULL;
-                    } else if(parent->left == tree) {
-                        free(tree); parent->left = NULL;
+                    if(parent->left == tree) {
+                        parent->left = NULL;
                     } else {
-                        free(tree); parent->right = NULL;
+                        parent->right = NULL;
                     }
+                    free(tree);
                 } else {
-                    parent = tree;
-                    if(tree->left != NULL) {
-                        tree = tree->left;
-                    } else {
-                        tree = tree->right;
-                    }
-                    while(tree != NULL) {
-                        parent->type_id = tree->type_id;
-                        parent->ptr = tree->ptr;
-                        parent->count = tree->count;
-                        if(tree->left != NULL) {
-                            parent = tree; tree = tree->left;
-                        } else if(tree->right != NULL) {
-                            parent = tree; tree = tree->right;
-                        } else {
-                            if(parent->left == tree) {
-                                free(tree); parent->left = NULL;
-                            } else {
-                                free(tree); parent->right = NULL;
-                            }
-                            break;
-                        }
-                    }
+                    ptr = NULL;
                 }
             }
             return;
@@ -162,8 +147,6 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
         }
     }
     fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
-    int i = *((int*)ptr);
-    i = i + 1;
 }
 
 void Minimal_delObject(MinimalTypeId type_id, void* ptr) {
@@ -178,3 +161,19 @@ void Minimal_delObject(MinimalTypeId type_id, void* ptr) {
         fprintf(stderr, "Error: Deleting object with unrecognised type_id (%i).\n", type_id);
     }
 }
+
+int Minimal_countAllReferences(struct MinimalRefCount* tree) {
+    if(tree == NULL) {
+        return 0;
+    } else {
+        return tree->count + Minimal_countAllReferences(tree->left) + Minimal_countAllReferences(tree->right);
+    }
+}
+
+void Minimal_refCountFinalise() {
+    int i = Minimal_countAllReferences(Minimal_refCountTree);
+    if(i > 0) {
+        fprintf(stderr, "Warning, %i references unfreed.\n", i);
+    }
+}
+

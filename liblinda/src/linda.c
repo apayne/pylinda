@@ -78,6 +78,8 @@ void Linda_finalise() {
     Linda_delReference(Linda_tupleSpaceType);
     Linda_delReference(Linda_uts);
 
+    free(process_id);
+
     Minimal_finalise();
 }
 
@@ -152,6 +154,7 @@ void Linda_disconnect() {
     tdata->sd = 0;
     free(tdata->thread_id);
     tdata->thread_id = NULL;
+    free(tdata);
 
     Linda_active_connections -= 1;
 

@@ -485,7 +485,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
 void Minimal_Value_free(MinimalValue v) {
     if(v == NULL) { return; }
 
-    if(v->typeobj != NULL) {
+    if(v->typeobj != NULL && v->typeobj != v) {
         Minimal_delReference(v->typeobj);
     }
 

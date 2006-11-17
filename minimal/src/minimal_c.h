@@ -222,7 +222,7 @@ Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
 MinimalValue Minimal_parseValue(char* code);
 
-MinimalValue Minimal_eval(MinimalValue func, MinimalValue args);
+MinimalValue Minimal_apply(MinimalValue func, MinimalValue args);
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
 
 MinimalValue Minimal_getFunction(char* funcname);
