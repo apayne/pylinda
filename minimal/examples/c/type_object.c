@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     if(strcmp(argv[1], "1") == 0) {
         MinimalValue intvalue = Minimal_int(1);
         Minimal_setType(intvalue, inttype);
-        buf = Minimal_serialise(intvalue);
+        buf = Minimal_serialise(intvalue, 1);
         printf("%s\n", buf);
         free(buf);
         Minimal_delReference(intvalue);
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
         Minimal_tupleSet(pairvalue, 0, Minimal_int(1));
         Minimal_tupleSet(pairvalue, 1, Minimal_int(2));
         Minimal_setType(pairvalue, pairtype);
-        buf = Minimal_serialise(pairvalue);
+        buf = Minimal_serialise(pairvalue, 1);
         printf("%s\n", buf);
         free(buf);
         Minimal_delReference(pairvalue);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
         MinimalValue sumvalue = Minimal_int(1);
         Minimal_setType(sumvalue, sumtype);
         Minimal_setSumPos(sumvalue, 0);
-        buf = Minimal_serialise(sumvalue);
+        buf = Minimal_serialise(sumvalue, 1);
         printf("%s\n", buf);
         free(buf);
         Minimal_delReference(sumvalue);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         Minimal_tupleSet(intlistvalue, 1, Minimal_Nil);
         Minimal_setSumPos(Minimal_tupleGet(intlistvalue, 1), 0);
         Minimal_setType(intlistvalue, intlisttype);
-        buf = Minimal_serialise(intlistvalue);
+        buf = Minimal_serialise(intlistvalue, 1);
         printf("%s\n", buf);
         free(buf);
         Minimal_delReference(intlistvalue);

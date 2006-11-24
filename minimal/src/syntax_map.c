@@ -28,14 +28,21 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
     if(map == NULL) {
         fprintf(stderr, "Minimal Error: addName called with NULL map parameter.\n");
         return;
+    } else if(name == NULL) {
+        fprintf(stderr, "Minimal Error: addName called with NULL name parameter.\n");
+        return;
+    } else if(tree == NULL) {
+        fprintf(stderr, "Minimal Error: addName called with NULL tree parameter.\n");
+        return;
+    } else if(map->name == NULL && map->left && strcmp(map->left->name, name) < 0) {
+        Minimal_addName(map->left, name, tree);
+    } else if(map->name == NULL && map->right && strcmp(map->left->name, name) > 0) {
+        Minimal_addName(map->right, name, tree);
     } else if(map->name == NULL) {
         map->name = (char*)malloc(strlen(name)+1);
         strcpy(map->name, name);
         map->value = tree;
-    } else if(strcmp(map->name, name) == 0) {
-        free(map->name);
-        map->name = (char*)malloc(strlen(name)+1);
-        strcpy(map->name, name);
+     } else if(strcmp(map->name, name) == 0) {
         Minimal_delReference(map->value);
         map->value = tree;
     } else if(strcmp(map->name, name) == -1) {
@@ -58,8 +65,14 @@ MinimalValue Minimal_getName(MinimalLayer layer, char* name) {
 }
 
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name) {
-    if(map == NULL || map->name == NULL) {
+    if(map == NULL) {
         return NULL;
+    } else if(map->name == NULL) {
+        MinimalValue v = Minimal_getName2(map->left, name);
+        if(v == NULL) {
+            v = Minimal_getName2(map->right, name);
+        }
+        return v;
     } else if(strcmp(map->name, name) == 0) {
         Minimal_addReference(map->value);
         return map->value;
@@ -79,19 +92,6 @@ void Minimal_delName(Minimal_NameValueMap* map, char* name) {
         free(map->name);
         map->name = NULL;
         Minimal_delReference(map->value); map->value = NULL;
-        if(map->left != NULL) {
-            map->name = (char*)malloc(strlen(map->left->name)+1);
-            strcpy(map->name, map->left->name);
-            Minimal_addReference(map->left->value);
-            map->value = map->left->value;
-            Minimal_delName(map->left, map->left->name);
-        } else if(map->right != NULL) {
-            map->name = (char*)malloc(strlen(map->right->name)+1);
-            strcpy(map->name, map->right->name);
-            Minimal_addReference(map->right->value);
-            map->value = map->right->value;
-            Minimal_delName(map->right, map->right->name);
-        }
     } else if(strcmp(map->name, name) < 0) {
         Minimal_delName(map->left, name);
     } else if(strcmp(map->name, name) > 0) {
@@ -99,8 +99,34 @@ void Minimal_delName(Minimal_NameValueMap* map, char* name) {
     }
 }
 
+void Minimal_SyntaxMap_free(Minimal_NameValueMap* map) {
+    Minimal_SyntaxMap_empty(map);
+    free(map);
+}
+int Minimal_SyntaxMap_size(Minimal_NameValueMap* map) {
+    int count = 0;
+    if(map->left != NULL) {
+        count += Minimal_SyntaxMap_size(map->left);
+    }
+    if(map->right != NULL) {
+        count += Minimal_SyntaxMap_size(map->left);
+    }
+    if(map->name != NULL) {
+        count += 1;
+    }
+    return count;
+}
+
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map) {
-    while(map->name != NULL) {
+    if(map->left != NULL) {
+        Minimal_SyntaxMap_free(map->left);
+        map->left = NULL;
+    }
+    if(map->right != NULL) {
+        Minimal_SyntaxMap_free(map->right);
+        map->right = NULL;
+    }
+    if(map->name != NULL) {
         Minimal_delName(map, map->name);
     }
 }

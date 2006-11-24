@@ -76,6 +76,18 @@ static PyObject* linda_Function(PyObject* self, PyObject* args) {
     return Value2PyO(Linda_function(code));
 }
 
+static PyObject* linda_Ptr(PyObject* self, PyObject* args) {
+    PyObject* obj;
+
+    if(!PyArg_ParseTuple(args, "O", &obj)) {
+        return NULL;
+    }
+
+    LindaValue v = PyO2Value(obj);
+
+    return Value2PyO(Linda_ptr(v));
+}
+
 static PyMethodDef LindaMethods[] = {
     {"connect",  LindaPython_connect, METH_VARARGS, "Connect to the local kernel."},
     {"disconnect",  LindaPython_disconnect, METH_NOARGS, "Disconnect from the Linda network."},
@@ -84,6 +96,7 @@ static PyMethodDef LindaMethods[] = {
     {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the server."},
     {"Type", linda_Type, METH_VARARGS, ""},
     {"Function", linda_Function, METH_VARARGS, ""},
+    {"Ptr", linda_Ptr, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -98,4 +111,5 @@ PyMODINIT_FUNC init_linda(void)
     inittuplespace(Linda_module);
     inittsref(Linda_module);
     initvalue(Linda_module);
+    inittypemap(Linda_module);
 }

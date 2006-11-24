@@ -31,44 +31,44 @@ extern "C" {
 
 typedef MinimalValue LindaValue;
 
-extern LindaValue Linda_typeType;
-extern LindaValue Linda_nilType;
-extern LindaValue Linda_boolType;
-extern LindaValue Linda_intType;
-extern LindaValue Linda_floatType;
-extern LindaValue Linda_stringType;
-extern LindaValue Linda_tupleSpaceType;
+#define Linda_typeType Minimal_typeType
+#define Linda_nilType Minimal_nilType
+#define Linda_boolType Minimal_boolType
+#define Linda_intType Minimal_intType
+#define Linda_floatType Minimal_floatType
+#define Linda_stringType Minimal_stringType
+#define Linda_tupleSpaceType Minimal_tupleSpaceType
 
 static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_setType(value, type); }
 static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
 static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
 
 static inline unsigned char Linda_isNil(LindaValue v) { return Minimal_isNil(v); }
-static inline LindaValue Linda_nil() { LindaValue v = Minimal_nil(); Linda_setType(v, Linda_nilType); return v; }
+static inline LindaValue Linda_nil() { return Minimal_nil(); }
 
 static inline unsigned char Linda_isBool(LindaValue v) { return Minimal_isBool(v); }
-static inline LindaValue Linda_bool(unsigned char b) { LindaValue v = Minimal_bool(b); Linda_setType(v, Linda_boolType); return v; }
+static inline LindaValue Linda_bool(unsigned char b) { return Minimal_bool(b); }
 static inline unsigned char Linda_getBool(LindaValue v) { return Minimal_getBool(v); }
 
 static inline unsigned char Linda_isInt(LindaValue v) { return Minimal_isInt(v); }
-static inline LindaValue Linda_int(int i) { LindaValue v = Minimal_int(i); Linda_setType(v, Linda_intType); return v; }
+static inline LindaValue Linda_int(int i) { return Minimal_int(i); }
 static inline int Linda_getInt(LindaValue v) { return Minimal_getInt(v); }
 
 static inline unsigned char Linda_isFloat(LindaValue v) { return Minimal_isFloat(v); }
-static inline LindaValue Linda_float(float f) { LindaValue v = Minimal_float(f); Linda_setType(v, Linda_floatType); return v; }
+static inline LindaValue Linda_float(float f) { return Minimal_float(f); }
 static inline float Linda_getFloat(LindaValue v) { return Minimal_getFloat(v); }
 
 static inline unsigned char Linda_isType(LindaValue v) { return Minimal_isType(v); }
-static inline LindaValue Linda_type(const char* typespec) { LindaValue v = Minimal_type(typespec); if(Linda_typeType != NULL) { Linda_setType(v, Linda_typeType); } return v; }
+static inline LindaValue Linda_type(const char* typespec) { return Minimal_type(typespec); }
 
 static inline unsigned char Linda_isString(LindaValue v) { return Minimal_isString(v); }
-static inline LindaValue Linda_string(char* s) { LindaValue v = Minimal_string(s); Linda_setType(v, Linda_stringType); return v; }
-static inline LindaValue Linda_string2(char* s, int len) { LindaValue v = Minimal_string2(s, len); Linda_setType(v, Linda_stringType); return v; }
+static inline LindaValue Linda_string(char* s) { return Minimal_string(s); }
+static inline LindaValue Linda_string2(char* s, int len) { return Minimal_string2(s, len); }
 static inline char* Linda_getString(LindaValue v) { return Minimal_getString(v); }
 static inline int Linda_getStringLen(LindaValue v) { return Minimal_getStringLen(v); }
 
 static inline unsigned char Linda_isTupleSpace(LindaValue v) { return Minimal_isTupleSpace(v); }
-static inline LindaValue Linda_tupleSpace(const char* ts) { LindaValue v = Minimal_tupleSpace(ts); Linda_setType(v, Linda_tupleSpaceType); return v; }
+static inline LindaValue Linda_tupleSpace(const char* ts) { return Minimal_tupleSpace(ts); }
 static inline char* Linda_getTupleSpace(LindaValue v) { return Minimal_getTupleSpace(v); }
 
 static inline unsigned char Linda_isTuple(LindaValue v) { return Minimal_isTuple(v); }
@@ -79,6 +79,9 @@ static inline void Linda_tupleSet(LindaValue t, int i, LindaValue v) { Minimal_t
 static inline LindaValue Linda_tupleGet(LindaValue t, int i) { return Minimal_tupleGet(t, i); }
 
 static inline LindaValue Linda_function(char* code) { return Minimal_function(code); }
+
+static inline LindaValue Linda_ptr(LindaValue v) { return Minimal_ptr(v); }
+static inline LindaValue Linda_getPtr(LindaValue v) { return Minimal_getPtr(v); }
 
 static inline LindaValue Linda_copy(LindaValue v) { return Minimal_copy(v); }
 #define Linda_addReference(obj) Linda_addReference2(obj, __FILE__, __LINE__);

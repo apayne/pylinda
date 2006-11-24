@@ -37,7 +37,7 @@ public:
     Value(int i);
     Value(bool b);
 
-    std::string serialise();
+    std::string serialise(bool include_type);
 
     void setType(Value& type);
     void setSumPos(int pos);

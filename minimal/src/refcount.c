@@ -29,13 +29,15 @@ struct MinimalRefCount {
     unsigned long count;
     struct MinimalRefCount* left;
     struct MinimalRefCount* right;
+    char* file;
+    int line;
 };
 
 struct MinimalRefCount* Minimal_refCountTree = NULL;
 
 void Minimal_delObject(MinimalTypeId type_id, void* ptr);
 
-void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
+void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line) {
     if(Minimal_refCountTree == NULL) {
         Minimal_refCountTree = (struct MinimalRefCount*)malloc(sizeof(struct MinimalRefCount));
         Minimal_refCountTree->type_id = type_id;
@@ -43,6 +45,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
         Minimal_refCountTree->count = 1;
         Minimal_refCountTree->left = NULL;
         Minimal_refCountTree->right = NULL;
+        Minimal_refCountTree->file = file;
+        Minimal_refCountTree->line = line;
         return ptr;
     } else {
         struct MinimalRefCount* tree = Minimal_refCountTree;
@@ -55,6 +59,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
                     tree->left->count = 1;
                     tree->left->left = NULL;
                     tree->left->right = NULL;
+                    tree->left->file = file;
+                    tree->left->line = line;
                     return ptr;
                 } else {
                     tree = tree->left;
@@ -67,6 +73,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
                     tree->right->count = 1;
                     tree->right->left = NULL;
                     tree->right->right = NULL;
+                    tree->right->file = file;
+                    tree->right->line = line;
                     return ptr;
                 } else {
                     tree = tree->right;
@@ -75,6 +83,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr) {
                 tree->type_id = type_id;
                 tree->ptr = ptr;
                 tree->count = 1;
+                tree->file = file;
+                tree->line = line;
                 return ptr;
             } else {
                 fprintf(stderr, "Error: New reference in the same location as an unfreed reference.\n");
@@ -120,7 +130,7 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
     struct MinimalRefCount* tree = Minimal_refCountTree;
     while(tree != NULL) {
         if(tree->ptr == ptr) {
-            if(tree->count < 0) {
+            if(tree->count <= 0) {
                 return;
             }
             tree->count--;
@@ -157,6 +167,9 @@ void Minimal_delObject(MinimalTypeId type_id, void* ptr) {
     case MINIMAL_LAYER:
         Minimal_Layer_free((MinimalLayer)ptr);
         break;
+    case MINIMAL_MAP:
+        Minimal_SyntaxMap_empty((Minimal_NameValueMap*)ptr);
+        break;
     default:
         fprintf(stderr, "Error: Deleting object with unrecognised type_id (%i).\n", type_id);
     }
@@ -170,10 +183,27 @@ int Minimal_countAllReferences(struct MinimalRefCount* tree) {
     }
 }
 
+static void Minimal_refCountEmpty(struct MinimalRefCount* tree) {
+    if(tree->left != NULL) {
+        Minimal_refCountEmpty(tree->left);
+        free(tree->left);
+    }
+    if(tree->right != NULL) {
+        Minimal_refCountEmpty(tree->right);
+        free(tree->right);
+    }
+    if(tree->count > 0) {
+        fprintf(stderr, "%p (%s:%i) still has %li references.\n", tree->ptr, tree->file, tree->line, tree->count);
+    }
+}
+
 void Minimal_refCountFinalise() {
     int i = Minimal_countAllReferences(Minimal_refCountTree);
     if(i > 0) {
         fprintf(stderr, "Warning, %i references unfreed.\n", i);
     }
+    if(Minimal_refCountTree != NULL) {
+        Minimal_refCountEmpty(Minimal_refCountTree);
+        free(Minimal_refCountTree);
+    }
 }
-

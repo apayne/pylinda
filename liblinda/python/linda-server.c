@@ -176,4 +176,5 @@ PyMODINIT_FUNC init_linda_server(void)
     LindaServer_module = Py_InitModule("_linda_server", LindaServerMethods);
     inittsref(LindaServer_module);
     initvalue(LindaServer_module);
+    inittypemap(LindaServer_module);
 }

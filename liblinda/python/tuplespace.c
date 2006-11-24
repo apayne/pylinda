@@ -73,9 +73,7 @@ static PyObject* linda_TupleSpace_out(linda_TupleSpaceObject* self, PyObject* ar
 
     t = PyO2Tuple(tuple);
     if(t == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Linda_out(self->ts, t);
@@ -102,9 +100,7 @@ static PyObject* linda_TupleSpace_in(linda_TupleSpaceObject* self, PyObject* arg
 
     t1 = PyO2Tuple(tuple);
     if(t1 == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -139,9 +135,7 @@ static PyObject* linda_TupleSpace_rd(linda_TupleSpaceObject* self, PyObject* arg
 
     t1 = PyO2Tuple(tuple);
     if(t1 == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -176,9 +170,7 @@ static PyObject* linda_TupleSpace_inp(linda_TupleSpaceObject* self, PyObject* ar
 
     t1 = PyO2Tuple(tuple);
     if(t1 == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -213,9 +205,7 @@ static PyObject* linda_TupleSpace_rdp(linda_TupleSpaceObject* self, PyObject* ar
 
     t1 = PyO2Tuple(tuple);
     if(t1 == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -255,9 +245,7 @@ static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject
 
     t = PyO2Tuple(tuple);
     if(t == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS
@@ -294,9 +282,7 @@ static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyO
 
     t = PyO2Tuple(tuple);
     if(t == NULL) {
-        fprintf(stderr, "Error converting tuple.\n");
-        Py_INCREF(Py_None);
-        return Py_None;
+        return NULL;
     }
 
     Py_BEGIN_ALLOW_THREADS

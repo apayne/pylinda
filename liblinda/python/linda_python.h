@@ -18,11 +18,14 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "../../minimal/src/minimal_internal.h"
+
 #ifndef LINDA_PYTHON
 
 void inittuplespace(PyObject* m);
 void inittsref(PyObject* m);
 void initvalue(PyObject* m);
+void inittypemap(PyObject* m);
 
 LindaValue PyO2Value(PyObject* obj);
 PyObject* Value2PyO(LindaValue obj);
@@ -54,5 +57,12 @@ typedef struct {
     LindaValue val;
 } linda_ValueObject;
 PyTypeObject linda_ValueType;
+
+typedef struct {
+    PyObject_HEAD
+    /* Type-specific fields go here. */
+    MinimalLayer map;
+} linda_TypeMapObject;
+PyTypeObject linda_TypeMapType;
 
 #endif

@@ -19,14 +19,39 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "linda.h"
 #include "linda_internal.h"
 
-void Linda_scanTuple(LindaValue t, LindaValue ref) {
+void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
     int i;
     Message* m;
+    LindaValue* realscanned = NULL;
     Linda_thread_data* tdata;
+
+    if(scanned == NULL) {
+        realscanned = (LindaValue*)malloc(sizeof(void*));
+        realscanned[0] = NULL;
+        scanned = &realscanned;
+    }
+
+    i = 0;
+    while((*scanned)[i] != NULL) {
+        if((*scanned)[i] == Linda_getPtr(t)) {
+            break;
+        }
+        i++;
+    }
+    if(scanned[i] != NULL) {
+        return;
+    }
+    LindaValue* newscanned = malloc(sizeof(void*)*(i+1));
+    memcpy(newscanned, *scanned, sizeof(void*)*i);
+    newscanned[i] = Linda_getPtr(t);
+    newscanned[i+1] = NULL;
+    free(*scanned);
+    *scanned = newscanned;
 
     for(i=0; i<Linda_getTupleSize(t); i++) {
         LindaValue v = Linda_tupleGet(t, i);
@@ -48,10 +73,17 @@ void Linda_scanTuple(LindaValue t, LindaValue ref) {
             Message_free(m);
             break;
         case TUPLE:
-            Linda_scanTuple(v, ref);
+            Linda_scanTuple2(v, ref, scanned);
+            break;
+        case POINTER:
+            Linda_scanTuple2(Linda_getPtr(v), ref, scanned);
             break;
         default:
             fprintf(stderr, "Unknown value (%i) found when scanning tuple.\n", v->type);
         }
+    }
+
+    if(&realscanned == scanned) {
+        free(realscanned);
     }
 }

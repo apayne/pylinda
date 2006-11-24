@@ -23,6 +23,7 @@
 #include "minimal.h"
 
 #ifndef MINIMAL_INTERNAL_H
+#define MINIMAL_INTERNAL_H
 
 void Minimal_Layer_init();
 void Minimal_Layer_finalise();
@@ -31,6 +32,8 @@ void Minimal_refCountFinalise();
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op);
+
+int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2);
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size);
 void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree* tree);
@@ -59,21 +62,24 @@ void Minimal_Value_free(MinimalValue val);
 
 enum MinimalTypeId_t {
     MINIMAL_VALUE,
-    MINIMAL_LAYER
+    MINIMAL_LAYER,
+    MINIMAL_MAP
 };
 typedef enum MinimalTypeId_t MinimalTypeId;
 
-#define Minimal_newReference(type_id, ptr_type, val_type) ((ptr_type)Minimal_newReference2(type_id, malloc(sizeof(val_type))))
+#define Minimal_newReference(type_id, ptr_type, val_type) ((ptr_type)Minimal_newReference2(type_id, malloc(sizeof(val_type)), __FILE__, __LINE__))
 
-void* Minimal_newReference2(MinimalTypeId type_id, void* ptr);
+void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line);
 
 MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
 
-void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
-void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);
+void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);
+
+void Minimal_setTypeMap(MinimalValue v, MinimalLayer types);
 
 MinimalValue Minimal_parseXMLValue(const char* code);
 
@@ -86,5 +92,14 @@ struct ValueMemo_t {
     struct PointerReplacementArray* waiting;
 };
 typedef struct ValueMemo_t ValueMemo;
+
+typedef MinimalValue* Minimal_TypeList;
+
+unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type);
+Minimal_TypeList Minimal_getTypeList(MinimalValue type);
+void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minimal_TypeList* list);
+void Minimal_freeTypeList(Minimal_TypeList list);
+
+unsigned char Minimal_isBuiltIn(char* type_name);
 
 #endif

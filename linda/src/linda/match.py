@@ -18,35 +18,46 @@
 
 builtin = ["bool", "int", "float", "string"]
 
-def compare(t1, t2):
+def compare(t1, t2, checked=None):
     assert t1.isType()
     assert t2.isType()
 
-    if t1.isNil() and t2.isNil():
+    if checked is None:
+        checked = [(t1, t2)]
+    elif (t1, t2) in checked:
         return True
-    elif t1.isId() and t2.isId():
-        return t1.id == t2.id
-    elif t1.isProductType() and t2.isProductType():
-        if len(t1) != len(t2):
-            return False
-        for i in range(len(t1)):
-            e1, e2 = t1[i], t2[i]
-            if not compare(e1, e2):
-                return False
-        return True
-    elif t1.isSumType() and t2.isSumType():
-        if len(t1) != len(t2):
-            return False
-        for i in range(len(t1)):
-            e1, e2 = t1[i], t2[i]
-            if not compare(e1, e2):
-                return False
-        return True
-    elif t1.isPtrType() and t2.isPtrType():
-        raise NotImplementedError
-    elif t1.isFunctionType() and t2.isFunctionType():
-        print t1.arg, t2.arg
-        print t1.result, t2.result
-        return compare(t1.arg, t2.arg) and compare(t1.result, t2.result)
     else:
-        return False
+        checked.append((t1, t2))
+
+    try:
+        if t1.isNil() and t2.isNil():
+            return True
+        elif t1.isId() and t2.isId():
+            if t1.id in builtin or t2.id in builtin:
+                return t1.id == t2.id
+            else:
+                return compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+        elif t1.isProductType() and t2.isProductType():
+            if len(t1) != len(t2):
+                return False
+            for i in range(len(t1)):
+                e1, e2 = t1[i], t2[i]
+                if not compare(e1, e2, checked):
+                    return False
+            return True
+        elif t1.isSumType() and t2.isSumType():
+            if len(t1) != len(t2):
+                return False
+            for i in range(len(t1)):
+                e1, e2 = t1[i], t2[i]
+                if not compare(e1, e2, checked):
+                    return False
+            return True
+        elif t1.isPtrType() and t2.isPtrType():
+            return compare(t1.ptrtype, t2.ptrtype, checked)
+        elif t1.isFunctionType() and t2.isFunctionType():
+            return compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
+        else:
+            return False
+    finally:
+        checked.pop()

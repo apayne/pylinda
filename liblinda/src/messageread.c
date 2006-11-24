@@ -237,8 +237,7 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         }
         return;
     } else if(strcmp((char*)node->name, "ts") == 0) {
-        char* val = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"id"))+1);
-        strcpy(val, (char*)xmlGetProp(node, (xmlChar*)"id"));
+        char* val = (char*)xmlGetProp(node, (xmlChar*)"id");
         switch(bm->m->type) {
         case OUT:
             bm->m->out.ts = Linda_tupleSpace(val);
@@ -283,8 +282,7 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         }
         free(val);
     } else if(strcmp((char*)node->name, "tid") == 0) {
-        char* val = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"id"))+1);
-        strcpy(val, (char*)xmlGetProp(node, (xmlChar*)"id"));
+        char* val = (char*)xmlGetProp(node, (xmlChar*)"id");
         switch(bm->m->type) {
         case IN:
         case INP:
@@ -296,7 +294,6 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             break;
         default:
             fprintf(stderr, "Got unexpected TID.\n");
-            free(val);
         }
     } else if(strcmp((char*)node->name, "tuple") == 0) {
         LindaValue t = Minimal_xmlToValue(node);

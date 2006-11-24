@@ -25,14 +25,76 @@
 
 #include "minimal_internal.h"
 
+MinimalValue Minimal_typeType;
+MinimalValue Minimal_nilType;
+MinimalValue Minimal_boolType;
+MinimalValue Minimal_byteType;
+MinimalValue Minimal_shortType;
+MinimalValue Minimal_intType;
+MinimalValue Minimal_longType;
+MinimalValue Minimal_ubyteType;
+MinimalValue Minimal_ushortType;
+MinimalValue Minimal_uintType;
+MinimalValue Minimal_ulongType;
+MinimalValue Minimal_floatType;
+MinimalValue Minimal_doubleType;
+MinimalValue Minimal_stringType;
+MinimalValue Minimal_tupleSpaceType;
+
+#define createIntType(var, type, size8, size16, size32, size64) \
+    if(sizeof(type) == 1) { \
+        var = Minimal_type(size8); \
+    } else if(sizeof(type) == 2) { \
+        var = Minimal_type(size16); \
+    } else if(sizeof(type) == 4) { \
+        var = Minimal_type(size32); \
+    } else if(sizeof(type) == 8) { \
+        var = Minimal_type(size64); \
+    } else { \
+        fprintf(stderr, "Error, this machine has an unrecognised byte size (%s = %li).\n", size8, sizeof(type)); \
+    }
+
 void Minimal_init() {
     Minimal_Layer_init();
 
     Minimal_Nil = Minimal_nil();
+
+    Minimal_typeType = Minimal_type("typetype :: type;");
+    Minimal_typeType->typeobj = Minimal_typeType;
+    Minimal_nilType = Minimal_type("niltype :: Nil;");
+    Minimal_boolType = Minimal_type("booltype :: bool;");
+    createIntType(Minimal_byteType, char, "byte :: int8;", "byte :: int16;", "byte :: int32;", "byte :: int64;")
+    createIntType(Minimal_shortType, short, "short :: int8;", "short :: int16;", "short :: int32;", "short :: int64;")
+    createIntType(Minimal_intType, int, "int :: int8;", "int :: int16;", "int :: int32;", "int :: int64;")
+    createIntType(Minimal_longType, long, "long :: int8;", "long :: int16;", "long :: int32;", "long :: int64;")
+    createIntType(Minimal_ubyteType, unsigned char, "ubyte :: uint8;", "ubyte :: uint16;", "ubyte :: uint32;", "ubyte :: uint64;")
+    createIntType(Minimal_ushortType, unsigned short, "ushort :: uint8;", "ushort :: uint16;", "ushort :: uint32;", "ushort :: uint64;")
+    createIntType(Minimal_uintType, unsigned int, "uint :: uint8;", "uint :: uint16;", "uint :: uint32;", "uint :: uint64;")
+    createIntType(Minimal_ulongType, unsigned long, "ulong :: uint8;", "ulong :: uint16;", "ulong :: uint32;", "ulong :: uint64;")
+    Minimal_intType = Minimal_type("int :: int64;");
+    Minimal_floatType = Minimal_type("float :: ieeesingle;");
+    Minimal_doubleType = Minimal_type("double :: ieeedouble;");
+    Minimal_stringType = Minimal_type("stringtype :: string;");
+    Minimal_tupleSpaceType = Minimal_type("tupleSpacetype :: tuplespace;");
 }
 
 void Minimal_finalise() {
     Minimal_delReference(Minimal_Nil);
+
+    Minimal_delReference(Minimal_boolType);
+    Minimal_delReference(Minimal_byteType);
+    Minimal_delReference(Minimal_shortType);
+    Minimal_delReference(Minimal_intType);
+    Minimal_delReference(Minimal_longType);
+    Minimal_delReference(Minimal_ubyteType);
+    Minimal_delReference(Minimal_ushortType);
+    Minimal_delReference(Minimal_uintType);
+    Minimal_delReference(Minimal_ulongType);
+    Minimal_delReference(Minimal_floatType);
+    Minimal_delReference(Minimal_doubleType);
+    Minimal_delReference(Minimal_stringType);
+    Minimal_delReference(Minimal_tupleSpaceType);
+    Minimal_delReference(Minimal_typeType);
 
     Minimal_Layer_finalise();
 

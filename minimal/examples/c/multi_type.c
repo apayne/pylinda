@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "minimal.h"
 
@@ -28,17 +29,25 @@ int main(int argc, char* argv[]) {
 
     Minimal_init();
 
-    MinimalValue rectype = Minimal_type("rectype :: int * ptr(rectype);");
+    MinimalValue atype = Minimal_type("a :: int * ptr(b);");
+    MinimalValue btype = Minimal_type("b :: float;");
 
-    MinimalValue recvalue = Minimal_tuple(2);
-    Minimal_setType(recvalue, rectype);
-    Minimal_tupleSet(recvalue, 0, Minimal_int(1));
-    Minimal_tupleSet(recvalue, 1, Minimal_ptr(recvalue));
-    buf = Minimal_serialise(recvalue, 1);
+    MinimalValue val2 = Minimal_float(1.0);
+    Minimal_setType(val2, btype);
+
+    MinimalValue val = Minimal_tuple(2);
+    Minimal_tupleSet(val, 0, Minimal_int(1));
+    Minimal_tupleSet(val, 1, Minimal_ptr(val2));
+    Minimal_setType(val, atype);
+
+    buf = Minimal_serialise(val, 1);
     printf("%s\n", buf);
     free(buf);
-    Minimal_delReference(recvalue);
-    Minimal_delReference(rectype);
+
+    Minimal_delReference(val);
+    Minimal_delReference(val2);
+    Minimal_delReference(atype);
+    Minimal_delReference(btype);
 
     Minimal_finalise();
 

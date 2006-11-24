@@ -82,7 +82,7 @@ void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree
 }
 
 Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
-    Minimal_SyntaxTree* ntree;
+    Minimal_SyntaxTree* ntree = NULL;
     if(tree == NULL) { return NULL; }
     ntree = (Minimal_SyntaxTree*)malloc(sizeof(struct Minimal_SyntaxTree_t));
     switch(tree->type) {
@@ -154,7 +154,9 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         return ntree;
     case ST_SUM_TYPE:
         ntree->type = ST_SUM_TYPE;
+        ntree->branch1 = NULL;
         ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
+        ntree->branch2 = NULL;
         ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
         return ntree;
     case ST_TUPLE:
@@ -247,6 +249,148 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     default:
         fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);
         break;
+    }
+}
+
+int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
+    if(t1 == NULL && t2 == NULL) {
+        return 0;
+    } else if(t1 == NULL) {
+        return -1;
+    } else if(t2 == NULL) {
+        return 1;
+    } else if(t1->type < t2->type) {
+        return -1;
+    } else if(t1->type > t2->type) {
+        return 1;
+    }
+
+    switch(t1->type) {
+    case ST_BLANK:
+        return 0;
+    case ST_NIL:
+        return 0;
+    case ST_IDENTIFIER:
+        return strcmp(t1->string, t2->string);
+    case ST_INTEGER:
+        if(t1->integer < t2->integer) {
+            return -1;
+        } else if(t1->integer == t2->integer) {
+            return 0;
+        } else if(t1->integer > t2->integer) {
+            return 1;
+        }
+    case ST_SEQENTIAL_DEFS:
+        {
+        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
+        if(i != 0) {
+            return i;
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        }
+        }
+    case ST_TYPE_SPEC:
+        if(strcmp(t1->type_name, t2->type_name) != 0) {
+            return strcmp(t1->type_name, t2->type_name);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->type_def, t2->type_def);
+        }
+    case ST_TYPE_FUNCTION:
+        {
+        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
+        if(i != 0) {
+            return 0;
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        }
+        }
+    case ST_FUNCTION_DEF:
+        if(strcmp(t1->func_name, t2->func_name) != 0) {
+            return strcmp(t1->func_name, t2->func_name);
+        } else if(Minimal_SyntaxTree_cmp(t1->parameter_list, t2->parameter_list)) {
+            return Minimal_SyntaxTree_cmp(t1->parameter_list, t2->parameter_list);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->body, t2->body);
+        }
+    case ST_PARAMETER_LIST:
+        if(strcmp(t1->var_name, t2->var_name) != 0) {
+            return strcmp(t1->var_name, t2->var_name);
+        } else {
+            if(t1->next_var == NULL && t2->next_var == NULL) {
+                return 0;
+            } else if(t1->next_var == NULL) {
+                return -1;
+            } else if(t1->next_var == NULL) {
+                return 1;
+            } else {
+                return Minimal_SyntaxTree_cmp(t1->next_var, t2->next_var);
+            }
+        }
+    case ST_FUNCTION_CALL:
+        if(Minimal_SyntaxTree_cmp(t1->function, t2->function)) {
+            return Minimal_SyntaxTree_cmp(t1->function, t2->function);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->arguments, t2->arguments);
+        }
+    case ST_ARGUMENT_LIST:
+        if(Minimal_SyntaxTree_cmp(t1->argument, t2->argument) != 0) {
+            return Minimal_SyntaxTree_cmp(t1->argument, t2->argument);
+        } else {
+            if(t1->next_arg == NULL && t2->next_arg == NULL) {
+                return 0;
+            } else if(t1->next_arg == NULL) {
+                return -1;
+            } else if(t1->next_arg == NULL) {
+                return 1;
+            } else {
+                return Minimal_SyntaxTree_cmp(t1->next_arg, t2->next_arg);
+            }
+        }
+    case ST_OPERATOR:
+        if(strcmp(t1->_operator, t2->_operator) != 0) {
+            return strcmp(t1->_operator, t2->_operator);
+        } else if(Minimal_SyntaxTree_cmp(t1->op1, t2->op1)) {
+            return Minimal_SyntaxTree_cmp(t1->op1, t2->op1);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->op2, t2->op2);
+        }
+    case ST_PRODUCT_TYPE:
+        {
+        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
+        if(i != 0) {
+            return i;
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        }
+        }
+    case ST_SUM_TYPE:
+        {
+        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
+        if(i != 0) {
+            return i;
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        }
+        }
+    case ST_TUPLE:
+        if(t1->size < t2->size) {
+            return -1;
+        } else if(t1->size > t2->size) {
+            return 1;
+        } else {
+            int i;
+            for(i=0; i<t1->size; i++) {
+                if(Minimal_SyntaxTree_cmp(t1->tuple[i], t2->tuple[i])) {
+                    return Minimal_SyntaxTree_cmp(t1->tuple[i], t2->tuple[i]);
+                }
+            }
+            return 0;
+        }
+    case ST_POINTER:
+        return strcmp(t1->ptr, t2->ptr);
+    default:
+        fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_cmp (%i)\n", t1->type);
+        return 0;
     }
 }
 

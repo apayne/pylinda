@@ -165,7 +165,8 @@ Message* Message_multiple_in(LindaValue ts, LindaValue t);
 
 void Message_free(Message* m);
 
-void Linda_scanTuple(LindaValue t, LindaValue ref);
+void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned);
+static inline void Linda_scanTuple(LindaValue t, LindaValue ref) { Linda_scanTuple2(t, ref, NULL); }
 
 struct Tuplequeue_t {
     struct Tuplequeue_t* next;

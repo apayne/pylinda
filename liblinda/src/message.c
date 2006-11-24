@@ -30,8 +30,6 @@
 #include "linda_c.h"
 #include "linda_internal.h"
 
-void Message_getElementString(xmlDocPtr doc, xmlNodePtr parent, LindaValue v);
-
 char* Message_getString(Message* msg) {
     LindaValue v;
 
@@ -64,18 +62,18 @@ char* Message_getString(Message* msg) {
     case RESULT_STRING:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_string");
         v = Linda_string(msg->string);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
     case RESULT_INT:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_int");
         v = Linda_int(msg->i);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
     case RESULT_TUPLE:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_tuple");
-        Message_getElementString(doc, root, msg->tuple);
+        Minimal_serialiseXML(doc, root, msg->tuple, 1);
         break;
     case UNBLOCK:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"unblock");
@@ -86,7 +84,7 @@ char* Message_getString(Message* msg) {
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->out.ts));
-        Message_getElementString(doc, root, msg->out.t);
+        Minimal_serialiseXML(doc, root, msg->out.t, 1);
         break;
         }
     case IN:
@@ -96,7 +94,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->in.ts));
 
-        Message_getElementString(doc, root, msg->in.t);
+        Minimal_serialiseXML(doc, root, msg->in.t, 1);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -110,7 +108,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->rd.ts));
 
-        Message_getElementString(doc, root, msg->rd.t);
+        Minimal_serialiseXML(doc, root, msg->rd.t, 1);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -124,7 +122,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->in.ts));
 
-        Message_getElementString(doc, root, msg->in.t);
+        Minimal_serialiseXML(doc, root, msg->in.t, 1);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -138,7 +136,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->rd.ts));
 
-        Message_getElementString(doc, root, msg->rd.t);
+        Minimal_serialiseXML(doc, root, msg->rd.t, 1);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -155,7 +153,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts2));
 
-        Message_getElementString(doc, root, msg->collect.t);
+        Minimal_serialiseXML(doc, root, msg->collect.t, 1);
         break;
         }
     case COPY_COLLECT:
@@ -168,14 +166,14 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts2));
 
-        Message_getElementString(doc, root, msg->collect.t);
+        Minimal_serialiseXML(doc, root, msg->collect.t, 1);
         break;
         }
     case CREATE_TUPLESPACE:
         {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"create_tuplespace");
         v = Linda_string(msg->string);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
         }
@@ -186,7 +184,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
         }
@@ -197,7 +195,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
         }
@@ -224,7 +222,7 @@ char* Message_getString(Message* msg) {
     case REGISTER_THREAD:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_thread");
         v = Linda_string(process_id);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
     case GET_NODE_ID:
@@ -233,7 +231,7 @@ char* Message_getString(Message* msg) {
     case MY_NAME_IS:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"my_name_is");
         v = Linda_string(process_id);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
     case REGISTER_PARTITION:
@@ -243,7 +241,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
         }
@@ -262,7 +260,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
         }
@@ -280,7 +278,7 @@ char* Message_getString(Message* msg) {
     case GET_CONNECTION_DETAILS:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_connection_details");
         v = Linda_string(msg->string);
-        Message_getElementString(doc, root, v);
+        Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
     case TUPLE_REQUEST:
@@ -290,7 +288,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
 
-        Message_getElementString(doc, root, msg->tuple_request.t);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         break;
         }
     case CANCEL_REQUEST:
@@ -300,7 +298,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
 
-        Message_getElementString(doc, root, msg->tuple_request.t);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         break;
         }
     case MULTIPLE_IN:
@@ -310,7 +308,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
 
-        Message_getElementString(doc, root, msg->tuple_request.t);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         }
         break;
     default:
@@ -329,10 +327,6 @@ char* Message_getString(Message* msg) {
     xmlFree(buf);
 
     return outbuf;
-}
-
-void Message_getElementString(xmlDocPtr doc, xmlNodePtr parent, LindaValue v) {
-    Minimal_serialiseXML(doc, parent, v);
 }
 
 Message* Message_done() {

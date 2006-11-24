@@ -115,9 +115,11 @@ typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
                         if(strcmp($1.string, "ptr") == 0) {
                             $$.type = ST_POINTER;
                             $$.ptr = (char*)malloc(strlen($3.string)+1); strcpy($$.type_name, $3.string); Minimal_SyntaxTree_clear(&$3);
+                            Minimal_SyntaxTree_clear(&$1);
                         } else {
                             fprintf(stderr, "Error: %s is an invalid type function.\n", $1.string);
                             $$.type = ST_BLANK;
+                            Minimal_SyntaxTree_clear(&$1);
                         }
                         }
 ;

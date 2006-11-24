@@ -41,12 +41,23 @@ typedef struct Minimal_SyntaxTree_t Minimal_SyntaxTree;
 struct MinimalLayer_t;
 typedef struct MinimalLayer_t* MinimalLayer;
 
+struct Minimal_NameValueMap_t;
+typedef struct Minimal_NameValueMap_t Minimal_NameValueMap;
+
 struct MinimalValue_t {
     enum {
         NIL,
         BOOLEAN,
+        BYTE,
+        SHORT,
         INTEGER,
+        LONG,
+        UBYTE,
+        USHORT,
+        UINTEGER,
+        ULONG,
         FLOAT,
+        DOUBLE,
         STRING,
         TYPE,
         TSREF,
@@ -59,7 +70,9 @@ struct MinimalValue_t {
     union {
         unsigned char boolean;
         long integer;
-        float floating;
+        unsigned long uinteger;
+        float singlefloat;
+        double doublefloat;
         struct {
             char* string;
             unsigned int length;
@@ -67,6 +80,7 @@ struct MinimalValue_t {
         struct {
             char* type_name;
             Minimal_SyntaxTree* type_spec;
+            MinimalLayer typemap;
         };
         char* tsid;
         struct {
@@ -82,7 +96,6 @@ struct MinimalValue_t {
         };
         struct {
             MinimalValue ptr;
-            MinimalValue ptr_type;
         };
     };
 };
@@ -96,13 +109,39 @@ unsigned char Minimal_isBool(MinimalValue v);
 MinimalValue Minimal_bool(unsigned char b);
 unsigned char Minimal_getBool(MinimalValue v);
 
+unsigned char Minimal_isByte(MinimalValue v);
+unsigned char Minimal_isShort(MinimalValue v);
 unsigned char Minimal_isInt(MinimalValue v);
+unsigned char Minimal_isLong(MinimalValue v);
+unsigned char Minimal_isInteger(MinimalValue v);
+unsigned char Minimal_isUByte(MinimalValue v);
+unsigned char Minimal_isUShort(MinimalValue v);
+unsigned char Minimal_isUInt(MinimalValue v);
+unsigned char Minimal_isULong(MinimalValue v);
+MinimalValue Minimal_byte(char i);
+MinimalValue Minimal_short(short i);
 MinimalValue Minimal_int(int i);
+MinimalValue Minimal_long(long i);
+MinimalValue Minimal_ubyte(unsigned char i);
+MinimalValue Minimal_ushort(unsigned short i);
+MinimalValue Minimal_uint(unsigned int i);
+MinimalValue Minimal_ulong(unsigned long i);
+char Minimal_getByte(MinimalValue v);
+short Minimal_getShort(MinimalValue v);
 int Minimal_getInt(MinimalValue v);
+long Minimal_getLong(MinimalValue v);
+unsigned char Minimal_getUByte(MinimalValue v);
+unsigned short Minimal_getUShort(MinimalValue v);
+unsigned int Minimal_getUInt(MinimalValue v);
+unsigned long Minimal_getULong(MinimalValue v);
 
 unsigned char Minimal_isFloat(MinimalValue v);
 MinimalValue Minimal_float(float f);
 float Minimal_getFloat(MinimalValue v);
+
+unsigned char Minimal_isDouble(MinimalValue v);
+MinimalValue Minimal_double(double f);
+double Minimal_getDouble(MinimalValue v);
 
 unsigned char Minimal_isString(MinimalValue v);
 MinimalValue Minimal_string(char* s);
@@ -127,7 +166,7 @@ void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
 MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
 
 unsigned char Minimal_isPtr(MinimalValue v);
-MinimalValue Minimal_ptr(MinimalValue type, MinimalValue ptr);
+MinimalValue Minimal_ptr(MinimalValue ptr);
 MinimalValue Minimal_getPtr(MinimalValue v);
 MinimalValue Minimal_getPtrType(MinimalValue v);
 
@@ -207,7 +246,6 @@ struct Minimal_NameValueMap_t {
     struct Minimal_NameValueMap_t* left;
     struct Minimal_NameValueMap_t* right;
 };
-typedef struct Minimal_NameValueMap_t Minimal_NameValueMap;
 
 struct MinimalLayer_t {
     char* name;
@@ -221,6 +259,8 @@ MinimalLayer Minimal_createLayer2(MinimalLayer parent);
 Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code);
 Minimal_SyntaxTree* Minimal_parseCode(char* code);
 MinimalValue Minimal_parseValue(char* code);
+
+int Minimal_SyntaxMap_size(Minimal_NameValueMap* map);
 
 MinimalValue Minimal_apply(MinimalValue func, MinimalValue args);
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* code, MinimalLayer layer);
@@ -238,11 +278,27 @@ MinimalLayer Minimal_getCurrentLayer();
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
 extern MinimalLayer Minimal_defaultLayer;
 
-char* Minimal_serialise(MinimalValue f);
-xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f);
+char* Minimal_serialise(MinimalValue f, unsigned char include_type);
+xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, unsigned char include_type);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code);
 MinimalValue Minimal_xmlToValue(xmlNodePtr node);
+
+extern MinimalValue Minimal_typeType;
+extern MinimalValue Minimal_nilType;
+extern MinimalValue Minimal_boolType;
+extern MinimalValue Minimal_byteType;
+extern MinimalValue Minimal_shortType;
+extern MinimalValue Minimal_intType;
+extern MinimalValue Minimal_longType;
+extern MinimalValue Minimal_ubyteType;
+extern MinimalValue Minimal_ushortType;
+extern MinimalValue Minimal_uintType;
+extern MinimalValue Minimal_ulongType;
+extern MinimalValue Minimal_floatType;
+extern MinimalValue Minimal_doubleType;
+extern MinimalValue Minimal_stringType;
+extern MinimalValue Minimal_tupleSpaceType;
 
 #ifdef __cplusplus
 }
