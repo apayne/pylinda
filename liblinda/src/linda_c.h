@@ -34,7 +34,14 @@ typedef MinimalValue LindaValue;
 #define Linda_typeType Minimal_typeType
 #define Linda_nilType Minimal_nilType
 #define Linda_boolType Minimal_boolType
+#define Linda_byteType Minimal_byteType
+#define Linda_shortType Minimal_shortType
 #define Linda_intType Minimal_intType
+#define Linda_longType Minimal_longType
+#define Linda_ubyteType Minimal_ubyteType
+#define Linda_ushortType Minimal_ushortType
+#define Linda_uintType Minimal_uintType
+#define Linda_ulongType Minimal_ulongType
 #define Linda_floatType Minimal_floatType
 #define Linda_stringType Minimal_stringType
 #define Linda_tupleSpaceType Minimal_tupleSpaceType
@@ -54,6 +61,10 @@ static inline unsigned char Linda_isInt(LindaValue v) { return Minimal_isInt(v);
 static inline LindaValue Linda_int(int i) { return Minimal_int(i); }
 static inline int Linda_getInt(LindaValue v) { return Minimal_getInt(v); }
 
+static inline unsigned char Linda_isLong(LindaValue v) { return Minimal_isLong(v); }
+static inline LindaValue Linda_long(long i) { return Minimal_long(i); }
+static inline long Linda_getLong(LindaValue v) { return Minimal_getLong(v); }
+
 static inline unsigned char Linda_isFloat(LindaValue v) { return Minimal_isFloat(v); }
 static inline LindaValue Linda_float(float f) { return Minimal_float(f); }
 static inline float Linda_getFloat(LindaValue v) { return Minimal_getFloat(v); }
@@ -68,8 +79,6 @@ static inline char* Linda_getString(LindaValue v) { return Minimal_getString(v);
 static inline int Linda_getStringLen(LindaValue v) { return Minimal_getStringLen(v); }
 
 static inline unsigned char Linda_isTupleSpace(LindaValue v) { return Minimal_isTupleSpace(v); }
-static inline LindaValue Linda_tupleSpace(const char* ts) { return Minimal_tupleSpace(ts); }
-static inline char* Linda_getTupleSpace(LindaValue v) { return Minimal_getTupleSpace(v); }
 
 static inline unsigned char Linda_isTuple(LindaValue v) { return Minimal_isTuple(v); }
 static inline LindaValue Linda_tuple(int i) { return Minimal_tuple(i); }
@@ -92,8 +101,10 @@ static inline void Linda_delReference2(LindaValue v, char* file, int line) { Min
 
 static inline LindaValue Linda_apply(LindaValue func, LindaValue args) { return Minimal_apply(func, args); }
 
-extern char* version;
-extern char* process_id;
+extern unsigned char Linda_is_server;
+
+extern char* Linda_version;
+extern char* Linda_process_id;
 
 #ifndef NULL
 #define NULL (void*)0
@@ -107,9 +118,6 @@ void Linda_disconnect();
 #endif
 
 LindaValue Linda_createTuplespace();
-
-void Linda_addTSReference(LindaValue ts);
-void Linda_delTSReference(LindaValue ts);
 
 void Linda_out(LindaValue ts, LindaValue t);
 LindaValue Linda_in(LindaValue ts, LindaValue t);

@@ -64,25 +64,25 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(OsO)", msgid, "RESULT_TUPLE", Tuple2PyO(m->tuple));
             break;
         case OUT:
-            t = Py_BuildValue("(OssO)", msgid, "OUT", Linda_getTupleSpace(m->out.ts), Tuple2PyO(m->out.t));
+            t = Py_BuildValue("(OssO)", msgid, "OUT", Minimal_getTupleSpace(m->out.ts), Tuple2PyO(m->out.t));
             break;
         case IN:
-            t = Py_BuildValue("(OssOs)", msgid, "IN", Linda_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->in.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "IN", Minimal_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->in.tid);
             break;
         case RD:
-            t = Py_BuildValue("(OssOs)", msgid, "RD", Linda_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->in.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "RD", Minimal_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->in.tid);
             break;
         case INP:
-            t = Py_BuildValue("(OssOs)", msgid, "INP", Linda_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->rd.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "INP", Minimal_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->rd.tid);
             break;
         case RDP:
-            t = Py_BuildValue("(OssOs)", msgid, "RDP", Linda_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->rd.tid);
+            t = Py_BuildValue("(OssOs)", msgid, "RDP", Minimal_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->rd.tid);
             break;
         case COLLECT:
-            t = Py_BuildValue("(OsssO)", msgid, "COLLECT", Linda_getTupleSpace(m->collect.ts1), Linda_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
+            t = Py_BuildValue("(OsssO)", msgid, "COLLECT", Minimal_getTupleSpace(m->collect.ts1), Minimal_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
         case COPY_COLLECT:
-            t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", Linda_getTupleSpace(m->collect.ts1), Linda_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
+            t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", Minimal_getTupleSpace(m->collect.ts1), Minimal_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
         case UNBLOCK:
             t = Py_BuildValue("(Os)", msgid, "UNBLOCK");
@@ -91,10 +91,10 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "CREATE_TUPLESPACE", m->string);
             break;
         case ADD_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", Linda_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case DELETE_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", Linda_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case MONITOR:
             t = Py_BuildValue("(Os)", msgid, "MONITOR");
@@ -103,7 +103,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Os)", msgid, "LIST_TS");
             break;
         case INSPECT:
-            t = Py_BuildValue("(Oss)", msgid, "INSPECT", Linda_getTupleSpace(m->ts));
+            t = Py_BuildValue("(Oss)", msgid, "INSPECT", Minimal_getTupleSpace(m->ts));
             break;
         case GET_ROUTES:
             t = Py_BuildValue("(Os)", msgid, "GET_ROUTES");
@@ -195,9 +195,11 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             Py_DecRef(repr); \
             return NULL; \
         } else { \
-            m = Message_##func(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1)))); \
+            LindaValue ts = Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))); \
+            m = Message_##func(ts); \
             Message_send(sd, msgid, m); \
             Message_free(m); \
+            Linda_delReference(ts); \
         }
 
 PyObject* LindaPython_send(PyObject *self, PyObject* args) {
@@ -273,7 +275,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     PYTHON_TO_MSG_NONE("GET_NODE_ID", get_node_id)
     } else if(strcmp(action, "REGISTER_PARTITION") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2))) {
-            m = Message_register_partition(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
+            m = Message_register_partition(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
                                             PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
             Message_send(sd, msgid, m);
             Message_free(m);
@@ -284,7 +286,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     PYTHON_TO_MSG_TS("GET_PARTITIONS", get_partitions)
     } else if(strcmp(action, "DELETED_PARTITION") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2))) {
-            m = Message_deleted_partition(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
+            m = Message_deleted_partition(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
                                             PyString_AsString(PyTuple_GetItem(tuple, offset+2)));
             Message_send(sd, msgid, m);
             Message_free(m);
@@ -298,8 +300,8 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
-            m = Message_collect(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
-                                Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
+            m = Message_collect(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))),
+                                Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -310,8 +312,8 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "COPY_COLLECT") == 0) {
         if(PyTuple_Size(tuple) == (offset+4) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyString_Check(PyTuple_GetItem(tuple, offset+2)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+3))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+3));
-            m = Message_copy_collect(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
-                                    Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
+            m = Message_copy_collect(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), 
+                                    Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+2))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -323,7 +325,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "TUPLE_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_tuple_request(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
+            m = Message_tuple_request(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -334,7 +336,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "CANCEL_REQUEST") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_cancel_request(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
+            m = Message_cancel_request(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
@@ -345,7 +347,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
     } else if(strcmp(action, "MULTIPLE_IN") == 0) {
         if(PyTuple_Size(tuple) == (offset+3) && PyString_Check(PyTuple_GetItem(tuple, offset+1)) && PyTuple_Check(PyTuple_GetItem(tuple, offset+2))) {
             LindaValue t = PyO2Tuple(PyTuple_GetItem(tuple, offset+2));
-            m = Message_multiple_in(Linda_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
+            m = Message_multiple_in(Minimal_tupleSpace(PyString_AsString(PyTuple_GetItem(tuple, offset+1))), t);
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);

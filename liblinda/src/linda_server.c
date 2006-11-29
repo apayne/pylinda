@@ -40,8 +40,10 @@ int Linda_udd = 0;
 int Linda_port = 2102;
 int Linda_active_connections;
 
-char* process_id;
-char* thread_id;
+unsigned char Linda_is_server = 1;
+
+char* Linda_process_id;
+char* Linda_thread_id;
 
 unsigned char Linda_inited = 0;
 
@@ -68,7 +70,7 @@ void Linda_init() {
     Linda_floatType = Linda_type("floattype :: float;");
     Linda_stringType = Linda_type("stringtype :: string;");
     Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
-    Linda_uts = Linda_tupleSpace("UTS");
+    Linda_uts = Minimal_tupleSpace("UTS");
 }
 
 unsigned char Linda_serve(unsigned char use_domain, int port) {

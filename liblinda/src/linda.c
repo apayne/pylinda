@@ -30,9 +30,11 @@
 #include "linda.h"
 #include "linda_internal.h"
 
-char* version = "0.7a";
+char* Linda_version = "0.7a";
 
-char* process_id = NULL;
+char* Linda_process_id = NULL;
+
+unsigned char Linda_is_server = 0;
 
 int Linda_port = 2102;
 
@@ -48,7 +50,7 @@ void Linda_init() {
 
     Minimal_init();
 
-    Linda_uts = Linda_tupleSpace("UTS");
+    Linda_uts = Minimal_tupleSpace("UTS");
 }
 
 void Linda_finalise() {
@@ -57,7 +59,7 @@ void Linda_finalise() {
 
     Linda_delReference(Linda_uts);
 
-    free(process_id);
+    free(Linda_process_id);
 
     Minimal_finalise();
 }
@@ -105,13 +107,13 @@ unsigned char Linda_connect(int port) {
 
     Linda_active_connections += 1;
 
-    if(process_id == NULL) {
+    if(Linda_process_id == NULL) {
         m = Message_register_process();
         Message_send(tdata->sd, NULL, m);
         Message_free(m);
         m = Message_recv(tdata->sd);
-        process_id = (char*)malloc(strlen(m->string)+1);
-        strcpy(process_id, m->string);
+        Linda_process_id = (char*)malloc(strlen(m->string)+1);
+        strcpy(Linda_process_id, m->string);
         Message_free(m);
     }
 

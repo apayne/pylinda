@@ -66,7 +66,7 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
             break;
         case TSREF:
             tdata = Linda_get_thread_data();
-            m = Message_addReference2(v, Linda_getTupleSpace(ref));
+            m = Message_addReference2(v, Minimal_getTupleSpace(ref));
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             m = Message_recv(tdata->sd);

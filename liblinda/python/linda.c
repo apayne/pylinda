@@ -28,8 +28,6 @@
 
 PyObject* Linda_module;
 
-int LindaPython_is_server = 0;
-
 static PyObject* LindaPython_connect(PyObject* self, PyObject* args) {
     int port = Linda_port;
     if(!PyArg_ParseTuple(args, "|i", &port)) {
@@ -37,7 +35,7 @@ static PyObject* LindaPython_connect(PyObject* self, PyObject* args) {
     }
     int r = Linda_connect(port);
     if(r) {
-        PyModule_AddStringConstant(Linda_module, "process_id", process_id);
+        PyModule_AddStringConstant(Linda_module, "process_id", Linda_process_id);
 
         Py_RETURN_TRUE;
     } else {
@@ -106,7 +104,7 @@ PyMODINIT_FUNC init_linda(void)
 
     Linda_module = Py_InitModule("_linda", LindaMethods);
 
-    PyModule_AddObject(Linda_module, "version", PyString_FromString(version));
+    PyModule_AddObject(Linda_module, "version", PyString_FromString(Linda_version));
 
     inittuplespace(Linda_module);
     inittsref(Linda_module);

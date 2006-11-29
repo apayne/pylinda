@@ -83,7 +83,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"out");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->out.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->out.ts));
         Minimal_serialiseXML(doc, root, msg->out.t, 1);
         break;
         }
@@ -92,7 +92,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"in");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->in.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
         Minimal_serialiseXML(doc, root, msg->in.t, 1);
 
@@ -106,7 +106,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"rd");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->rd.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
         Minimal_serialiseXML(doc, root, msg->rd.t, 1);
 
@@ -120,7 +120,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"inp");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->in.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
         Minimal_serialiseXML(doc, root, msg->in.t, 1);
 
@@ -134,7 +134,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"rdp");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->rd.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
         Minimal_serialiseXML(doc, root, msg->rd.t, 1);
 
@@ -148,10 +148,10 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"collect");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts1));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts1));
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts2));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
         Minimal_serialiseXML(doc, root, msg->collect.t, 1);
         break;
@@ -161,10 +161,10 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"copy_collect");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts1));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts1));
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->collect.ts2));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
         Minimal_serialiseXML(doc, root, msg->collect.t, 1);
         break;
@@ -182,7 +182,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"add_reference");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -193,7 +193,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"delete_reference");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -210,7 +210,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"inspect");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ts));
         break;
         }
     case GET_ROUTES:
@@ -221,7 +221,7 @@ char* Message_getString(Message* msg) {
         break;
     case REGISTER_THREAD:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_thread");
-        v = Linda_string(process_id);
+        v = Linda_string(Linda_process_id);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
@@ -230,7 +230,7 @@ char* Message_getString(Message* msg) {
         break;
     case MY_NAME_IS:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"my_name_is");
-        v = Linda_string(process_id);
+        v = Linda_string(Linda_process_id);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
@@ -239,7 +239,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_partition");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -250,7 +250,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_partitions");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         break;
         }
     case DELETED_PARTITION:
@@ -258,7 +258,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"deleted_partition");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -269,7 +269,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_requests");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
         break;
         }
     case GET_NEIGHBOURS:
@@ -286,7 +286,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"tuple_request");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
         Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         break;
@@ -296,7 +296,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"cancel_request");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
         Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         break;
@@ -306,7 +306,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"multiple_in");
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Linda_getTupleSpace(msg->tuple_request.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
         Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
         }
@@ -456,7 +456,8 @@ Message* Message_addReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = ADD_REFERENCE;
-    m->ref.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->ref.ts = ts;
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
@@ -465,7 +466,8 @@ Message* Message_addReference(LindaValue ts) {
 Message* Message_addReference2(LindaValue ts, char* id) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = ADD_REFERENCE;
-    m->ref.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->ref.ts = ts;
     m->ref.tid = (char*)malloc(strlen(id) + 1);
     strcpy(m->ref.tid, id);
     return m;
@@ -475,7 +477,8 @@ Message* Message_deleteReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = DELETE_REFERENCE;
-    m->ref.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->ref.ts = ts;
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
@@ -515,8 +518,8 @@ Message* Message_register_process() {
 Message* Message_register_thread() {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = REGISTER_THREAD;
-    m->string = (char*)malloc(strlen(process_id)+1);
-    strcpy(m->string, process_id);
+    m->string = (char*)malloc(strlen(Linda_process_id)+1);
+    strcpy(m->string, Linda_process_id);
     return m;
 }
 
@@ -680,7 +683,7 @@ void Message_free(Message* msg) {
         Linda_delReference(msg->ref.ts);
         break;
     case INSPECT:
-        free(msg->ts);
+        Linda_delReference(msg->ts);
         break;
     case GET_NEIGHBOURS:
         break;

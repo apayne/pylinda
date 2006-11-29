@@ -240,42 +240,42 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         char* val = (char*)xmlGetProp(node, (xmlChar*)"id");
         switch(bm->m->type) {
         case OUT:
-            bm->m->out.ts = Linda_tupleSpace(val);
+            bm->m->out.ts = Minimal_tupleSpace(val);
             break;
         case IN:
         case INP:
-            bm->m->in.ts = Linda_tupleSpace(val);
+            bm->m->in.ts = Minimal_tupleSpace(val);
             break;
         case RD:
         case RDP:
-            bm->m->rd.ts = Linda_tupleSpace(val);
+            bm->m->rd.ts = Minimal_tupleSpace(val);
             break;
         case COLLECT:
         case COPY_COLLECT:
             if(bm->m->collect.ts1 == NULL) {
-                bm->m->collect.ts1 = Linda_tupleSpace(val);
+                bm->m->collect.ts1 = Minimal_tupleSpace(val);
             } else {
-                bm->m->collect.ts2 = Linda_tupleSpace(val);
+                bm->m->collect.ts2 = Minimal_tupleSpace(val);
             }
             break;
         case ADD_REFERENCE:
         case DELETE_REFERENCE:
-            bm->m->ref.ts = Linda_tupleSpace(val);
+            bm->m->ref.ts = Minimal_tupleSpace(val);
             break;
         case INSPECT:
         case REGISTER_THREAD:
         case GET_PARTITIONS:
         case GET_REQUESTS:
-            bm->m->ts = Linda_tupleSpace(val);
+            bm->m->ts = Minimal_tupleSpace(val);
             break;
         case REGISTER_PARTITION:
         case DELETED_PARTITION:
-            bm->m->ref.ts = Linda_tupleSpace(val);
+            bm->m->ref.ts = Minimal_tupleSpace(val);
             break;
         case TUPLE_REQUEST:
         case CANCEL_REQUEST:
         case MULTIPLE_IN:
-            bm->m->tuple_request.ts = Linda_tupleSpace(val);
+            bm->m->tuple_request.ts = Minimal_tupleSpace(val);
             break;
         default:
             fprintf(stderr, "Got unexpected TSID.\n");

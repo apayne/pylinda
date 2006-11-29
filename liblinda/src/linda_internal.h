@@ -18,6 +18,8 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "linda.h"
+
 #ifndef LINDA_INTERNAL
 
 #ifdef __cplusplus
@@ -188,6 +190,9 @@ extern int Linda_udd;
 extern int Linda_sd;
 #endif
 extern int Linda_active_connections;
+
+void Linda_addTSReference(LindaValue ts);
+void Linda_delTSReference(LindaValue ts);
 
 #ifdef __cplusplus
 }

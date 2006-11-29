@@ -35,8 +35,6 @@ PyObject* Tuple2PyO(LindaValue t);
 PyObject* LindaPython_send(PyObject *self, PyObject* args);
 PyObject* LindaPython_recv(PyObject *self, PyObject* args);
 
-extern int LindaPython_is_server;
-
 typedef struct {
     PyObject_HEAD
     /* Type-specific fields go here. */

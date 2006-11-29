@@ -52,8 +52,7 @@ static int linda_TupleSpace_init(linda_TupleSpaceObject* self, PyObject* args, P
             return 0;
         }
     } else {
-        self->ts = Linda_tupleSpace(id);
-        Linda_addReference(self->ts);
+        self->ts = Minimal_tupleSpace(id);
         return 0;
     }
 }
@@ -300,12 +299,12 @@ static PyObject* linda_TupleSpace_copy_collect(linda_TupleSpaceObject* self, PyO
 
 static void linda_TupleSpace_dealloc(linda_TupleSpaceObject* self)
 {
-    Linda_delTSReference(self->ts);
+    Linda_delReference(self->ts);
     self->ob_type->tp_free(self);
 }
 
 static PyObject* linda_TupleSpace_str(linda_TupleSpaceObject* self) {
-    return PyString_FromFormat("<TupleSpace %s>", Linda_getTupleSpace(self->ts));
+    return PyString_FromFormat("<TupleSpace %s>", Minimal_getTupleSpace(self->ts));
 }
 
 static PyMethodDef tuplespace_methods[] = {
@@ -320,7 +319,7 @@ static PyMethodDef tuplespace_methods[] = {
 };
 
 static PyObject* linda_TupleSpace_getid(linda_TupleSpaceObject *self, void *closure) {
-    return PyString_FromString(Linda_getTupleSpace(self->ts));
+    return PyString_FromString(Minimal_getTupleSpace(self->ts));
 }
 
 static PyGetSetDef tuplespace_getseters[] = {

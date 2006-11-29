@@ -38,7 +38,7 @@ TupleSpace::TupleSpace() {
 }
 
 TupleSpace::TupleSpace(LindaValue id) {
-    if(strcmp(Linda_getTupleSpace(id), "UTS") != 0) {
+    if(strcmp(Minimal_getTupleSpace(id), "UTS") != 0) {
         std::cerr << "A TupleSpace ID can only be specified when creating the UTS" << std::endl;
         exit(-1);
     }
@@ -47,9 +47,6 @@ TupleSpace::TupleSpace(LindaValue id) {
 }
 
 TupleSpace::~TupleSpace() {
-    if(strcmp(Linda_getTupleSpace(this->tsid), "UTS")) {
-        Linda_delTSReference(this->tsid);
-    }
     Linda_delReference(this->tsid);
 }
 
