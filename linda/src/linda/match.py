@@ -16,7 +16,7 @@
 #    along with PyLinda; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-builtin = ["bool", "int", "float", "string"]
+builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
 
 def compare(t1, t2, checked=None):
     assert t1.isType()
