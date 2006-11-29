@@ -130,3 +130,55 @@ void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map) {
         Minimal_delName(map, map->name);
     }
 }
+
+MinimalObject* Minimal_SyntaxMap_getReferences(Minimal_NameValueMap* map) {
+    MinimalObject* list;
+    MinimalObject* leftlist = NULL;
+    MinimalObject* rightlist = NULL;
+    int leftlen;
+    int rightlen;
+    int selflen;
+    int i;
+    int j;
+    if(map->left != NULL) {
+        leftlist = Minimal_SyntaxMap_getReferences(map->left);
+        leftlen = 0;
+        while(leftlist[leftlen] != NULL) {
+            leftlen++;
+        }
+    } else {
+        leftlen = 0;
+    }
+    if(map->right != NULL) {
+        rightlist = Minimal_SyntaxMap_getReferences(map->right);
+        rightlen = 0;
+        while(rightlist[rightlen] != NULL) {
+            rightlen++;
+        }
+    } else {
+        rightlen = 0;
+    }
+    if(map->name != NULL) {
+        selflen = 1;
+    } else {
+        selflen = 0;
+    }
+    list = malloc(sizeof(void*)*(leftlen + rightlen + selflen + 1));
+    j = 0;
+    for(i = 0; i < leftlen; i++) {
+        list[j] = leftlist[i];
+        j++;
+    }
+    for(i = 0; i < rightlen; i++) {
+        list[j] = rightlist[i];
+        j++;
+    }
+    if(selflen == 1) {
+        list[j] = map->value;
+        j++;
+    }
+    list[j] = NULL;
+    if(leftlen > 0) { free(leftlist); }
+    if(rightlen > 0) { free(rightlist); }
+    return list;
+}

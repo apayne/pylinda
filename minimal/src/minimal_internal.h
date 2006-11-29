@@ -71,6 +71,16 @@ typedef enum MinimalTypeId_t MinimalTypeId;
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line);
 
+void Minimal_performCyclicCollection(MinimalObject ptr);
+
+MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr);
+MinimalObject* Minimal_Value_getReferences(MinimalValue ptr);
+MinimalObject* Minimal_Layer_getReferences(MinimalLayer layer);
+MinimalObject* Minimal_SyntaxMap_getReferences(Minimal_NameValueMap* ptr);
+void Minimal_setReferenceCount(MinimalObject ptr, long count);
+void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr);
+MinimalTypeId Minimal_getTypeId(MinimalObject ptr);
+
 MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);

@@ -24,6 +24,8 @@
 
 #include "minimal_internal.h"
 
+#include "../../liblinda/src/linda_internal.h"
+
 MinimalValue Minimal_Nil;
 
 unsigned char Minimal_isNil(MinimalValue v) {
@@ -34,6 +36,7 @@ MinimalValue Minimal_nil() {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = NIL;
     v->typeobj = NULL;
+    Minimal_setType(v, Minimal_nilType);
     v->sum_pos = -1;
     return v;
 }
@@ -47,6 +50,7 @@ MinimalValue Minimal_bool(unsigned char b) {
     v->type = BOOLEAN;
     v->boolean = b;
     v->typeobj = NULL;
+    Minimal_setType(v, Minimal_boolType);
     v->sum_pos = -1;
     return v;
 }
@@ -261,9 +265,7 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_sp
     strcpy(v->type_name, type_name);
     v->type_spec = Minimal_SyntaxTree_copy(type_spec);
     v->typeobj = NULL;
-    MinimalLayer layer = Minimal_getCurrentLayer();
-    v->typemap = layer;
-    Minimal_delReference(layer);
+    v->typemap = Minimal_getCurrentLayer();
     v->sum_pos = -1;
     if(Minimal_typeType != NULL) {
         Minimal_setType(v, Minimal_typeType);
@@ -292,11 +294,13 @@ MinimalValue Minimal_function(char* code) {
     }
 
     MinimalValue f;
+    MinimalLayer layer = Minimal_getCurrentLayer();
     if(tree2->type == ST_TYPE_SPEC) {
-        f = Minimal_getName(Minimal_defaultLayer, tree2->type_name);
+        f = Minimal_getName(layer, tree2->type_name);
     } else {
-        f = Minimal_getName(Minimal_defaultLayer, tree2->func_name);
+        f = Minimal_getName(layer, tree2->func_name);
     }
+    Minimal_delReference(layer);
     Minimal_SyntaxTree_free(tree);
     return f;
 }
@@ -306,17 +310,15 @@ MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* func_type, M
     v->type = FUNCTION;
     v->func_name = (char*)malloc(strlen(func_name)+1);
     strcpy(v->func_name, func_name);
-    if(func_type != NULL) {
-        v->func_type = Minimal_SyntaxTree_copy(func_type);
-    } else {
-        v->func_type = NULL;
-    }
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
-    Minimal_addReference(Minimal_defaultLayer);
-    v->layer = Minimal_defaultLayer;
+    if(v->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL.\n"); }
+    v->layer = Minimal_getCurrentLayer();
     v->code = Minimal_SyntaxTree_copy(code);
-    v->typeobj = NULL;
-    v->typemap = NULL;
+    if(func_type != NULL) {
+        v->typeobj = Minimal_typeSpec(v->func_name, func_type);
+    } else {
+        v->typeobj = NULL;
+    }
     v->sum_pos = -1;
     return v;
 }
@@ -335,23 +337,6 @@ MinimalValue Minimal_type(const char* typespec) {
     MinimalValue v = Minimal_getName(layer, tree->type_name);
     Minimal_SyntaxTree_free(tree);
     Minimal_delReference(layer);
-
-    /*MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-
-    v->type = TYPE;
-    v->type_name = (char*)malloc(strlen(tree->type_name)+1); strcpy(v->type_name, tree->type_name);
-    v->type_spec = Minimal_SyntaxTree_copy(tree->type_def);
-    v->typeobj = NULL;
-    v->typemap = NULL;
-    v->sum_pos = -1;
-
-    if(Minimal_typeType != NULL) {
-        Minimal_setType(v, Minimal_typeType);
-    }
-
-    Minimal_Layer_addTree(Minimal_getCurrentLayer(), v->type_name, v->type_spec);
-
-    Minimal_SyntaxTree_free(tree);*/
 
     return v;
 }
@@ -572,10 +557,16 @@ char* Minimal_Value_string(MinimalValue v) {
             free(r); free(tmp);
             r = tmp2;
         }
-        char* tmp2 = (char*)malloc(strlen(r));
-        memcpy(tmp2, r, strlen(r)); tmp2[strlen(r)-2] = ')'; tmp2[strlen(r)-1] = '\0';;
-        free(r);
-        return tmp2;
+        if(strlen(r) == 1) {
+            r = (char*)malloc(3);
+            r[0] = '('; r[1] = ')'; r[2] = '\0';
+            return r;
+        } else {
+            char* tmp2 = (char*)malloc(strlen(r));
+            memcpy(tmp2, r, strlen(r)); tmp2[strlen(r)-2] = ')'; tmp2[strlen(r)-1] = '\0';;
+            free(r);
+            return tmp2;
+        }
         }
     case FUNCTION:
         r = (char*)malloc(strlen("<Function>")+1);
@@ -590,6 +581,99 @@ char* Minimal_Value_string(MinimalValue v) {
         return NULL;
     }
 }
+
+MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
+    if(v == NULL) { return NULL; }
+
+    switch(v->type) {
+    case NIL:
+    case BOOLEAN:
+    case BYTE:
+    case SHORT:
+    case INTEGER:
+    case LONG:
+    case UBYTE:
+    case USHORT:
+    case UINTEGER:
+    case ULONG:
+    case FLOAT:
+    case DOUBLE:
+    case STRING:
+    case TSREF:
+        if(v->typeobj != NULL) {
+            MinimalObject* list = malloc(sizeof(void*)*2);
+            list[0] = v->typeobj;
+            list[1] = NULL;
+            return list;
+        } else {
+            MinimalObject* list = malloc(sizeof(void*));
+            list[0] = NULL;
+            return list;
+        }
+    case FUNCTION:
+        if(v->typeobj != NULL) {
+            MinimalObject* list = malloc(sizeof(void*)*3);
+            list[0] = v->layer;
+            list[1] = v->typeobj;
+            list[2] = NULL;
+            return list;
+        } else {
+            MinimalObject* list = malloc(sizeof(void*)*2);
+            list[0] = v->layer;
+            list[1] = NULL;
+            return list;
+        }
+    case TYPE:
+        if(v->typeobj != NULL) {
+            MinimalObject* list = malloc(sizeof(void*)*3);
+            list[0] = v->typemap;
+            list[1] = v->typeobj;
+            list[2] = NULL;
+            return list;
+        } else {
+            MinimalObject* list = malloc(sizeof(void*)*2);
+            list[0] = v->typemap;
+            list[1] = NULL;
+            return list;
+        }
+    case TUPLE:
+        if(v->typeobj != NULL) {
+            int i;
+            MinimalObject* list = malloc(sizeof(void*)*(3+v->size));
+            list[0] = v->typeobj;
+            for(i=1; i<=v->size; i++) {
+                list[i] = v->values[i-1];
+            }
+            list[2] = NULL;
+            return list;
+        } else {
+            int i;
+            MinimalObject* list = malloc(sizeof(void*)*(2+v->size));
+            for(i=0; i<=v->size; i++) {
+                list[i] = v->values[i];
+            }
+            list[1] = NULL;
+            return list;
+        }
+    case POINTER:
+        if(v->typeobj != NULL) {
+            MinimalObject* list = malloc(sizeof(void*)*3);
+            list[0] = v->ptr;
+            list[1] = v->typeobj;
+            list[2] = NULL;
+            return list;
+        } else {
+            MinimalObject* list = malloc(sizeof(void*)*2);
+            list[0] = v->ptr;
+            list[1] = NULL;
+            return list;
+        }
+    default:
+        fprintf(stderr, "Unknown value type in Minimal_Value_getReferences (%i)\n", v->type);
+        return NULL;
+    }
+}
+
 
 MinimalValue Minimal_copy(MinimalValue v) {
     if(v == NULL) { return NULL; }
@@ -635,12 +719,13 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
         strcpy(nv->type_name, v->type_name);
         nv->type_spec = Minimal_SyntaxTree_copy(v->type_spec);
-        /*if(v->typemap != NULL) {
+        if(v->typemap != NULL) {
             Minimal_addReference(v->typemap);
-        }*/
+        }
         nv->typemap = v->typemap;
         break;
     case TSREF:
+        Linda_addTSReference(v);
         nv->string = (char*)malloc(strlen(v->string) + 1);
         strcpy(nv->string, v->string);
         break;
@@ -658,8 +743,8 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->func_name = (char*)malloc(strlen(v->func_name) + 1);
         strcpy(nv->func_name, v->func_name);
 
-        nv->func_type = Minimal_SyntaxTree_copy(v->func_type);
         nv->parameter_list = Minimal_SyntaxTree_copy(v->parameter_list);
+        if(nv->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL when creating function.\n"); }
         nv->code = Minimal_SyntaxTree_copy(v->code);
         nv->layer = v->layer;
         Minimal_addReference(nv->layer);
@@ -677,7 +762,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
 void Minimal_Value_free(MinimalValue v) {
     if(v == NULL) { return; }
 
-    if(v->typeobj != NULL && v->typeobj != v) {
+    if(v->typeobj != NULL) {
         Minimal_delReference(v->typeobj);
     }
 
@@ -708,6 +793,7 @@ void Minimal_Value_free(MinimalValue v) {
         }
         break;
     case TSREF:
+        Linda_delTSReference(v);
         free(v->string);
         break;
     case TUPLE:
@@ -723,7 +809,6 @@ void Minimal_Value_free(MinimalValue v) {
         }
     case FUNCTION:
         free(v->func_name);
-        Minimal_SyntaxTree_free(v->func_type);
         Minimal_SyntaxTree_free(v->parameter_list);
         Minimal_SyntaxTree_free(v->code);
         Minimal_delReference(v->layer);

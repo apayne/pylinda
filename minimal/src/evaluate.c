@@ -55,8 +55,11 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     case ST_INTEGER:
         return Minimal_int(tree->integer);
     case ST_SEQENTIAL_DEFS:
-        Minimal_evaluate(tree->branch1, layer);
+        {
+        MinimalValue v = Minimal_evaluate(tree->branch1, layer);
+        if(v != NULL) { Minimal_delReference(v); }
         return Minimal_evaluate(tree->branch2, layer);
+        }
     case ST_TYPE_SPEC:
         Minimal_Layer_addTree(layer, tree);
         return Minimal_getName(layer, tree->type_name);
@@ -69,16 +72,21 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         if(function == NULL) { return NULL; }
         if(function->type != FUNCTION) { fprintf(stderr, "Error: Didn't get function for function call.\n"); return NULL; }
         MinimalLayer new_layer = Minimal_createLayer2(function->layer);
+        if(new_layer == NULL) { fprintf(stderr, "Error: Got NULL when creating new layer.\n"); return NULL; }
         Minimal_SyntaxTree* param = function->parameter_list;
+        if(param == NULL) { fprintf(stderr, "Error: Parameter list for %s is NULL.\n", function->func_name); return NULL; }
         Minimal_SyntaxTree* arg = tree->arguments;
         while(arg != NULL && arg->type != ST_BLANK) {
             MinimalValue param_val = Minimal_evaluate(arg->argument, layer);
+            if(param == NULL) { fprintf(stderr, "Error: Param is NULL.\n"); return NULL; }
+            if(param_val == NULL) { fprintf(stderr, "Error: Got NULL when evalutating parameter.\n"); return NULL; }
             Minimal_addName(&(new_layer->map), param->var_name, param_val);
 
             param = param->next_var; arg = arg->next_arg;
         }
         MinimalValue r = Minimal_evaluate(function->code, new_layer);
         Minimal_delReference(new_layer);
+        Minimal_delReference(function);
         return r;
         }
     case ST_OPERATOR:

@@ -89,7 +89,6 @@ struct MinimalValue_t {
         };
         struct {
             char* func_name;
-            Minimal_SyntaxTree* func_type;
             Minimal_SyntaxTree* parameter_list;
             Minimal_SyntaxTree* code;
             MinimalLayer layer;

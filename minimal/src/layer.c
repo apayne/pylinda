@@ -36,8 +36,8 @@ void Minimal_Layer_init() {
 }
 
 void Minimal_Layer_finalise() {
-    Minimal_delReference(Minimal_defaultLayer);
-    Minimal_delReference(Minimal_currentLayer);
+    Minimal_delReference(Minimal_defaultLayer); Minimal_defaultLayer = NULL;
+    Minimal_delReference(Minimal_currentLayer); Minimal_currentLayer = NULL;
 }
 
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer) {
@@ -73,11 +73,18 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
         MinimalValue f;
         MinimalValue typespec = Minimal_getName(layer, tree->func_name);
         if(typespec != NULL && Minimal_isType(typespec)) {
-            tree->type_def = typespec->type_spec;
+            tree->type_def = NULL;
+        }
+        if(tree->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL from tree.\n"); *((int*)NULL) = 1; }
+        f = Minimal_function2(tree->func_name, tree->type_def, tree->parameter_list, tree->body);
+        Minimal_delReference(f->layer);
+        Minimal_addReference(layer);
+        f->layer = layer;
+        if(f->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL when creating function.\n"); *((int*)NULL) = 1; }
+        if(typespec != NULL && Minimal_isType(typespec)) {
+            Minimal_setType(f, typespec);
             Minimal_delReference(typespec);
         }
-        f = Minimal_function2(tree->func_name, tree->type_def, tree->parameter_list, tree->body);
-        f->layer = layer;
         Minimal_addName(&(layer->map), tree->func_name, f);
         }
         break;
@@ -109,4 +116,20 @@ void Minimal_Layer_free(MinimalLayer layer) {
     if(layer->parent != NULL) { Minimal_delReference(layer->parent); }
     Minimal_SyntaxMap_empty(&(layer->map));
     free(layer);
+}
+
+MinimalObject* Minimal_Layer_getReferences(MinimalLayer layer) {
+    MinimalObject* list;
+    int i = 0;
+    MinimalObject* tree = Minimal_SyntaxMap_getReferences(&(layer->map));
+
+    if(layer->parent == NULL) { return tree; }
+
+    while(tree[i] != NULL) { i++; }
+    list = malloc(sizeof(void*) * (i+1));
+    memcpy(list, tree, sizeof(void*) * i);
+    list[i] = layer->parent;
+    list[i+1] = NULL;
+    free(tree);
+    return list;
 }

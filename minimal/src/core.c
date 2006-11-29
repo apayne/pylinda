@@ -57,9 +57,8 @@ MinimalValue Minimal_tupleSpaceType;
 void Minimal_init() {
     Minimal_Layer_init();
 
-    Minimal_Nil = Minimal_nil();
-
     Minimal_typeType = Minimal_type("typetype :: type;");
+    Minimal_addReference(Minimal_typeType);
     Minimal_typeType->typeobj = Minimal_typeType;
     Minimal_nilType = Minimal_type("niltype :: Nil;");
     Minimal_boolType = Minimal_type("booltype :: bool;");
@@ -71,30 +70,32 @@ void Minimal_init() {
     createIntType(Minimal_ushortType, unsigned short, "ushort :: uint8;", "ushort :: uint16;", "ushort :: uint32;", "ushort :: uint64;")
     createIntType(Minimal_uintType, unsigned int, "uint :: uint8;", "uint :: uint16;", "uint :: uint32;", "uint :: uint64;")
     createIntType(Minimal_ulongType, unsigned long, "ulong :: uint8;", "ulong :: uint16;", "ulong :: uint32;", "ulong :: uint64;")
-    Minimal_intType = Minimal_type("int :: int64;");
     Minimal_floatType = Minimal_type("float :: ieeesingle;");
     Minimal_doubleType = Minimal_type("double :: ieeedouble;");
     Minimal_stringType = Minimal_type("stringtype :: string;");
     Minimal_tupleSpaceType = Minimal_type("tupleSpacetype :: tuplespace;");
+
+    Minimal_Nil = Minimal_nil();
 }
 
 void Minimal_finalise() {
-    Minimal_delReference(Minimal_Nil);
+    Minimal_delReference(Minimal_Nil); Minimal_Nil = NULL;
 
-    Minimal_delReference(Minimal_boolType);
-    Minimal_delReference(Minimal_byteType);
-    Minimal_delReference(Minimal_shortType);
-    Minimal_delReference(Minimal_intType);
-    Minimal_delReference(Minimal_longType);
-    Minimal_delReference(Minimal_ubyteType);
-    Minimal_delReference(Minimal_ushortType);
-    Minimal_delReference(Minimal_uintType);
-    Minimal_delReference(Minimal_ulongType);
-    Minimal_delReference(Minimal_floatType);
-    Minimal_delReference(Minimal_doubleType);
-    Minimal_delReference(Minimal_stringType);
-    Minimal_delReference(Minimal_tupleSpaceType);
-    Minimal_delReference(Minimal_typeType);
+    Minimal_delReference(Minimal_typeType); Minimal_typeType = NULL;
+    Minimal_delReference(Minimal_nilType); Minimal_nilType = NULL;
+    Minimal_delReference(Minimal_boolType); Minimal_boolType = NULL;
+    Minimal_delReference(Minimal_byteType); Minimal_byteType = NULL;
+    Minimal_delReference(Minimal_shortType); Minimal_shortType = NULL;
+    Minimal_delReference(Minimal_intType); Minimal_intType = NULL;
+    Minimal_delReference(Minimal_longType); Minimal_longType = NULL;
+    Minimal_delReference(Minimal_ubyteType); Minimal_ubyteType = NULL;
+    Minimal_delReference(Minimal_ushortType); Minimal_ushortType = NULL;
+    Minimal_delReference(Minimal_uintType); Minimal_uintType = NULL;
+    Minimal_delReference(Minimal_ulongType); Minimal_ulongType = NULL;
+    Minimal_delReference(Minimal_floatType); Minimal_floatType = NULL;
+    Minimal_delReference(Minimal_doubleType); Minimal_doubleType = NULL;
+    Minimal_delReference(Minimal_stringType); Minimal_stringType = NULL;
+    Minimal_delReference(Minimal_tupleSpaceType); Minimal_tupleSpaceType = NULL;
 
     Minimal_Layer_finalise();
 

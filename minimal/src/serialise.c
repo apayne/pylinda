@@ -85,7 +85,8 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
     if((f->typeobj != NULL && include_type) || Minimal_isType(f)) {
         Minimal_TypeList list = Minimal_getTypeList(f->typeobj);
 
-        if(Minimal_isType(f) && Minimal_addTypeToTypeList(&list, f->typeobj)) {
+        if(Minimal_isType(f) && Minimal_addTypeToTypeList(&list, f)) {
+            Minimal_getTypeList2(f->type_spec, f->typemap, &list);
             Minimal_getTypeList2(f->typeobj->type_spec, f->typeobj->typemap, &list);
         }
 

@@ -72,11 +72,15 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         break;
     case ST_PRODUCT_TYPE:
         Minimal_getTypeList2(type->branch1, typemap, list);
-        Minimal_getTypeList2(type->branch2, typemap, list);
+        if(type->branch2 != NULL) {
+            Minimal_getTypeList2(type->branch2, typemap, list);
+        }
         break;
     case ST_SUM_TYPE:
         Minimal_getTypeList2(type->branch1, typemap, list);
-        Minimal_getTypeList2(type->branch2, typemap, list);
+        if(type->branch2 != NULL) {
+            Minimal_getTypeList2(type->branch2, typemap, list);
+        }
         break;
     case ST_POINTER:
         {

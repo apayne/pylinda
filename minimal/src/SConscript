@@ -4,7 +4,9 @@ yfile, _ = env.CFile(source="minimal_parser.y", YACCFLAGS="-d")
 lfile, = env.CFile("minimal_lex.l", LEXFLAGS="--header-file=src/yy.lex.h")
 env.SideEffect("#src/yy.lex.h", lfile)
 env.Depends(yfile, "#src/yy.lex.h")
-objs = env.SharedObject([yfile, lfile, "parse.c", "layer.c", "syntax_tree.c", "refcount.c", "syntax_map.c", "core.c", "interpreter.c", "evaluate.c", "values.c", "value_funcs.c", "serialise.c", "parsexml.c", "type_list.c", "utils.c"])
+objs = env.SharedObject([yfile, lfile, "parse.c", "layer.c", "syntax_tree.c", "refcount.c", "syntax_map.c", "core.c", "interpreter.c", "evaluate.c", "values.c", "value_funcs.c", "serialise.c", "parsexml.c", "type_list.c", "utils.c", "cyclic_garbage.c"])
 interpreter = env.Object(["main.c"])
 
-Return("objs", "interpreter")
+nolinda = env.SharedObject("no_linda.c")
+
+Return("objs", "interpreter", "nolinda")

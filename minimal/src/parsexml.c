@@ -289,16 +289,19 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
         if(node->type == XML_ELEMENT_NODE) {
             if(strcmp((char*)node->name, "type") == 0) {
                 MinimalValue type = Minimal_xmlToValue2(node, memo);
-                Minimal_addName(&(types->map), type->type_name, type);
                 Minimal_setTypeMap(type, types);
+                Minimal_addName(&(types->map), type->type_name, type);
             } else if(root == NULL) {
                 root = Minimal_xmlToValue2(node, memo);
                 char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
-                    Minimal_setType(root, Minimal_getName(types, type));
+                    MinimalValue t = Minimal_getName(types, type);
+                    Minimal_setType(root, t);
+                    Minimal_delReference(t);
                     free(type);
                 }
                 if(Minimal_isType(root)) {
+                    Minimal_addReference(root);
                     Minimal_addName(&(types->map), root->type_name, root);
                 }
                 Minimal_setTypeMap(root, types);
@@ -306,10 +309,13 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
                 MinimalValue v = Minimal_xmlToValue2(node, memo);
                 char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
-                    Minimal_setType(v, Minimal_getName(types, type));
+                    MinimalValue t = Minimal_getName(types, type);
+                    Minimal_setType(root, t);
+                    Minimal_delReference(t);
                     free(type);
                 }
                 if(Minimal_isType(v)) {
+                    Minimal_addReference(v);
                     Minimal_addName(&(types->map), v->type_name, v);
                 }
                 Minimal_setTypeMap(v, types);
