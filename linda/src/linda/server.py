@@ -192,7 +192,7 @@ class LindaConnection:
         # output a tuple into a tuplespace
         ts, tup = data
 
-        print "out", ts, [str(x) for x in tup]
+        #print "out", ts, [str(x) for x in tup]
 
         assert utils.isTupleSpaceId(ts), "%s is not a tuplespace id" % (ts, )
         assert local_ts.has_key(ts)
@@ -224,7 +224,7 @@ class LindaConnection:
         ts, template, tid = data
         unblockable = message == inp_tuple
 
-        print "in", ts, [str(x) for x in template]
+        #print "in", ts, [str(x) for x in template]
 
         blocked_threads[tid] = (req, ts)
 

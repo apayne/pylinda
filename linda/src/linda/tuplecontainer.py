@@ -54,7 +54,7 @@ class TupleContainer:
         for t in self.contain:
             if len(template) != len(t):
                 continue
-            print "match", t, "against", template
+            #print "match", t, "against", template
             sucess = 0
             for e1, e2 in zip(template, t):
                 if doesMatch(e1, e2):
@@ -62,10 +62,10 @@ class TupleContainer:
                 else:
                     break
             if sucess == len(template):
-                print "yes"
+            #    print "yes"
                 yield t
-            else:
-                print "no"
+            #else:
+            #    print "no"
 
     def matchAllTuples(self):
         return self.contain[:]

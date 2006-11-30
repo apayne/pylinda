@@ -54,9 +54,7 @@ def tupleToGrid(tup):
                 r.append(None)
 
 def gridToTup(grid):
-    v = linda.Value(grid, gridtype)
-    print v
-    return v
+    return linda.Value(grid, gridtype)
 
 def gridString(grid):
     return "\n".join([" ".join([(x is None and "_") or str(x) for x in row]) for row in grid])
