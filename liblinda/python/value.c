@@ -62,12 +62,12 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
         for(i = 0; i < PyTuple_Size(obj); i++) {
             PyObject* o = PyTuple_GetItem(obj, i);
             LindaValue nv = PyO2Value(o);
-            if(nv == NULL) { 
-                Py_DECREF(o);
+            if(nv == NULL) {
+                //Py_DECREF(o);
                 Linda_delReference(self->val);
                 return -1;
             };
-            Py_DECREF(o);
+            //Py_DECREF(o);
             Linda_tupleSet(self->val, i, nv); /* Steals reference to nv. */
         }
     } else if(PyType_Check(obj)) {
@@ -559,8 +559,9 @@ LindaValue PyO2Value(PyObject* obj) {
             return NULL;
         } else {
             Linda_addReference(((linda_ValueObject*)o)->val);
+            LindaValue v = ((linda_ValueObject*)o)->val;
             Py_DECREF(o);
-            return ((linda_ValueObject*)o)->val;
+            return v;
         }
     }
 }
