@@ -554,10 +554,12 @@ char* Minimal_Value_string(MinimalValue v) {
             char* tmp2 = (char*)malloc(strlen(r)+strlen(tmp)+3);
             strcpy(tmp2, r); strcpy(&(tmp2[strlen(r)]), tmp);
             tmp2[strlen(r)+strlen(tmp)] = ','; tmp2[strlen(r)+strlen(tmp)+1] = ' '; tmp2[strlen(r)+strlen(tmp)+2] = '\0';
-            free(r); free(tmp);
+            free(r);
+            free(tmp); tmp = NULL;
             r = tmp2;
         }
         if(strlen(r) == 1) {
+            free(r);
             r = (char*)malloc(3);
             r[0] = '('; r[1] = ')'; r[2] = '\0';
             return r;
@@ -641,7 +643,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             int i;
             MinimalObject* list = malloc(sizeof(void*)*(3+v->size));
             list[0] = v->typeobj;
-            for(i=1; i<=v->size; i++) {
+            for(i = 1; i <= v->size; i++) {
                 list[i] = v->values[i-1];
             }
             list[2] = NULL;
@@ -649,7 +651,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
         } else {
             int i;
             MinimalObject* list = malloc(sizeof(void*)*(2+v->size));
-            for(i=0; i<=v->size; i++) {
+            for(i = 0; i < v->size; i++) {
                 list[i] = v->values[i];
             }
             list[1] = NULL;

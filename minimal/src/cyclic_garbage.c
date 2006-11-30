@@ -28,6 +28,7 @@ struct CyclicGarbage {
     MinimalObject ptr;
     MinimalTypeId type_id;
     int count;
+    int refcount;
 };
 
 void Minimal_performCyclicCollection(MinimalObject ptr) {
@@ -38,7 +39,13 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
     list[0].ptr = ptr;
     list[0].type_id = Minimal_getTypeId(ptr);
     list[0].count = 0;
+    list[0].refcount = Minimal_getReferenceCount(list[0].ptr);
     list[1].ptr = NULL;
+
+    if(list[0].refcount == -1) {
+        free(list);
+        return;
+    }
 
     /* Calculate the clique */
 
@@ -63,8 +70,14 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
                 newlist[k].ptr = newrefs[j];
                 newlist[k].type_id = Minimal_getTypeId(newrefs[j]);
                 newlist[k].count = 1;
+                newlist[k].refcount = Minimal_getReferenceCount(newrefs[j]);
                 newlist[k+1].ptr = NULL;
                 free(list); list = newlist;
+
+                if(list[k].refcount == -1) {
+                    free(list);
+                    return;
+                }
             }
 
             j++;
@@ -79,15 +92,11 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
 
     i = 0;
     while(list[i].ptr != NULL) {
-        int count = Minimal_getReferenceCount(list[i].ptr);
-        if(count == -1) { /* We're already being garbage collected. */
+        if(list[i].refcount > list[i].count) {
             free(list);
             return;
-        } else if(count > list[i].count) {
-            free(list);
-            return;
-        } else if(count < list[i].count) {
-            fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen!\n", count, list[i].count);
+        } else if(list[i].refcount < list[i].count) {
+            fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen!\n", list[i].refcount, list[i].count);
             free(list);
             return;
         }

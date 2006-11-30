@@ -65,11 +65,52 @@ char* Minimal_serialise(MinimalValue f, unsigned char include_type) {
     return outbuf;
 }
 
-#define AddTypeObj(x) 
-#define AddTypeName(x) if(f->typeobj != NULL && include_type) { \
+void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
+    if(v->typeobj != NULL) {
+        printf("got typeobj\n");
+        Minimal_getTypeList2(v->typeobj->type_spec, v->typeobj->typemap, list);
+    }
+
+    switch(v->type) {
+    case NIL:
+    case BOOLEAN:
+    case BYTE:
+    case SHORT:
+    case INTEGER:
+    case LONG:
+    case UBYTE:
+    case USHORT:
+    case UINTEGER:
+    case ULONG:
+    case FLOAT:
+    case DOUBLE:
+    case STRING:
+        break;
+    case TYPE:
+        Minimal_getTypeList2(v->type_spec, v->typemap, list);
+        break;
+    case TUPLE:
+        {
+        printf("in tuple\n");
+        int i;
+        for(i = 0; i < Minimal_getTupleSize(v); i++) {
+            Minimal_addTypesToList(list, Minimal_tupleGet(v, i));
+            printf("%i\n", i);
+        }
+        printf("done tuple\n");
+        }
+        break;
+    case FUNCTION:
+    case POINTER:
+    case TSREF:
+        break;
+    }
+}
+
+#define AddTypeName(x) if(f->typeobj != NULL) { \
                         xmlNewProp(x, (xmlChar*)"typename", (xmlChar*)f->typeobj->type_name); \
                       }
-#define AddSumPos(x) if(f->sum_pos != -1 && include_type) { \
+#define AddSumPos(x) if(f->sum_pos != -1) { \
                         char* pos = (char*)malloc(snprintf(NULL, 0, "%i", f->sum_pos)+1); \
                         sprintf(pos, "%i", f->sum_pos); \
                         xmlNewProp(x, (xmlChar*)"sum_pos", (xmlChar*)pos); \
@@ -82,13 +123,12 @@ char* Minimal_serialise(MinimalValue f, unsigned char include_type) {
                         free(id); \
                      }
 void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type) {
-    if((f->typeobj != NULL && include_type) || Minimal_isType(f)) {
-        Minimal_TypeList list = Minimal_getTypeList(f->typeobj);
+    printf("%i\n", include_type);
+    if(include_type) {
+        Minimal_TypeList list = malloc(sizeof(void*));
+        list[0] = NULL;
 
-        if(Minimal_isType(f) && Minimal_addTypeToTypeList(&list, f)) {
-            Minimal_getTypeList2(f->type_spec, f->typemap, &list);
-            Minimal_getTypeList2(f->typeobj->type_spec, f->typeobj->typemap, &list);
-        }
+        Minimal_addTypesToList(&list, f);
 
         int i;
         for(i = 0; list[i] != NULL; i++) {
@@ -286,13 +326,13 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
             if(f->values[i] == NULL) { break; }
             xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
             xmlAddChild(node, e);
-            Minimal_serialiseValue(doc, root, e, f->values[i], memo, include_type);
+            Minimal_serialiseValue(doc, root, e, f->values[i], memo, 0);
         }
         return;
         }
     case FUNCTION:
         {
-        Minimal_serialiseFunction(doc, parent, f, memo, include_type);
+        Minimal_serialiseFunction(doc, parent, f, memo, 0);
         return;
         }
     case POINTER:
