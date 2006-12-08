@@ -96,8 +96,9 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
             free(list);
             return;
         } else if(list[i].refcount < list[i].count) {
-            fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen!\n", list[i].refcount, list[i].count);
+            fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen! (%p type %i)\n", list[i].refcount, list[i].count, list[i].ptr, Minimal_getTypeId(list[i].ptr));
             free(list);
+            *((int*)NULL) = 0;
             return;
         }
 

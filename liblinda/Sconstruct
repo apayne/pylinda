@@ -6,12 +6,16 @@ text = open(str("config.h.in"), "r").read() % defines
 open(str("config.h"), "w").write(text)
 
 debug = int(ARGUMENTS.get("debug", "1"))
+register = int(ARGUMENTS.get("register", "1"))
 
 env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"], LIBPATH=[".", "/home/andrew/lib"])
 cppenv = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"])
 
 if debug:
     env.Append(CCFLAGS=" -DDEBUG")
+
+if register:
+    env.Append(CCFLAGS=" -DREGISTER_TYPES")
 
 Export("env")
 Export("cppenv")

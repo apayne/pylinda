@@ -201,6 +201,8 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             bm->m->type = REGISTER_PROCESS;
         } else if(strcmp(text, "register_thread") == 0) {
             bm->m->type = REGISTER_THREAD;
+        } else if(strcmp(text, "register_type") == 0) {
+            bm->m->type = REGISTER_TYPE;
         } else if(strcmp(text, "my_name_is") == 0) {
             bm->m->type = MY_NAME_IS;
         } else if(strcmp(text, "get_node_id") == 0) {
@@ -326,7 +328,7 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             fprintf(stderr, "Discarding tuple due to invalid message type.\n");
             Linda_delReference(t);
         }
-    } else if(strcmp((char*)node->name, "int") == 0) {
+    } else if(strcmp((char*)node->name, "integer") == 0) {
         LindaValue i = Minimal_xmlToValue(node);
         switch(bm->m->type) {
         case RESULT_INT:
@@ -358,6 +360,16 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             break;
         default:
             fprintf(stderr, "Discarding string due to invalid message type.\n");
+        }
+    } else if(strcmp((char*)node->name, "element") == 0) {
+        LindaValue t = Minimal_xmlToValue(node);
+
+        switch(bm->m->type) {
+        case REGISTER_TYPE:
+            bm->m->typeobj = t;
+            break;
+        default:
+            fprintf(stderr, "Discarding element due to invalid message type.\n");
         }
     } else if(strcmp((char*)node->name, "msgid") == 0) {
         bm->m->msgid = (MsgID*)malloc(sizeof(MsgID));

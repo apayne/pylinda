@@ -314,24 +314,24 @@ static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
-    if(!Linda_isType(self->val)) { return NULL; }
+    if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getID - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_IDENTIFIER) { return NULL; }
     return PyString_FromString(self->val->type_spec->string);
 }
 
 static PyObject* linda_Value_getint(linda_ValueObject *self, void *closure) {
-    if(!Linda_isLong(self->val)) { return NULL; }
+    if(!Linda_isLong(self->val)) { PyErr_SetString(PyExc_TypeError, "getInt - Not an integer."); return NULL; }
     return PyInt_FromLong(self->val->integer);
 }
 
 static PyObject* linda_Value_getstring(linda_ValueObject *self, void *closure) {
-    if(!Linda_isString(self->val)) { return NULL; }
+    if(!Linda_isString(self->val)) { PyErr_SetString(PyExc_TypeError, "getString - Not a string."); return NULL; }
     return PyString_FromString(Linda_getString(self->val));
 }
 
 static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
-    if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { return NULL; }
+    if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getArg - Not a type."); return NULL; }
+    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
     LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch1));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
@@ -339,8 +339,8 @@ static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
-    if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { return NULL; }
+    if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getResult - Not a type."); return NULL; }
+    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
     LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch2));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
@@ -348,7 +348,7 @@ static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_gettypemap(linda_ValueObject *self, void *closure) {
-    if(!Linda_isType(self->val)) { return NULL; }
+    if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getTypeMap - Not a type."); return NULL; }
 
     linda_TypeMapObject* map = (linda_TypeMapObject*)PyObject_CallFunction((PyObject*)&linda_TypeMapType, "", 0);
 
@@ -363,6 +363,24 @@ static PyObject* linda_Value_gettypemap(linda_ValueObject *self, void *closure) 
     return (PyObject*)map;
 }
 
+static PyObject* linda_Value_gettypeid(linda_ValueObject* self, void* closure) {
+    if(!Linda_isType(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getTypeID - Not a type.");
+        return NULL;
+    }
+
+    return PyInt_FromLong(self->val->type_id);
+}
+
+static int linda_Value_settypeid(linda_ValueObject* self, PyObject* value, void* closure) {
+    if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "setTypeID - Not a type."); return -1; }
+
+    if(!PyInt_Check(value)) { PyErr_SetString(PyExc_TypeError, "setTypeID - Setting to not an integer."); return -1; }
+
+    self->val->type_id = PyInt_AsLong(value);
+    return 0;
+}
+
 static PyGetSetDef value_getseters[] = {
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
     {"int", (getter)linda_Value_getint, (setter)NULL, "", NULL},
@@ -371,6 +389,7 @@ static PyGetSetDef value_getseters[] = {
     {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
+    {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
     {NULL}  /* Sentinel */
 };
 
@@ -449,8 +468,8 @@ static PyObject* linda_Value_nbint(linda_ValueObject* self) {
 
 static int linda_Value_coerce(PyObject** self, PyObject** other) {
     if(PyInt_Check(*self)) {
-        *other = Value2PyO(Linda_long(PyInt_AsLong(*self)));
-        Py_INCREF(*other);
+        *other = Value2PyO(Linda_long(PyInt_AsLong(*other)));
+        Py_INCREF(*self);
         return 0;
     } else if(PyInt_Check(*other)) {
         *other = Value2PyO(Linda_long(PyInt_AsLong(*other)));

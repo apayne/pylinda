@@ -44,9 +44,19 @@ unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
 
+#ifdef REGISTER_TYPES
+unsigned char Linda_register_types = 1;
+#else
+unsigned char Linda_register_types = 0;
+#endif
+
+LindaValue* Linda_unregistered_type_list = NULL;
+
 void Linda_init() {
     if(Linda_inited) { return; }
     Linda_inited = 1;
+
+    Minimal_setOverrideTypeFunc(Linda_registerType);
 
     Minimal_init();
 
@@ -125,6 +135,18 @@ unsigned char Linda_connect(int port) {
     strcpy(tdata->thread_id, m->string);
     Message_free(m);
 
+#ifdef REGISTER_TYPES
+    if(Linda_active_connections == 1 && Linda_unregistered_type_list != NULL) { /* is this the first time we've connected? */
+        int i;
+        for(i = 0; Linda_unregistered_type_list[i] != NULL; i++) {
+            Linda_registerType(Linda_unregistered_type_list[i]);
+            Linda_delReference(Linda_unregistered_type_list[i]);
+        }
+        free(Linda_unregistered_type_list);
+        Linda_unregistered_type_list = NULL;
+    }
+#endif
+
     return 1;
 }
 
@@ -153,6 +175,7 @@ void Linda_out(LindaValue ts, LindaValue t) {
     Message_free(m);
     m = Message_recv(tdata->sd);
     Message_free(m);
+    Linda_delReference(t);
 }
 
 LindaValue Linda_in(LindaValue ts, LindaValue t) {
@@ -163,9 +186,19 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
-    if(m == NULL) { return NULL; }
+    if(m == NULL) { Linda_delReference(t); return NULL; }
     r = Linda_copy(m->tuple);
     Message_free(m);
+
+    int i;
+    for(i = 0; i < Linda_getTupleSize(r); i++) {
+        LindaValue v1 = Linda_tupleGet(t, i);
+        LindaValue v2 = Linda_tupleGet(r, i);
+
+        Linda_setType(v2, v1->typeobj);
+    }
+    Linda_delReference(t);
+
     return r;
 }
 
@@ -177,9 +210,19 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
-    if(m == NULL) { return NULL; }
+    if(m == NULL) { Linda_delReference(t); return NULL; }
     r = Linda_copy(m->tuple);
     Message_free(m);
+
+    int i;
+    for(i = 0; i < Linda_getTupleSize(r); i++) {
+        LindaValue v1 = Linda_tupleGet(t, i);
+        LindaValue v2 = Linda_tupleGet(r, i);
+
+        Linda_setType(v2, v1->typeobj);
+    }
+    Linda_delReference(t);
+
     return r;
 }
 
@@ -190,13 +233,25 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
-    if(m == NULL) { return NULL; }
+    if(m == NULL) { Linda_delReference(t); return NULL; }
     if(m->type == UNBLOCK) {
         Message_free(m);
+
+        Linda_delReference(t);
         return NULL;
     } else {
         r = Linda_copy(m->tuple);
         Message_free(m);
+
+        int i;
+        for(i = 0; i < Linda_getTupleSize(r); i++) {
+            LindaValue v1 = Linda_tupleGet(t, i);
+            LindaValue v2 = Linda_tupleGet(r, i);
+
+            Linda_setType(v2, v1->typeobj);
+        }
+
+        Linda_delReference(t);
         return r;
     }
 }
@@ -211,10 +266,22 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
     if(m == NULL) { return NULL; }
     if(m->type == UNBLOCK) {
         Message_free(m);
+
+        Linda_delReference(t);
         return NULL;
     } else {
         r = Linda_copy(m->tuple);
         Message_free(m);
+
+        int i;
+        for(i = 0; i < Linda_getTupleSize(r); i++) {
+            LindaValue v1 = Linda_tupleGet(t, i);
+            LindaValue v2 = Linda_tupleGet(r, i);
+
+            Linda_setType(v2, v1->typeobj);
+        }
+
+        Linda_delReference(t);
         return r;
     }
 }
@@ -244,3 +311,36 @@ int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Message_free(m);
     return i;
 }
+
+#ifdef REGISTER_TYPES
+void Linda_registerType(LindaValue t) {
+    if(t->type_id != 0) {
+        return;
+    } else if(Linda_active_connections > 0) {
+        Linda_thread_data* tdata = Linda_get_thread_data();
+        Message* m = Message_register_type(t);
+        Message_send(tdata->sd, NULL, m);
+        Message_free(m);
+        m = Message_recv(tdata->sd);
+        if(m == NULL) { return; }
+        t->type_id = m->i;
+        Message_free(m);
+    } else if(Linda_unregistered_type_list == NULL) {
+        Linda_unregistered_type_list = malloc(sizeof(void*)*2);
+        Linda_addReference(t);
+        Linda_unregistered_type_list[0] = t;
+        Linda_unregistered_type_list[1] = NULL;
+    } else {
+        LindaValue* l;
+        int i = 0;
+        while(Linda_unregistered_type_list[i] != NULL) { i++; }
+        l = malloc(sizeof(void*)*(i+2));
+        memcpy(l, Linda_unregistered_type_list, sizeof(void*)*i);
+        Linda_addReference(t);
+        l[i] = t;
+        l[i+1] = NULL;
+        free(Linda_unregistered_type_list);
+        Linda_unregistered_type_list = l;
+    }
+}
+#endif

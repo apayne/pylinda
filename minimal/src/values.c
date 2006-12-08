@@ -258,6 +258,12 @@ unsigned char Minimal_isType(MinimalValue v) {
     return v->type == TYPE;
 }
 
+void (*Minimal_override_type_func)(MinimalValue t) = NULL;
+
+void Minimal_setOverrideTypeFunc(void (*func)(MinimalValue t)) {
+    Minimal_override_type_func = func;
+}
+
 MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = TYPE;
@@ -266,10 +272,32 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_sp
     v->type_spec = Minimal_SyntaxTree_copy(type_spec);
     v->typeobj = NULL;
     v->typemap = Minimal_getCurrentLayer();
+    v->type_id = 0;
     v->sum_pos = -1;
     if(Minimal_typeType != NULL) {
         Minimal_setType(v, Minimal_typeType);
     }
+
+    if(Minimal_override_type_func != NULL) {
+        Minimal_override_type_func(v);
+    }
+
+    return v;
+}
+
+MinimalValue Minimal_typeFromId(int i) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = TYPE;
+    v->type_name = NULL;
+    v->type_spec = NULL;
+    v->typeobj = NULL;
+    v->typemap = NULL;
+    v->type_id = i;
+    v->sum_pos = -1;
+    if(Minimal_typeType != NULL) {
+        Minimal_setType(v, Minimal_typeType);
+    }
+
     return v;
 }
 
@@ -459,13 +487,22 @@ void Minimal_setSumPos(MinimalValue value, int sum_pos) {
 }
 
 void Minimal_setTypeMap(MinimalValue v, MinimalLayer types) {
+    MinimalLayer tmp;
     if(v->type == TYPE) {
         Minimal_addReference(types);
+        tmp = v->typemap;
         v->typemap = types;
+        if(tmp != NULL) {
+            Minimal_delReference(tmp);
+        }
     }
     if(v->typeobj != NULL) {
         Minimal_addReference(types);
+        tmp = v->typeobj->typemap;
         v->typeobj->typemap = types;
+        if(tmp != NULL) {
+            Minimal_delReference(tmp);
+        }
     }
 }
 
@@ -535,10 +572,17 @@ char* Minimal_Value_string(MinimalValue v) {
         }
     case TYPE:
         {
-        int size = snprintf(r, 0, "<Type %s>", v->type_name);
-        r = (char*)malloc(size + 1);
-        sprintf(r, "<Type %s>", v->type_name);
-        return r;
+        if(v->type_name != NULL) {
+            int size = snprintf(r, 0, "<Type %s>", v->type_name);
+            r = (char*)malloc(size + 1);
+            sprintf(r, "<Type %s>", v->type_name);
+            return r;
+        } else {
+            int size = snprintf(r, 0, "<Type id=%li>", v->type_id);
+            r = (char*)malloc(size + 1);
+            sprintf(r, "<Type id=%li>", v->type_id);
+            return r;
+        }
         }
     case TSREF:
         r = (char*)malloc(strlen("<TSRef>")+1);
@@ -646,7 +690,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             for(i = 1; i <= v->size; i++) {
                 list[i] = v->values[i-1];
             }
-            list[2] = NULL;
+            list[i] = NULL;
             return list;
         } else {
             int i;
@@ -654,7 +698,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             for(i = 0; i < v->size; i++) {
                 list[i] = v->values[i];
             }
-            list[1] = NULL;
+            list[i] = NULL;
             return list;
         }
     case POINTER:
@@ -675,7 +719,6 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
         return NULL;
     }
 }
-
 
 MinimalValue Minimal_copy(MinimalValue v) {
     if(v == NULL) { return NULL; }
@@ -725,6 +768,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
             Minimal_addReference(v->typemap);
         }
         nv->typemap = v->typemap;
+        nv->type_id = v->type_id;
         break;
     case TSREF:
         Linda_addTSReference(v);

@@ -55,10 +55,13 @@ void Minimal_interpreter();
 void Minimal_Layer_free(MinimalLayer layer);
 void Minimal_Value_free(MinimalValue val);
 
-#define Minimal_SyntaxMap_init(map) \
-    (map)->name = NULL; \
-    (map)->left = NULL; \
-    (map)->right = NULL
+MinimalValue Minimal_typeFromId(int tid);
+
+static inline void Minimal_SyntaxMap_init(Minimal_NameValueMap* map) {
+    map->name = NULL;
+    map->left = NULL;
+    map->right = NULL;
+}
 
 enum MinimalTypeId_t {
     MINIMAL_VALUE,
@@ -111,5 +114,7 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
 void Minimal_freeTypeList(Minimal_TypeList list);
 
 unsigned char Minimal_isBuiltIn(char* type_name);
+
+extern void (*Minimal_override_type_func)(MinimalValue t);
 
 #endif

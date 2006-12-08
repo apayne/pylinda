@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import time
 
 import linda
 
@@ -28,7 +29,7 @@ def slave():
             i = 0
             try:
                 x, y = getBlankSquare(grid)
-            except TypeError:
+            except TypeError: # if getBlankSquare returns none we get a TypeError
                 pass
             else:
                 for val in getValid(grid, x, y):
@@ -58,6 +59,7 @@ def getValid(grid, x, y):
 
 def tupleToGrid(tup):
     grid = []
+    start = time.time()
     for row in tup:
         r = []
         for e in row:
@@ -66,6 +68,7 @@ def tupleToGrid(tup):
             else:
                 r.append(None)
         grid.append(r)
+    print time.time() - start
     return grid
 
 def gridToTuple(grid):

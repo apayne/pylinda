@@ -27,7 +27,7 @@
 #include "minimal_internal.h"
 
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node);
-MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo);
+MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer types);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
     xmlDocPtr doc = xmlReadMemory(code, strlen(code), NULL, NULL, 0);
@@ -270,7 +270,11 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
     memo.found = NULL;
     memo.waiting = NULL;
 
-    value = Minimal_xmlToValue2(node, &memo);
+    MinimalLayer types = Minimal_createLayer();
+
+    value = Minimal_xmlToValue2(node, &memo, types);
+
+    Minimal_delReference(types);
 
     if(memo.found != NULL) {
         free(memo.found);
@@ -282,17 +286,16 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
     return value;
 }
 
-MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
-    MinimalLayer types = Minimal_createLayer();
+MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalLayer types) {
     MinimalValue root = NULL;
     while(node) {
         if(node->type == XML_ELEMENT_NODE) {
             if(strcmp((char*)node->name, "type") == 0) {
-                MinimalValue type = Minimal_xmlToValue2(node, memo);
+                MinimalValue type = Minimal_xmlToValue2(node, memo, types);
                 Minimal_setTypeMap(type, types);
                 Minimal_addName(&(types->map), type->type_name, type);
             } else if(root == NULL) {
-                root = Minimal_xmlToValue2(node, memo);
+                root = Minimal_xmlToValue2(node, memo, types);
                 char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
                     MinimalValue t = Minimal_getName(types, type);
@@ -300,13 +303,18 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
                     Minimal_delReference(t);
                     free(type);
                 }
-                if(Minimal_isType(root)) {
+                char* typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
+                if(typeid != NULL) {
+                    Minimal_setType(root, Minimal_typeFromId(atoi(typeid)));
+                    free(typeid);
+                }
+                if(Minimal_isType(root) && root->type_name != NULL) {
                     Minimal_addReference(root);
                     Minimal_addName(&(types->map), root->type_name, root);
                 }
                 Minimal_setTypeMap(root, types);
             } else {
-                MinimalValue v = Minimal_xmlToValue2(node, memo);
+                MinimalValue v = Minimal_xmlToValue2(node, memo, types);
                 char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
                     MinimalValue t = Minimal_getName(types, type);
@@ -314,7 +322,12 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
                     Minimal_delReference(t);
                     free(type);
                 }
-                if(Minimal_isType(v)) {
+                char* typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
+                if(typeid != NULL) {
+                    Minimal_setType(root, Minimal_typeFromId(atoi(typeid)));
+                    free(typeid);
+                }
+                if(Minimal_isType(v) && v->type_name != NULL) {
                     Minimal_addReference(v);
                     Minimal_addName(&(types->map), v->type_name, v);
                 }
@@ -324,17 +337,16 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo) {
         }
         node = node->next;
     }
-    Minimal_delReference(types);
     return root;
 }
 
-MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
+MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer types) {
     MinimalValue value = NULL;
     if(strcmp((char*)(node->name), "minimal") == 0) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && value == NULL && strcmp((char*)cur_node->name, "type") != 0) {
-                value = Minimal_xmlToValue2(cur_node, memo);
+                value = Minimal_xmlToValue2(cur_node, memo, types);
             } else if(cur_node->type == XML_ELEMENT_NODE && value != NULL) {
                 fprintf(stderr, "Error: Minimal_xmlToValue can only parse one value.\n");
                 Minimal_delReference(value);
@@ -358,11 +370,17 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "element") == 0) {
-                Minimal_tupleAdd(value, Minimal_xmlSeriesToValue(cur_node->children, memo));
+            if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "type") == 0) {
+                MinimalValue type = Minimal_xmlToValue2(cur_node, memo, types);
+                Minimal_setTypeMap(type, types);
+                Minimal_addName(&(types->map), type->type_name, type);
+            } else if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "element") == 0) {
+                Minimal_tupleAdd(value, Minimal_xmlSeriesToValue(cur_node->children, memo, types));
             }
             cur_node = cur_node->next;
         }
+    } else if(strcmp((char*)(node->name), "element") == 0) {
+        value = Minimal_xmlSeriesToValue(node->children, memo, types);
     } else if(strcmp((char*)(node->name), "type") == 0) {
         Minimal_SyntaxTree* tree = NULL;
         xmlNode* cur_node = node->children;
@@ -376,6 +394,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         value = Minimal_typeSpec((char*)name, tree);
         Minimal_SyntaxTree_free(tree);
         free(name);
+        Minimal_setTypeMap(value, types);
     } else if(strcmp((char*)(node->name), "typeobj") == 0) {
         Minimal_SyntaxTree* tree = NULL;
         xmlNode* cur_node = node->children;
@@ -385,10 +404,18 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
             }
             cur_node = cur_node->next;
         }
-        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
-        value = Minimal_typeSpec((char*)name, tree);
-        Minimal_SyntaxTree_free(tree);
-        free(name);
+        xmlChar* tid = xmlGetProp(node, (xmlChar*)"typeid");
+        if(tid != NULL) {
+            int i = atoi((char*)tid);
+            value = Minimal_typeFromId(i);
+            free(tid);
+        } else {
+            xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+            value = Minimal_typeSpec((char*)name, tree);
+            Minimal_SyntaxTree_free(tree);
+            free(name);
+            Minimal_setTypeMap(value, types);
+        }
     } else if(strcmp((char*)(node->name), "false") == 0) {
         value = Minimal_bool(0);
     } else if(strcmp((char*)(node->name), "true") == 0) {
@@ -524,16 +551,24 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo) {
         return NULL;
     }
 
-    {
-    MinimalValue type = NULL;
-    xmlNode* cur_node = node->children;
-    while(cur_node) {
-        if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {
-            type = Minimal_xmlToValue2(cur_node, memo);
+    xmlChar* tid = xmlGetProp(node, (xmlChar*)"typeid");
+    if(tid == NULL) {
+        MinimalValue type = NULL;
+        xmlNode* cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {
+                type = Minimal_xmlToValue2(cur_node, memo, types);
+            }
+            cur_node = cur_node->next;
         }
-        cur_node = cur_node->next;
-    }
-    if(type != NULL) { Minimal_setType(value, type); Minimal_delReference(type); }
+        if(type != NULL) { Minimal_setType(value, type); Minimal_delReference(type); }
+    } else {
+        int i = atoi((char*)tid);
+        if(i != 0) {
+            Minimal_setType(value, Minimal_typeFromId(i));
+        }
+
+        free(tid);
     }
 
     xmlChar* cid = xmlGetProp(node, (xmlChar*)"id");

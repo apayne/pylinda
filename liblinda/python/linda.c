@@ -106,6 +106,14 @@ PyMODINIT_FUNC init_linda(void)
 
     PyModule_AddObject(Linda_module, "version", PyString_FromString(Linda_version));
 
+    if(Linda_register_types) {
+        Py_INCREF(Py_True);
+        PyModule_AddObject(Linda_module, "register_types", Py_True);
+    } else {
+        Py_INCREF(Py_False);
+        PyModule_AddObject(Linda_module, "register_types", Py_False);
+    }
+
     inittuplespace(Linda_module);
     inittsref(Linda_module);
     initvalue(Linda_module);

@@ -63,6 +63,7 @@ struct Message_t {
 /* Monitor messages */
         REGISTER_PROCESS,
         REGISTER_THREAD,
+        REGISTER_TYPE,
 /* Server Messages */
         MY_NAME_IS,
         GET_NODE_ID,
@@ -82,6 +83,7 @@ struct Message_t {
          char* string;
          int i;
          LindaValue tuple;
+         LindaValue typeobj;
          LindaValue ts;
          struct {
              LindaValue ts;
@@ -148,6 +150,9 @@ Message* Message_get_routes();
 
 Message* Message_register_process();
 Message* Message_register_thread();
+#ifdef REGISTER_TYPES
+Message* Message_register_type(LindaValue v);
+#endif
 
 Message* Message_my_name_is(char* name);
 Message* Message_get_node_id();

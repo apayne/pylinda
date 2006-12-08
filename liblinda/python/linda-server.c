@@ -174,6 +174,15 @@ static PyMethodDef LindaServerMethods[] = {
 PyMODINIT_FUNC init_linda_server(void)
 {
     LindaServer_module = Py_InitModule("_linda_server", LindaServerMethods);
+
+    if(Linda_register_types) {
+        Py_INCREF(Py_True);
+        PyModule_AddObject(LindaServer_module, "register_types", Py_True);
+    } else {
+        Py_INCREF(Py_False);
+        PyModule_AddObject(LindaServer_module, "register_types", Py_False);
+    }
+
     inittsref(LindaServer_module);
     initvalue(LindaServer_module);
     inittypemap(LindaServer_module);

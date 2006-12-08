@@ -81,6 +81,7 @@ struct MinimalValue_t {
             char* type_name;
             Minimal_SyntaxTree* type_spec;
             MinimalLayer typemap;
+            unsigned long type_id; 
         };
         char* tsid;
         struct {
@@ -298,6 +299,8 @@ extern MinimalValue Minimal_floatType;
 extern MinimalValue Minimal_doubleType;
 extern MinimalValue Minimal_stringType;
 extern MinimalValue Minimal_tupleSpaceType;
+
+void Minimal_setOverrideTypeFunc(void (*func)(MinimalValue t));
 
 #ifdef __cplusplus
 }

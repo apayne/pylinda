@@ -44,6 +44,9 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         i++;
     }
     if(scanned[i] != NULL) {
+        if(&realscanned == scanned) {
+            free(realscanned);
+        }
         return;
     }
     LindaValue* newscanned = malloc(sizeof(void*)*(i+1));

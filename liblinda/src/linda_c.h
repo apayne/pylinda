@@ -46,6 +46,8 @@ typedef MinimalValue LindaValue;
 #define Linda_stringType Minimal_stringType
 #define Linda_tupleSpaceType Minimal_tupleSpaceType
 
+extern unsigned char Linda_register_types;
+
 static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_setType(value, type); }
 static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
 static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
@@ -70,6 +72,11 @@ static inline LindaValue Linda_float(float f) { return Minimal_float(f); }
 static inline float Linda_getFloat(LindaValue v) { return Minimal_getFloat(v); }
 
 static inline unsigned char Linda_isType(LindaValue v) { return Minimal_isType(v); }
+
+#ifdef REGISTER_TYPES
+void Linda_registerType(LindaValue v);
+#endif
+
 static inline LindaValue Linda_type(const char* typespec) { return Minimal_type(typespec); }
 
 static inline unsigned char Linda_isString(LindaValue v) { return Minimal_isString(v); }

@@ -114,6 +114,9 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
         case REGISTER_THREAD:
             t = Py_BuildValue("(Oss)", msgid, "REGISTER_THREAD", m->ts);
             break;
+        case REGISTER_TYPE:
+            t = Py_BuildValue("(OsO)", msgid, "REGISTER_TYPE", Value2PyO(m->typeobj));
+            break;
         case GET_NODE_ID:
             t = Py_BuildValue("(Os)", msgid, "GET_NODE_ID");
             break;

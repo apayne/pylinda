@@ -23,9 +23,30 @@
 ## \author Andrew Wilkinson <aw@cs.york.ac.uk>
 ##
 
+import _linda_server
+
 from match import compare
 
-def doesMatch(e1, e2):
+def doesMatch_registered(e1, e2):
+    if isinstance(e1, tuple):
+        if len(e1) != len(e2):
+            return False
+        for t1, t2 in zip(e1, e2):
+            if not doesMatch(t1, t2):
+                return False
+        return True
+    elif e1.isType():
+        if e1.type_id == e2.type.type_id:
+            return True
+        elif compare(type_cache.lookupType(e1.type_id), type_cache.lookupType(e2.type.type_id)):
+            return True
+    else:
+        if e1.type.type_id == e2.type.type_id:
+            return e1 == e2
+        elif compare(type_cache.lookupType(e1.type.type_id), type_cache.lookupType(e2.type.type_id)) and e1 == e2:
+            return True
+
+def doesMatch_unregistered(e1, e2):
     if isinstance(e1, tuple):
         if len(e1) != len(e2):
             return False
@@ -39,6 +60,12 @@ def doesMatch(e1, e2):
     else:
         if compare(e1.type, e2.type) and e1 == e2:
             return True
+
+if _linda_server.register_types:
+    import type_cache
+    doesMatch = doesMatch_registered
+else:
+    doesMatch = doesMatch_unregistered
 
 class TupleContainer:
     def __init__(self):
@@ -62,7 +89,7 @@ class TupleContainer:
                 else:
                     break
             if sucess == len(template):
-            #    print "yes"
+                #print "yes"
                 yield t
             #else:
             #    print "no"

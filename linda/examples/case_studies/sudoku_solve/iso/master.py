@@ -25,6 +25,8 @@ def master():
 
     tup = linda.uts._in((0, gridtype))
 
+    assert tup[0] == 0, tup[0]
+
     print "Solved Grid in %f seconds." % (time.time() - start)
     print gridString(tupleToGrid(tup[1]))
 
@@ -48,10 +50,12 @@ def tupleToGrid(tup):
     for row in tup:
         r = []
         for e in row:
-            if e.isInt():
+            if e.isLong():
                 r.append(int(e))
             else:
                 r.append(None)
+        grid.append(r)
+    return grid
 
 def gridToTup(grid):
     return linda.Value(grid, gridtype)

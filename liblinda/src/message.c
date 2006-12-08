@@ -225,6 +225,14 @@ char* Message_getString(Message* msg) {
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         break;
+#ifdef REGISTER_TYPES
+    case REGISTER_TYPE:
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_type");
+        xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
+        xmlAddChild(root, e);
+        Minimal_serialiseXML(doc, e, msg->typeobj, 1);
+        break;
+#endif
     case GET_NODE_ID:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_node_id");
         break;
@@ -523,6 +531,14 @@ Message* Message_register_thread() {
     return m;
 }
 
+Message* Message_register_type(LindaValue type) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = REGISTER_TYPE;
+    Linda_addReference(type);
+    m->typeobj = type;
+    return m;
+}
+
 Message* Message_my_name_is(char* name) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = MY_NAME_IS;
@@ -667,6 +683,9 @@ void Message_free(Message* msg) {
         break;
     case REGISTER_THREAD:
         free(msg->string);
+        break;
+    case REGISTER_TYPE:
+        Linda_delReference(msg->typeobj);
         break;
     case MY_NAME_IS:
         free(msg->string);

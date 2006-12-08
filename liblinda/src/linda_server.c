@@ -45,6 +45,12 @@ unsigned char Linda_is_server = 1;
 char* Linda_process_id;
 char* Linda_thread_id;
 
+#ifdef REGISTER_TYPES
+unsigned char Linda_register_types = 1;
+#else
+unsigned char Linda_register_types = 0;
+#endif
+
 unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
@@ -195,3 +201,4 @@ void Linda_disconnect(int sd) {
     shutdown(sd, SHUT_RDWR);
     Linda_active_connections -= 1;
 }
+
