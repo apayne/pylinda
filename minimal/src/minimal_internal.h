@@ -117,4 +117,6 @@ unsigned char Minimal_isBuiltIn(char* type_name);
 
 extern void (*Minimal_override_type_func)(MinimalValue t);
 
+void Minimal_removeFromRefHashTable(MinimalObject ptr);
+
 #endif

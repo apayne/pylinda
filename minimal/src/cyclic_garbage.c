@@ -118,9 +118,8 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
     }
     i = 0;
     while(list[i].ptr != NULL) {
-        Minimal_setReferenceCount(list[i].ptr, 0);
+        Minimal_removeFromRefHashTable(list[i].ptr);
         i++;
     }
-
     free(list);
 }

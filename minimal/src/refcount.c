@@ -23,96 +23,82 @@
 
 #include "minimal_internal.h"
 
+#define hash(ptr) (((unsigned long)(ptr) >> 3) % Minimal_refCountListSize)
+
 struct MinimalRefCount {
-    MinimalTypeId type_id;
     void* ptr;
+    MinimalTypeId type_id;
     long count;
-    struct MinimalRefCount* left;
-    struct MinimalRefCount* right;
+    struct MinimalRefCount* next;
+    struct MinimalRefCount* prev;
     char* file;
     int line;
 };
 
-struct MinimalRefCount* Minimal_refCountTree = NULL;
+int Minimal_refCountListSize = 0;
+int Minimal_refCountListUsed = 0;
+struct MinimalRefCount** Minimal_refCountList = NULL;
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line) {
-    if(Minimal_refCountTree == NULL) {
-        Minimal_refCountTree = (struct MinimalRefCount*)malloc(sizeof(struct MinimalRefCount));
-        Minimal_refCountTree->type_id = type_id;
-        Minimal_refCountTree->ptr = ptr;
-        Minimal_refCountTree->count = 1;
-        Minimal_refCountTree->left = NULL;
-        Minimal_refCountTree->right = NULL;
-        Minimal_refCountTree->file = file;
-        Minimal_refCountTree->line = line;
-        return ptr;
-    } else {
-        struct MinimalRefCount* tree = Minimal_refCountTree;
-        while(1) {
-            if(tree->ptr == NULL && tree->left == NULL && tree->right == NULL) {
-                    tree->left = (struct MinimalRefCount*)malloc(sizeof(struct MinimalRefCount));
-                    tree->left->type_id = type_id;
-                    tree->left->ptr = ptr;
-                    tree->left->count = 1;
-                    tree->left->left = NULL;
-                    tree->left->right = NULL;
-                    tree->left->file = file;
-                    tree->left->line = line;
-                    return ptr;
-            } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-                if(tree->left == NULL) {
-                    tree->left = (struct MinimalRefCount*)malloc(sizeof(struct MinimalRefCount));
-                    tree->left->type_id = type_id;
-                    tree->left->ptr = ptr;
-                    tree->left->count = 1;
-                    tree->left->left = NULL;
-                    tree->left->right = NULL;
-                    tree->left->file = file;
-                    tree->left->line = line;
-                    return ptr;
-                } else {
-                    tree = tree->left;
-                }
-            } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-                if(tree->right == NULL) {
-                    tree->right = (struct MinimalRefCount*)malloc(sizeof(struct MinimalRefCount));
-                    tree->right->type_id = type_id;
-                    tree->right->ptr = ptr;
-                    tree->right->count = 1;
-                    tree->right->left = NULL;
-                    tree->right->right = NULL;
-                    tree->right->file = file;
-                    tree->right->line = line;
-                    return ptr;
-                } else {
-                    tree = tree->right;
-                }
-            } else if(tree->count == 0) {
-                tree->type_id = type_id;
-                tree->ptr = ptr;
-                tree->count = 1;
-                tree->file = file;
-                tree->line = line;
-                return ptr;
-            } else {
-                fprintf(stderr, "Error: New reference (%s:%i) in the same location as an unfreed reference (%s:%i).\n", file, line, tree->file, tree->line);
-                exit(1);
+    if(Minimal_refCountListSize == 0) {
+        int i;
+        Minimal_refCountListSize = 128;
+        Minimal_refCountList = malloc(sizeof(void*) * Minimal_refCountListSize);
+        for(i = 0; i < Minimal_refCountListSize; i++) { Minimal_refCountList[i] = NULL; }
+    } else if(Minimal_refCountListSize * 2 <= Minimal_refCountListUsed) {
+        int i;
+        int copy = 0;
+        struct MinimalRefCount** newlist = malloc(sizeof(void*)*Minimal_refCountListSize * 4);
+        for(i = 0; i < Minimal_refCountListSize * 4; i++) { newlist[i] = NULL; }
+        for(i = 0; i < Minimal_refCountListSize; i++) {
+            struct MinimalRefCount* chain = Minimal_refCountList[i];
+            while(chain != NULL) {
+                int index = ((unsigned long)chain->ptr >> 3) % (Minimal_refCountListSize * 4);
+
+                struct MinimalRefCount* newchain = malloc(sizeof(struct MinimalRefCount));
+                newchain->ptr = chain->ptr;
+                newchain->type_id = chain->type_id;
+                newchain->count = chain->count;
+                newchain->next = newlist[index];
+                newchain->prev = NULL;
+                newchain->file = chain->file;
+                newchain->line = chain->line;
+                if(newlist[index] != NULL) { newlist[index]->prev = newchain; }
+                newlist[index] = newchain;
+                copy++;
+
+                chain = chain->next;
             }
         }
+        free(Minimal_refCountList);
+        Minimal_refCountList = newlist;
+        Minimal_refCountListSize = Minimal_refCountListSize * 4;
     }
+
+    int index = hash(ptr);
+    struct MinimalRefCount* newchain = malloc(sizeof(struct MinimalRefCount));
+    newchain->ptr = ptr;
+    newchain->type_id = type_id;
+    newchain->count = 1;
+    newchain->next = Minimal_refCountList[index];
+    newchain->prev = NULL;
+    newchain->file = file;
+    newchain->line = line;
+    if(Minimal_refCountList[index] != NULL) { Minimal_refCountList[index]->prev = newchain; }
+    Minimal_refCountList[index] = newchain;
+
+    Minimal_refCountListUsed++;
+    return ptr;
 }
 
 void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
-    struct MinimalRefCount* tree = Minimal_refCountTree;
-    while(tree != NULL) {
-        if(tree->ptr == ptr) {
-            tree->count++;
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            list->count++;
             return;
-        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-            tree = tree->left;
-        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-            tree = tree->right;
         }
+        list = list->next;
     }
     fprintf(stderr, "Error: addReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
     int i = *((int*)ptr);
@@ -120,78 +106,96 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
 }
 
 int Minimal_getReferenceCount(MinimalObject ptr) {
-    struct MinimalRefCount* tree = Minimal_refCountTree;
-    while(tree != NULL) {
-        if(tree->ptr == ptr) {
-            return tree->count;
-        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-            tree = tree->left;
-        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-            tree = tree->right;
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            return list->count;
         }
+        list = list->next;
     }
     return -1;
 }
 
 void Minimal_setReferenceCount(MinimalObject ptr, long i) {
-    struct MinimalRefCount* tree = Minimal_refCountTree;
-    while(tree != NULL) {
-        if(tree->ptr == ptr) {
-            tree->count = i;
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            list->count = i;
             return;
-        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-            tree = tree->left;
-        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-            tree = tree->right;
         }
+        list = list->next;
     }
 }
 
 MinimalTypeId Minimal_getTypeId(MinimalObject ptr) {
-    struct MinimalRefCount* tree = Minimal_refCountTree;
-    while(tree != NULL) {
-        if(tree->ptr == ptr) {
-            return tree->type_id;
-        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-            tree = tree->left;
-        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-            tree = tree->right;
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            return list->type_id;
         }
+        list = list->next;
     }
     return -1;
 }
 
 void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
-    struct MinimalRefCount* parent = NULL;
-    struct MinimalRefCount* tree = Minimal_refCountTree;
-    while(tree != NULL) {
-        if(tree->ptr == ptr) {
-            if(tree->count > 0) {
-                tree->count--;
-                if(tree->count == 0) {
-                    Minimal_delObject(tree->type_id, ptr);
-                    if(tree->left == NULL && tree->right == NULL) {
-                        if(parent->left == tree) {
-                            parent->left = NULL;
-                        } else {
-                            parent->right = NULL;
+    if(Minimal_refCountListSize == 0) {
+        fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
+        return;
+    }
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            if(list->count > 0) {
+                list->count--;
+                if(list->count == 0) {
+                    Minimal_delObject(list->type_id, ptr);
+                    if(list->prev == NULL) {
+                        Minimal_refCountList[hash(ptr)] = list->next;
+                        if(list->next != NULL) {
+                            list->next->prev = NULL;
                         }
-                        free(tree);
+                    } else {
+                        list->prev->next = list->next;
+                        if(list->next != NULL) {
+                            list->next->prev = list->prev;
+                        }
                     }
+                    free(list);
+                    Minimal_refCountListUsed--;
                 } else {
                     Minimal_performCyclicCollection(ptr);
                 }
             }
             return;
-        } else if(((unsigned long)ptr) < ((unsigned long)tree->ptr)) {
-            parent = tree;
-            tree = tree->left;
-        } else if(((unsigned long)ptr) > ((unsigned long)tree->ptr)) {
-            parent = tree;
-            tree = tree->right;
         }
+        list = list->next;
     }
     fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
+}
+
+void Minimal_removeFromRefHashTable(MinimalObject ptr) {
+    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    while(list != NULL) {
+        if(list->ptr == ptr) {
+            if(list->prev == NULL) {
+                Minimal_refCountList[hash(ptr)] = list->next;
+                if(list->next != NULL) {
+                    list->next->prev = NULL;
+                }
+            } else {
+                list->prev->next = list->next;
+                if(list->next != NULL) {
+                    list->next->prev = list->prev;
+                }
+            }
+            free(list);
+            Minimal_refCountListUsed--;
+            return;
+        }
+        list = list->next;
+    }
+
 }
 
 void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr) {
@@ -229,37 +233,44 @@ MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr) {
     }
 }
 
-int Minimal_countAllReferences(struct MinimalRefCount* tree) {
-    if(tree == NULL) {
-        return 0;
-    } else {
-        return tree->count + Minimal_countAllReferences(tree->left) + Minimal_countAllReferences(tree->right);
+int Minimal_countAllReferences() {
+    int i;
+    int count = 0;
+    for(i = 0; i < Minimal_refCountListSize; i++) {
+        struct MinimalRefCount* list = Minimal_refCountList[i];
+        while(list != NULL) {
+            count += list->count;
+            list = list->next;
+        }
     }
+    return count;
 }
 
-static void Minimal_refCountEmpty(struct MinimalRefCount* tree) {
-    if(tree->left != NULL) {
-        Minimal_refCountEmpty(tree->left);
-        free(tree->left);
+static void Minimal_refCountEmpty() {
+    int i;
+    struct MinimalRefCount* prev;
+    for(i = 0; i < Minimal_refCountListSize; i++) {
+        struct MinimalRefCount* list = Minimal_refCountList[i];
+        while(list != NULL) {
+            fprintf(stderr, "%p (%s:%i) still has %li references.\n", list->ptr, list->file, list->line, list->count);
+            prev = list;
+            list = list->next;
+            free(prev);
+        }
+        Minimal_refCountList[i] = NULL;
     }
-    if(tree->right != NULL) {
-        Minimal_refCountEmpty(tree->right);
-        free(tree->right);
-    }
-    if(tree->count > 0) {
-        fprintf(stderr, "%p (%s:%i) still has %li references.\n", tree->ptr, tree->file, tree->line, tree->count);
-        tree->ptr = NULL;
-    }
+    Minimal_refCountListUsed = 0;
 }
 
 void Minimal_refCountFinalise() {
-    int i = Minimal_countAllReferences(Minimal_refCountTree);
+    int i = Minimal_countAllReferences();
     if(i > 0) {
-        fprintf(stderr, "Warning, %i references unfreed.\n", i);
+        fprintf(stderr, "Warning, %i references unfreed. %i of %i remaining.\n", i, Minimal_refCountListUsed, Minimal_refCountListSize);
     }
-    if(Minimal_refCountTree != NULL) {
-        Minimal_refCountEmpty(Minimal_refCountTree);
-        free(Minimal_refCountTree);
-        Minimal_refCountTree = NULL;
+    if(Minimal_refCountList != NULL) {
+        Minimal_refCountEmpty();
+        free(Minimal_refCountList);
+        Minimal_refCountList = NULL;
+        Minimal_refCountListSize = 0;
     }
 }
