@@ -177,6 +177,7 @@ char* Minimal_getTupleSpace(MinimalValue v);
 void Minimal_setType(MinimalValue value, MinimalValue type);
 MinimalValue Minimal_getType(MinimalValue value);
 void Minimal_setSumPos(MinimalValue value, int sum_pos);
+int Minimal_getSumPos(MinimalValue value);
 
 struct Minimal_SyntaxTree_t {
     enum {

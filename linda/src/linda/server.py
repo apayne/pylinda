@@ -22,6 +22,7 @@ import socket
 import struct
 import sys
 import threading
+import gc
 
 node_id = None
 
@@ -41,6 +42,7 @@ import utils as utils
 
 if _linda_server.register_types:
     from type_cache import registerType, emptyTypeCache
+    from iso_cache import emptyIsoCache
 
 process_id = utils.Counter()
 ts_ids = utils.Counter()
@@ -60,6 +62,7 @@ class LindaConnection:
             register_process: self.register_process,
             register_thread: self.register_thread,
             register_type: self.register_type,
+            update_type: self.update_type,
             my_name_is: self.my_name_is,
             create_tuplespace: self.create_tuplespace,
             get_connect_details: self.get_connect_details,
@@ -154,6 +157,13 @@ class LindaConnection:
         type = data[0]
 
         typeid = registerType(type)
+
+        req.send(msgid, ("RESULT_INT", typeid))
+
+    def update_type(self, req, msgid, message, data):
+        type_id, type = date[0], data[1]
+
+        updateType(type_id, type)
 
         req.send(msgid, ("RESULT_INT", typeid))
 
@@ -541,6 +551,9 @@ def cleanShutdown():
 
     if _linda_server.register_types:
         emptyTypeCache()
+        emptyIsoCache()
+
+    gc.collect() # Run garbage collection so libminimal doesn't produce spurious warnings.
 
     sys.exit()
 

@@ -50,6 +50,7 @@ extern unsigned char Linda_register_types;
 
 static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_setType(value, type); }
 static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
+static inline int Linda_getSumPos(LindaValue value) { return Minimal_getSumPos(value); }
 static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
 
 static inline unsigned char Linda_isNil(LindaValue v) { return Minimal_isNil(v); }

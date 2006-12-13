@@ -232,6 +232,8 @@ MinimalValue Minimal_string(char* s) {
     memcpy(v->string, s, v->length);
     v->typeobj = NULL;
     v->sum_pos = -1;
+    v->sum_pos = -1;
+    Minimal_setType(v, Minimal_stringType);
     return v;
 }
 
@@ -484,6 +486,10 @@ MinimalValue Minimal_getType(MinimalValue value) {
 
 void Minimal_setSumPos(MinimalValue value, int sum_pos) {
     value->sum_pos = sum_pos;
+}
+
+int Minimal_getSumPos(MinimalValue value) {
+    return value->sum_pos;
 }
 
 void Minimal_setTypeMap(MinimalValue v, MinimalLayer types) {

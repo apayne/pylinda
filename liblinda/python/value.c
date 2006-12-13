@@ -140,6 +140,8 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
+    } else if(self->val->type == STRING) {
+        return strcmp(self->val->string, other->val->string);
     } else if(self->val->type == TUPLE) {
         if(self->val->size < other->val->size) {
             return -1;
@@ -381,6 +383,17 @@ static int linda_Value_settypeid(linda_ValueObject* self, PyObject* value, void*
     return 0;
 }
 
+static PyObject* linda_Value_getsumpos(linda_ValueObject* self, void* closure) {
+    return PyInt_FromLong(Linda_getSumPos(self->val));
+}
+
+static int linda_Value_setsumpos(linda_ValueObject* self, PyObject* value, void* closure) {
+    if(!PyInt_Check(value)) { PyErr_SetString(PyExc_TypeError, "setSumPos - Setting to not an integer."); return -1; }
+
+    Linda_setSumPos(self->val, PyInt_AsLong(value));
+    return 0;
+}
+
 static PyGetSetDef value_getseters[] = {
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
     {"int", (getter)linda_Value_getint, (setter)NULL, "", NULL},
@@ -390,6 +403,7 @@ static PyGetSetDef value_getseters[] = {
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
+    {"sum_pos", (getter)linda_Value_getsumpos, (setter)linda_Value_setsumpos, "", NULL},
     {NULL}  /* Sentinel */
 };
 

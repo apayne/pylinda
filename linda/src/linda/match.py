@@ -20,49 +20,82 @@ import _linda_server
 
 builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
 
+def identity(value):
+    return value
+
 def compare_unregistered(t1, t2, checked=None):
     assert t1.isType()
     assert t2.isType()
+    assert t1.type_id != 0
+    assert t2.type_id != 0
+
+    func = None
 
     if checked is None:
-        checked = [(t1, t2)]
-    elif (t1, t2) in checked:
-        return True
+        checked = {(t1.type_id, t2.type_id): func}
+    elif (t1.type_id, t2.type_id) in checked:
+        return lambda value: checked[(t1.type_id,t2.type_id)](value)
     else:
-        checked.append((t1, t2))
+        checked[(t1.type_id, t2.type_id)] = func
 
     try:
         if t1.isNil() and t2.isNil():
-            return True
+            func = identity
         elif t1.isId() and t2.isId():
             if t1.id in builtin or t2.id in builtin:
-                return t1.id == t2.id
+                if t1.id == t2.id:
+                    func = identity
+                else:
+                    func = None
             else:
-                return compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
-                return False
+                return None
             for i in range(len(t1)):
                 e1, e2 = t1[i], t2[i]
                 if not compare(e1, e2, checked):
-                    return False
-            return True
+                    func = None
+            def func(value):
+                l = []
+                for i in range(len(t1)):
+                    l.append(checked[(t1[i],t2[i])](value[i]))
+                return tuple(l)
         elif t1.isSumType() and t2.isSumType():
             if len(t1) != len(t2):
-                return False
+                func = None
+            map = [None for _ in range(len(t1))]
             for i in range(len(t1)):
-                e1, e2 = t1[i], t2[i]
-                if not compare(e1, e2, checked):
-                    return False
-            return True
+                for j in range(len(t2)):
+                    if j in map:
+                        continue
+                    f = compare(t1[i], t2[i])
+                    if f is not None:
+                        map[i] = j
+                if map[i] is None:
+                    func = None
+            def func(value):
+                e1 = t1[value.sum_pos]
+                np = map[value.sum_pos]
+                e2 = t2[np]
+                v = checked[(e1.type_id, e2.type_id)](value)
+                v.sum_pos = np
+                return v
         elif t1.isPtrType() and t2.isPtrType():
-            return compare(t1.ptrtype, t2.ptrtype, checked)
+            f = compare(t1.ptrtype, t2.ptrtype, checked)
+            if f is None:
+                func = None
+            else:
+                func = identity
         elif t1.isFunctionType() and t2.isFunctionType():
-            return compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
+            arg_func = compare(t1.arg, t2.arg, checked)
+            res_func = compare(t1.result, t2.result, checked)
+            raise SystemError
         else:
-            return False
+            func = None
     finally:
-        checked.pop()
+        checked[(t1.type_id, t2.type_id)] = func
+        return func
 
 def compare_registered(t1, t2, checked=None):
     assert t1.isType()
@@ -111,7 +144,7 @@ def compare_registered(t1, t2, checked=None):
     finally:
         checked.pop()
 
-if _linda_server.register_types:
-    compare = compare_registered
-else:
-    compare = compare_unregistered
+#if _linda_server.register_types:
+#    compare = compare_registered
+#else:
+compare = compare_unregistered

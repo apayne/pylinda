@@ -27,7 +27,7 @@
 import threading
 
 from connections import broadcast_message, broadcast_firstreplyonly, broadcast_tonodes, sendMessageToNode
-from tuplecontainer import TupleContainer, doesMatch
+from tuplecontainer import TupleContainer, doesMatch, NoTupleMatch
 from messages import *
 
 ## \class TupleSpace
@@ -91,18 +91,22 @@ class TupleSpace:
 
             def check_blocked(tid):
                 # for each blocked process...
-                if doesMatch(self.blocked_list[tid][0], tup):
+                try:
+                    matched_tup = doesMatch(self.blocked_list[tid][0], tup)
+                except NoTupleMatch:
+                    pass
+                else:
                     # ... if the tuple matches their template wake them up.
                     pattern = self.blocked_list[tid][0]
                     destructive = self.blocked_list[tid][2]
                     del self.blocked_list[tid]
 
                     def do_return_tuple():
-                        utils.changeOwner(tup, self._id, utils.getProcessIdFromThreadId(tid))
+                        utils.changeOwner(matched_tup, self._id, utils.getProcessIdFromThreadId(tid))
                         req, ts = server.blocked_threads[tid]
                         del server.blocked_threads[tid]
                         req.lock.acquire()
-                        req.send(None, ("RESULT_TUPLE", tup))
+                        req.send(None, ("RESULT_TUPLE", matched_tup))
                         req.lock.release()
 
                         broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern)
@@ -145,8 +149,8 @@ class TupleSpace:
         try:
             try:
                 # try to match a tuple
-                r = self.ts.matchOneTuple(pattern)
-            except StopIteration:
+                real, matched = self.ts.matchOneTuple(pattern)
+            except NoTupleMatched:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
@@ -161,8 +165,8 @@ class TupleSpace:
                 self.blocked_list[tid] = (pattern, unblockable, False)
             else:
                 # we found a tuple so update the references and return it
-                utils.addReference(r, utils.getProcessIdFromThreadId(tid))
-                return r
+                utils.addReference(matched, utils.getProcessIdFromThreadId(tid))
+                return matched
         finally:
             self.lock.release()
 
@@ -175,7 +179,7 @@ class TupleSpace:
         try:
             try:
                 # try to match a tuple
-                r = self.ts.matchOneTuple(pattern)
+                real, matched = self.ts.matchOneTuple(pattern)
             except StopIteration:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
@@ -192,9 +196,9 @@ class TupleSpace:
                 self.blocked_list[tid] = (pattern, unblockable, True)
             else:
                 # we found a tuple so update the references and return it
-                self.ts.delete(r) # since this is destructive delete the tuple from the tuplespace
-                utils.changeOwner(r, self._id, utils.getProcessIdFromThreadId(tid))
-                return r
+                self.ts.delete(real) # since this is destructive delete the tuple from the tuplespace
+                utils.changeOwner(matched, self._id, utils.getProcessIdFromThreadId(tid))
+                return matched
         finally:
             self.lock.release()
 

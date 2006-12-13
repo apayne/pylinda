@@ -27,39 +27,70 @@ import _linda_server
 
 from match import compare
 
+if _linda_server.register_types:
+    from iso_cache import saveIso, lookupIso
+
+def identity(value):
+    return value
+
+class NoTupleMatch(Exception):
+    pass
+
 def doesMatch_registered(e1, e2):
     if isinstance(e1, tuple):
         if len(e1) != len(e2):
-            return False
+            raise NoTupleMatch
+        l = []
         for t1, t2 in zip(e1, e2):
-            if not doesMatch(t1, t2):
-                return False
-        return True
+            e = doesMatch(t1, t2)
+            if e is None:
+                raise NoTupleMatch
+            l.append(e)
+        return tuple(l)
     elif e1.isType():
         if e1.type_id == e2.type.type_id:
-            return True
-        elif compare(type_cache.lookupType(e1.type_id), type_cache.lookupType(e2.type.type_id)):
-            return True
+            return e2
+        try:
+            iso = lookupIso(e1, e2.type)
+        except KeyError:
+            iso = compare(type_cache.lookupType(e1.type_id), type_cache.lookupType(e2.type.type_id))
+            saveIso(e1, e2.type, iso)
+        return iso(e2)
     else:
         if e1.type.type_id == e2.type.type_id:
-            return e1 == e2
-        elif compare(type_cache.lookupType(e1.type.type_id), type_cache.lookupType(e2.type.type_id)) and e1 == e2:
-            return True
+            if e1 == e2:
+                return e2
+            else:
+                raise NoTupleMatch
+        try:
+            iso = lookupIso(e1.type, e2.type)
+        except KeyError:
+            iso = compare(type_cache.lookupType(e1.type.type_id), type_cache.lookupType(e2.type.type_id))
+            saveIso(e1.type, e2.type, iso)
+        e2 = iso(e2)
+        if e1 == e2:
+            return e2
+        else:
+            raise NoTupleMatch
 
 def doesMatch_unregistered(e1, e2):
     if isinstance(e1, tuple):
         if len(e1) != len(e2):
-            return False
+            raise NoTupleMatch
         for t1, t2 in zip(e1, e2):
             if not doesMatch(t1, t2):
-                return False
+                raise NoTupleMatch
         return True
     elif e1.isType():
         if compare(e1, e2.type):
             return True
+        else:
+            raise NoTupleMatch
     else:
         if compare(e1.type, e2.type) and e1 == e2:
             return True
+        else:
+            raise NoTupleMatch
 
 if _linda_server.register_types:
     import type_cache
@@ -81,18 +112,12 @@ class TupleContainer:
         for t in self.contain:
             if len(template) != len(t):
                 continue
-            #print "match", t, "against", template
-            sucess = 0
-            for e1, e2 in zip(template, t):
-                if doesMatch(e1, e2):
-                    sucess += 1
-                else:
-                    break
-            if sucess == len(template):
-                #print "yes"
-                yield t
-            #else:
-            #    print "no"
+            try:
+                r = doesMatch(template, t)
+            except NoTupleMatch:
+                pass
+            else:
+                yield (t, r)
 
     def matchAllTuples(self):
         return self.contain[:]
@@ -102,13 +127,11 @@ class TupleContainer:
             t = self.contain[i]
             if len(tup) != len(t):
                 continue
-            sucess = 0
-            for e1, e2 in zip(tup, t):
-                if doesMatch(e1, e2):
-                    sucess += 1
-                else:
-                    break
-            if sucess == len(tup):
+            try:
+                r = doesMatch(tup, t)
+            except NoTupleMatch:
+                pass
+            else:
                 del self.contain[i]
                 return
 
@@ -117,7 +140,6 @@ class TupleContainer:
 
     def count(self):
         return len(self.contain)
-
 
 #
 # Tuplecontainer uses a trie structure to provide an efficiant method of storing tuples

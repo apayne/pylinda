@@ -1,0 +1,3 @@
+env = Environment(CPPPATH=["/home/andrew/include", "/usr/include/libxml2"], LIBPATH=["/home/andrew/lib"])
+
+env.Program("sum2", "sum2.c", LIBS=["linda", "minimal", "readline", "xml2", "fl", "pthread"])
