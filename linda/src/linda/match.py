@@ -24,10 +24,12 @@ def identity(value):
     return value
 
 def compare_unregistered(t1, t2, checked=None):
-    assert t1.isType()
-    assert t2.isType()
-    assert t1.type_id != 0
-    assert t2.type_id != 0
+    try:
+        assert t1.isType()
+        assert t2.isType()
+    except:
+        print "Error matching types", t1, t2
+        raise
 
     func = None
 
@@ -43,6 +45,7 @@ def compare_unregistered(t1, t2, checked=None):
             func = identity
         elif t1.isId() and t2.isId():
             if t1.id in builtin or t2.id in builtin:
+                print t1.id, t2.id
                 if t1.id == t2.id:
                     func = identity
                 else:
@@ -67,20 +70,24 @@ def compare_unregistered(t1, t2, checked=None):
             map = [None for _ in range(len(t1))]
             for i in range(len(t1)):
                 for j in range(len(t2)):
+                    print "sum_type", map, i, j, len(t1), len(t2)
                     if j in map:
                         continue
-                    f = compare(t1[i], t2[i])
+                    f = compare(t1[i], t2[j])
                     if f is not None:
                         map[i] = j
+                print "done j"
                 if map[i] is None:
                     func = None
-            def func(value):
-                e1 = t1[value.sum_pos]
-                np = map[value.sum_pos]
-                e2 = t2[np]
-                v = checked[(e1.type_id, e2.type_id)](value)
-                v.sum_pos = np
-                return v
+            print "done i"
+            if None not in map:
+                def func(value):
+                    e1 = t1[value.sum_pos]
+                    np = map[value.sum_pos]
+                    e2 = t2[np]
+                    v = checked[(e1.type_id, e2.type_id)](value)
+                    v.sum_pos = np
+                    return v
         elif t1.isPtrType() and t2.isPtrType():
             f = compare(t1.ptrtype, t2.ptrtype, checked)
             if f is None:
@@ -93,7 +100,9 @@ def compare_unregistered(t1, t2, checked=None):
             raise SystemError
         else:
             func = None
-    finally:
+    except:
+        raise
+    else:
         checked[(t1.type_id, t2.type_id)] = func
         return func
 

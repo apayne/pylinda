@@ -36,6 +36,7 @@ unsigned char Minimal_isBuiltIn(char* type_name) {
        strcmp(type_name, "bool") == 0 || 
        strcmp(type_name, "asciichar") == 0 || 
        strcmp(type_name, "unicodechar") == 0 || 
+       strcmp(type_name, "string") == 0 || 
        strcmp(type_name, "type") == 0 || 
        strcmp(type_name, "tuplespace") == 0
     ) {

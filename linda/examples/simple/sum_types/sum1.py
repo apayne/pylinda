@@ -4,7 +4,7 @@ import linda
 
 linda.connect()
 
-t = linda.Type("t :: int + string;")
+t = linda.Type("tpy :: int + string;")
 
 v = linda.Value(1, t)
 v.sum_pos = 0

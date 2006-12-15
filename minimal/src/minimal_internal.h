@@ -106,10 +106,7 @@ struct ValueMemo_t {
 };
 typedef struct ValueMemo_t ValueMemo;
 
-typedef MinimalValue* Minimal_TypeList;
-
 unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type);
-Minimal_TypeList Minimal_getTypeList(MinimalValue type);
 void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minimal_TypeList* list);
 void Minimal_freeTypeList(Minimal_TypeList list);
 

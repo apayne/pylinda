@@ -64,6 +64,7 @@ struct Message_t {
         REGISTER_PROCESS,
         REGISTER_THREAD,
         REGISTER_TYPE,
+        UPDATE_TYPE,
 /* Server Messages */
         MY_NAME_IS,
         GET_NODE_ID,
@@ -83,7 +84,6 @@ struct Message_t {
          char* string;
          int i;
          LindaValue tuple;
-         LindaValue typeobj;
          LindaValue ts;
          struct {
              LindaValue ts;
@@ -112,6 +112,10 @@ struct Message_t {
             LindaValue ts;
             MinimalValue t;
          } tuple_request;
+        struct {
+            int type_id;
+            LindaValue typeobj;
+        } typestruct;
      };
 };
 
@@ -152,6 +156,7 @@ Message* Message_register_process();
 Message* Message_register_thread();
 #ifdef REGISTER_TYPES
 Message* Message_register_type(LindaValue v);
+Message* Message_update_type(int type_id, LindaValue v);
 #endif
 
 Message* Message_my_name_is(char* name);

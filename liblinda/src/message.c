@@ -227,11 +227,24 @@ char* Message_getString(Message* msg) {
         break;
 #ifdef REGISTER_TYPES
     case REGISTER_TYPE:
+        {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_type");
         xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
-        Minimal_serialiseXML(doc, e, msg->typeobj, 1);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, 1);
         break;
+        }
+    case UPDATE_TYPE:
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"update_type");
+        v = Linda_int(msg->i);
+        Minimal_serialiseXML(doc, root, v, 0);
+        Linda_delReference(v);
+        xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
+        xmlAddChild(root, e);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, 1);
+        break;
+        }
 #endif
     case GET_NODE_ID:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_node_id");
@@ -535,7 +548,16 @@ Message* Message_register_type(LindaValue type) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = REGISTER_TYPE;
     Linda_addReference(type);
-    m->typeobj = type;
+    m->typestruct.typeobj = type;
+    return m;
+}
+
+Message* Message_update_type(int type_id, LindaValue type) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = UPDATE_TYPE;
+    m->typestruct.type_id = type_id;
+    Linda_addReference(type);
+    m->typestruct.typeobj = type;
     return m;
 }
 
@@ -685,7 +707,10 @@ void Message_free(Message* msg) {
         free(msg->string);
         break;
     case REGISTER_TYPE:
-        Linda_delReference(msg->typeobj);
+        Linda_delReference(msg->typestruct.typeobj);
+        break;
+    case UPDATE_TYPE:
+        Linda_delReference(msg->typestruct.typeobj);
         break;
     case MY_NAME_IS:
         free(msg->string);

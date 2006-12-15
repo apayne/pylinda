@@ -30,14 +30,23 @@ def registerType(type):
 
     cache_lock.acquire()
     try:
-        for tid in __cache:
-            t = __cache[tid]
-            if t == type:
-                return tid
+        #for tid in __cache:
+        #    t = __cache[tid]
+        #    if t == type:
+        #        return tid
 
         id = getTypeId()
         __cache[id] = type
         return id
+    finally:
+        cache_lock.release()
+
+def updateType(type_id, type):
+    assert type.isType()
+
+    cache_lock.acquire()
+    try:
+        __cache[type_id] = type
     finally:
         cache_lock.release()
 

@@ -41,7 +41,7 @@ import _linda_server
 import utils as utils
 
 if _linda_server.register_types:
-    from type_cache import registerType, emptyTypeCache
+    from type_cache import registerType, updateType, emptyTypeCache
     from iso_cache import emptyIsoCache
 
 process_id = utils.Counter()
@@ -157,15 +157,18 @@ class LindaConnection:
         type = data[0]
 
         typeid = registerType(type)
+        print "register", type, typeid
 
         req.send(msgid, ("RESULT_INT", typeid))
 
     def update_type(self, req, msgid, message, data):
-        type_id, type = date[0], data[1]
+        type_id, type = data[0], data[1]
 
+        type.type_id = type_id
         updateType(type_id, type)
+        print "update", type, type_id
 
-        req.send(msgid, ("RESULT_INT", typeid))
+        req.send(msgid, ("DONE", ))
 
     def unregister_thread(self, req, msgid, message, data):
         # if a process is about to disconnect they can let us know first

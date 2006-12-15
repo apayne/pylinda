@@ -317,14 +317,32 @@ void Linda_registerType(LindaValue t) {
     if(t->type_id != 0) {
         return;
     } else if(Linda_active_connections > 0) {
+        int i;
         Linda_thread_data* tdata = Linda_get_thread_data();
-        Message* m = Message_register_type(t);
-        Message_send(tdata->sd, NULL, m);
-        Message_free(m);
-        m = Message_recv(tdata->sd);
-        if(m == NULL) { return; }
-        t->type_id = m->i;
-        Message_free(m);
+
+        Minimal_TypeList types = Minimal_getTypeList(t);
+        for(i = 0; types[i] != NULL; i++) {
+            if(t->type_id != 0) { continue; }
+            Message* m = Message_register_type(types[i]);
+            Message_send(tdata->sd, NULL, m);
+            Message_free(m);
+            m = Message_recv(tdata->sd);
+            if(m == NULL) { free(types); return; }
+            t->type_id = m->i;
+            Message_free(m);
+        }
+        for(i = 0; types[i] != NULL; i++) {
+            int type_id = types[i]->type_id;
+            types[i]->type_id = 0; /* Force type spec to be produced by hiding the type_id. */
+            Message* m = Message_update_type(type_id, types[i]);
+            Message_send(tdata->sd, NULL, m);
+            Message_free(m);
+            types[i]->type_id = type_id;
+            m = Message_recv(tdata->sd);
+            if(m == NULL) { free(types); return; }
+            Message_free(m);
+        }
+        free(types);
     } else if(Linda_unregistered_type_list == NULL) {
         Linda_unregistered_type_list = malloc(sizeof(void*)*2);
         Linda_addReference(t);

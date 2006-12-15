@@ -228,7 +228,10 @@ static PyObject* linda_Value_isLong(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isNil(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_NIL) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_NIL) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -239,7 +242,10 @@ static PyObject* linda_Value_isNil(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isId(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_IDENTIFIER) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_IDENTIFIER) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -250,7 +256,10 @@ static PyObject* linda_Value_isId(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isProductType(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_PRODUCT_TYPE) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_PRODUCT_TYPE) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -261,7 +270,10 @@ static PyObject* linda_Value_isProductType(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isSumType(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_SUM_TYPE) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_SUM_TYPE) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -272,7 +284,10 @@ static PyObject* linda_Value_isSumType(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isPtrType(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_POINTER) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_POINTER) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -283,7 +298,10 @@ static PyObject* linda_Value_isPtrType(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isFunctionType(linda_ValueObject* self) {
     if(!Linda_isType(self->val)) { return NULL; }
-    if(self->val->type_spec->type == ST_TYPE_FUNCTION) {
+    if(self->val->type_spec == NULL) {
+        Py_INCREF(Py_False);
+        return Py_False;
+    } else if(self->val->type_spec->type == ST_TYPE_FUNCTION) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {

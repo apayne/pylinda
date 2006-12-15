@@ -5,7 +5,7 @@ int main(int argc, char* argv[]) {
 
     Linda_connect(Linda_port);
 
-    LindaValue t = Linda_type("t :: string + int;");
+    LindaValue t = Linda_type("tc :: string + int;");
 
     LindaValue template = Linda_tuple(2);
     Linda_tupleSet(template, 0, Linda_string("py"));

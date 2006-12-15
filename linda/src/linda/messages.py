@@ -27,6 +27,7 @@ dont_know = "DONT_KNOW" # Don't know the answer
 register_process = "REGISTER_PROCESS" # Sent by a client process to get an id
 register_thread = "REGISTER_THREAD" # Sent by a client thread to get an id
 register_type = "REGISTER_TYPE" # Sent by a client to get an type id
+update_type = "UPDATE_TYPE" # Sent by a client to update a registered type
 
 unregister_server = "unregister_server"
 

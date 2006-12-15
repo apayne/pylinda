@@ -412,10 +412,10 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         } else {
             xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
             value = Minimal_typeSpec((char*)name, tree);
-            Minimal_SyntaxTree_free(tree);
             free(name);
             Minimal_setTypeMap(value, types);
         }
+        if(tree != NULL) { Minimal_SyntaxTree_free(tree); }
     } else if(strcmp((char*)(node->name), "false") == 0) {
         value = Minimal_bool(0);
     } else if(strcmp((char*)(node->name), "true") == 0) {
