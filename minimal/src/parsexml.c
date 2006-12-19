@@ -47,20 +47,22 @@ Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
 
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
     if(strcmp((char*)(node->name), "minimal") == 0) {
+        int i = 0;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-        Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_SEQENTIAL_DEFS;
+        tree->branches = NULL;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
-                tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                tree2->branch2 = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-                tree2 = tree2->branch2;
-                tree2->type = ST_SEQENTIAL_DEFS;
+                Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
+                memcpy(b, tree->branches, sizeof(void*) * i);
+                free(tree->branches); tree->branches = b;
+                tree->branches[i] = Minimal_xmlToSyntaxTree(cur_node);
+                i++;
             }
             cur_node = cur_node->next;
         }
-        tree2->type = ST_BLANK;
+        tree->length = i;
         return tree;
     } else if(strcmp((char*)(node->name), "function") == 0) {
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
@@ -78,63 +80,53 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         }
         return tree;
     } else if(strcmp((char*)(node->name), "product_type") == 0) {
+        int i = 0;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-        Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_PRODUCT_TYPE;
-        tree->branch1 = NULL;
-        tree->branch2 = NULL;
+        tree->branches = NULL;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
-                if(tree2->branch1 == NULL) {
-                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                } else {
-                    tree2->branch2 = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-                    tree2 = tree2->branch2;
-                    tree2->type = ST_PRODUCT_TYPE;
-                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                    tree2->branch2 = NULL;
-                }
+                Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
+                memcpy(b, tree->branches, sizeof(void*) * i);
+                free(tree->branches); tree->branches = b;
+                tree->branches[i] = Minimal_xmlToSyntaxTree(cur_node);
+                i++;
             }
             cur_node = cur_node->next;
         }
+        tree->length = i;
         return tree;
     } else if(strcmp((char*)(node->name), "sum_type") == 0) {
+        int i = 0;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-        Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_SUM_TYPE;
-        tree->branch1 = NULL;
-        tree->branch2 = NULL;
+        tree->branches = NULL;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
-                if(tree2->branch1 == NULL) {
-                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                } else {
-                    tree2->branch2 = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-                    tree2 = tree2->branch2;
-                    tree2->type = ST_PRODUCT_TYPE;
-                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                    tree2->branch2 = NULL;
-                }
+                Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
+                memcpy(b, tree->branches, sizeof(void*) * i);
+                free(tree->branches); tree->branches = b;
+                tree->branches[i] = Minimal_xmlToSyntaxTree(cur_node);
+                i++;
             }
             cur_node = cur_node->next;
         }
+        tree->length = i;
         return tree;
     } else if(strcmp((char*)(node->name), "type_function") == 0) {
+        int i;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_TYPE_FUNCTION;
-        tree->branch1 = NULL;
-        tree->branch2 = NULL;
+        tree->length = 2;
+        tree->branches = (Minimal_SyntaxTree**)malloc(sizeof(void*) * 2);
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE) {
-                if(tree2->branch1 == NULL) {
-                    tree2->branch1 = Minimal_xmlToSyntaxTree(cur_node);
-                } else {
-                    tree2->branch2 = Minimal_xmlToSyntaxTree(cur_node);
-                }
+            if(cur_node->type == XML_ELEMENT_NODE && i < 2) {
+                tree2->branches[i] = Minimal_xmlToSyntaxTree(cur_node);
+                i++;
             }
             cur_node = cur_node->next;
         }

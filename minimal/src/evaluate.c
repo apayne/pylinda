@@ -56,9 +56,13 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         return Minimal_int(tree->integer);
     case ST_SEQENTIAL_DEFS:
         {
-        MinimalValue v = Minimal_evaluate(tree->branch1, layer);
-        if(v != NULL) { Minimal_delReference(v); }
-        return Minimal_evaluate(tree->branch2, layer);
+        int i;
+        MinimalValue v;
+        for(i = 0; i < tree->length-1; i++) {
+            v = Minimal_evaluate(tree->branches[i], layer);
+            if(v != NULL) { Minimal_delReference(v); }
+        }
+        return Minimal_evaluate(tree->branches[i+1], layer);
         }
     case ST_TYPE_SPEC:
         Minimal_Layer_addTree(layer, tree);

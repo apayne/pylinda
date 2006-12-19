@@ -315,7 +315,7 @@ MinimalValue Minimal_function(char* code) {
     while(tree2->type != ST_TYPE_SPEC && tree2->type != ST_FUNCTION_DEF) {
         switch(tree2->type) {
         case ST_SEQENTIAL_DEFS:
-            tree2 = tree2->branch1;
+            tree2 = tree2->branches[0];
             break;
         default:
             fprintf(stderr, "Error: Tried to parse function but didn't get a function back - got %i.\n", tree2->type);

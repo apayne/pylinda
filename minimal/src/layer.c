@@ -55,12 +55,14 @@ MinimalLayer Minimal_getCurrentLayer() {
 }
 
 void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree) {
+    int i;
     switch(tree->type) {
     case ST_BLANK:
         break;
     case ST_SEQENTIAL_DEFS:
-        Minimal_Layer_addTree(layer, tree->branch1);
-        Minimal_Layer_addTree(layer, tree->branch2);
+        for(i = 0; i < tree->length; i++) {
+            Minimal_Layer_addTree(layer, tree->branches[i]);
+        }
         break;
     case ST_TYPE_SPEC:
         {

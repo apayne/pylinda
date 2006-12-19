@@ -42,9 +42,20 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                         } else if($2.type == ST_BLANK) {
                             $$ = $1;
                         } else {
-                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                            $$.type = ST_SEQENTIAL_DEFS;
+                            if($1.type != ST_SEQENTIAL_DEFS) {
+                                $$.type = ST_SEQENTIAL_DEFS;
+                                $$.length = 2;
+                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            } else {
+                                $$ = $1;
+                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
+                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                                free($$.branches); $$.branches = b;
+                                $$.length++;
+                            }
                         }
                         yy_result = $$;
                         }
@@ -54,9 +65,20 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                         } else if($2.type == ST_BLANK) {
                             $$ = $1;
                         } else {
-                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                            $$.type = ST_SEQENTIAL_DEFS;
+                            if($1.type != ST_SEQENTIAL_DEFS) {
+                                $$.type = ST_SEQENTIAL_DEFS;
+                                $$.length = 2;
+                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            } else {
+                                $$ = $1;
+                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
+                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                                free($$.branches); $$.branches = b;
+                                $$.length++;
+                            }
                         }
                         yy_result = $$;
                         }
@@ -66,9 +88,20 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                         } else if($2.type == ST_BLANK) {
                             $$ = $1;
                         } else {
-                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branch2 = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                            $$.type = ST_SEQENTIAL_DEFS;
+                            if($1.type != ST_SEQENTIAL_DEFS) {
+                                $$.type = ST_SEQENTIAL_DEFS;
+                                $$.length = 2;
+                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            } else {
+                                $$ = $1;
+                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
+                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                                free($$.branches); $$.branches = b;
+                                $$.length++;
+                            }
                         }
                         yy_result = $$;
                         }
@@ -89,19 +122,25 @@ typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
                   }
                 }
         | typespec YY_FUNCTION typespec {
-                        $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                        $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         $$.type = ST_TYPE_FUNCTION;
+                        $$.length = 2;
+                        $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                        $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                        $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         }
         | typespec YY_OPERATOR typespec {
                         if(strcmp($2.string, "*") == 0) {
                             $$.type = ST_PRODUCT_TYPE;
-                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                            $$.length = 2;
+                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                            $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         } else if(strcmp($2.string, "+") == 0) {
                             $$.type = ST_SUM_TYPE;
-                            $$.branch1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branch2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                            $$.length = 2;
+                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
+                            $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                            $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
                         } else {
                             fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2.string);
                             $$.type = ST_BLANK;

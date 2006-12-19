@@ -453,24 +453,24 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_function", NULL);
         xmlAddChild(parent, node);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1, typemap);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2, typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[0], typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[1], typemap);
         return;
         }
     case ST_PRODUCT_TYPE:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"product_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1, typemap);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2, typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[0], typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[1], typemap);
         return;
         }
     case ST_SUM_TYPE:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"sum_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch1, typemap);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branch2, typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[0], typemap);
+        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[1], typemap);
         return;
         }
     case ST_POINTER:

@@ -67,21 +67,27 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         }
         break;
     case ST_TYPE_FUNCTION:
-        Minimal_getTypeList2(type->branch1, typemap, list);
-        Minimal_getTypeList2(type->branch2, typemap, list);
+        Minimal_getTypeList2(type->branches[0], typemap, list);
+        Minimal_getTypeList2(type->branches[1], typemap, list);
         break;
     case ST_PRODUCT_TYPE:
-        Minimal_getTypeList2(type->branch1, typemap, list);
-        if(type->branch2 != NULL) {
-            Minimal_getTypeList2(type->branch2, typemap, list);
+        {
+        int i;
+        Minimal_getTypeList2(type->branches[0], typemap, list);
+        for(i = 1; i < type->length; i++) {
+            Minimal_getTypeList2(type->branches[i], typemap, list);
         }
         break;
+        }
     case ST_SUM_TYPE:
-        Minimal_getTypeList2(type->branch1, typemap, list);
-        if(type->branch2 != NULL) {
-            Minimal_getTypeList2(type->branch2, typemap, list);
+        {
+        int i;
+        Minimal_getTypeList2(type->branches[0], typemap, list);
+        for(i = 1; i < type->length; i++) {
+            Minimal_getTypeList2(type->branches[i], typemap, list);
         }
         break;
+        }
     case ST_POINTER:
         {
         if(!Minimal_isBuiltIn(type->ptr)) {

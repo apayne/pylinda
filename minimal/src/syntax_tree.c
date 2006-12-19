@@ -102,10 +102,16 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->integer = tree->integer;
         return ntree;
     case ST_SEQENTIAL_DEFS:
+        {
+        int i;
         ntree->type = ST_SEQENTIAL_DEFS;
-        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
-        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        ntree->length = tree->length;
+        ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*ntree->length);
+        for(i = 0; i < tree->length; i++) {
+            ntree->branches[i] = Minimal_SyntaxTree_copy(tree->branches[i]);
+        }
         return ntree;
+        }
     case ST_TYPE_SPEC:
         ntree->type = ST_TYPE_SPEC;
         ntree->type_name = (char*)malloc(strlen(tree->type_name)+1);
@@ -114,8 +120,10 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         return ntree;
     case ST_TYPE_FUNCTION:
         ntree->type = ST_TYPE_FUNCTION;
-        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
-        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        ntree->length = 2;
+        ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*tree->length);
+        ntree->branches[0] = Minimal_SyntaxTree_copy(tree->branches[0]);
+        ntree->branches[1] = Minimal_SyntaxTree_copy(tree->branches[1]);
         return ntree;
     case ST_FUNCTION_DEF:
         ntree->type = ST_FUNCTION_DEF;
@@ -149,15 +157,17 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         return ntree;
     case ST_PRODUCT_TYPE:
         ntree->type = ST_PRODUCT_TYPE;
-        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
-        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        ntree->length = 2;
+        ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*ntree->length);
+        ntree->branches[0] = Minimal_SyntaxTree_copy(tree->branches[0]);
+        ntree->branches[1] = Minimal_SyntaxTree_copy(tree->branches[1]);
         return ntree;
     case ST_SUM_TYPE:
         ntree->type = ST_SUM_TYPE;
-        ntree->branch1 = NULL;
-        ntree->branch1 = Minimal_SyntaxTree_copy(tree->branch1);
-        ntree->branch2 = NULL;
-        ntree->branch2 = Minimal_SyntaxTree_copy(tree->branch2);
+        ntree->length = 2;
+        ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*ntree->length);
+        ntree->branches[0] = Minimal_SyntaxTree_copy(tree->branches[0]);
+        ntree->branches[1] = Minimal_SyntaxTree_copy(tree->branches[1]);
         return ntree;
     case ST_TUPLE:
         {
@@ -193,17 +203,27 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     case ST_INTEGER:
         break;
     case ST_SEQENTIAL_DEFS:
-        Minimal_SyntaxTree_free(tree->branch1);
-        Minimal_SyntaxTree_free(tree->branch2);
+        {
+        int i;
+        for(i=0; i<tree->size; i++) {
+            Minimal_SyntaxTree_free(tree->branches[i]);
+        }
+        free(tree->branches);
         break;
+        }
     case ST_TYPE_SPEC:
         free(tree->type_name);
         Minimal_SyntaxTree_free(tree->type_def);
         break;
     case ST_TYPE_FUNCTION:
-        Minimal_SyntaxTree_free(tree->branch1);
-        Minimal_SyntaxTree_free(tree->branch2);
+        {
+        int i;
+        for(i=0; i<tree->size; i++) {
+            Minimal_SyntaxTree_free(tree->branches[i]);
+        }
+        free(tree->branches);
         break;
+        }
     case ST_FUNCTION_DEF:
         free(tree->func_name);
         Minimal_SyntaxTree_free(tree->parameter_list);
@@ -227,13 +247,23 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
         Minimal_SyntaxTree_free(tree->op2);
         break;
     case ST_PRODUCT_TYPE:
-        Minimal_SyntaxTree_free(tree->branch1);
-        Minimal_SyntaxTree_free(tree->branch2);
+        {
+        int i;
+        for(i=0; i<tree->size; i++) {
+            Minimal_SyntaxTree_free(tree->branches[i]);
+        }
+        free(tree->branches);
         break;
+        }
     case ST_SUM_TYPE:
-        Minimal_SyntaxTree_free(tree->branch1);
-        Minimal_SyntaxTree_free(tree->branch2);
+        {
+        int i;
+        for(i=0; i<tree->size; i++) {
+            Minimal_SyntaxTree_free(tree->branches[i]);
+        }
+        free(tree->branches);
         break;
+        }
     case ST_TUPLE:
         {
         int i;
@@ -282,12 +312,20 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
         }
     case ST_SEQENTIAL_DEFS:
         {
-        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
-        if(i != 0) {
-            return i;
-        } else {
-            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        int i;
+        int c;
+        if(t1->length < t2->length) {
+            return -1;
+        } else if(t1->length > t2->length) {
+            return 1;
         }
+        for(i = 0; i < t1->length; i++) {
+            c = Minimal_SyntaxTree_cmp(t1->branches[i], t2->branches[i]);
+            if(c != 0) {
+                return c;
+            }
+        }
+        return 0;
         }
     case ST_TYPE_SPEC:
         if(strcmp(t1->type_name, t2->type_name) != 0) {
@@ -297,12 +335,20 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
         }
     case ST_TYPE_FUNCTION:
         {
-        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
-        if(i != 0) {
-            return 0;
-        } else {
-            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        int i;
+        int c;
+        if(t1->length < t2->length) {
+            return -1;
+        } else if(t1->length > t2->length) {
+            return 1;
         }
+        for(i = 0; i < t1->length; i++) {
+            c = Minimal_SyntaxTree_cmp(t1->branches[i], t2->branches[i]);
+            if(c != 0) {
+                return c;
+            }
+        }
+        return 0;
         }
     case ST_FUNCTION_DEF:
         if(strcmp(t1->func_name, t2->func_name) != 0) {
@@ -356,21 +402,37 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
         }
     case ST_PRODUCT_TYPE:
         {
-        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
-        if(i != 0) {
-            return i;
-        } else {
-            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        int i;
+        int c;
+        if(t1->length < t2->length) {
+            return -1;
+        } else if(t1->length > t2->length) {
+            return 1;
         }
+        for(i = 0; i < t1->length; i++) {
+            c = Minimal_SyntaxTree_cmp(t1->branches[i], t2->branches[i]);
+            if(c != 0) {
+                return c;
+            }
+        }
+        return 0;
         }
     case ST_SUM_TYPE:
         {
-        int i = Minimal_SyntaxTree_cmp(t1->branch1, t2->branch1);
-        if(i != 0) {
-            return i;
-        } else {
-            return Minimal_SyntaxTree_cmp(t1->branch2, t2->branch2);
+        int i;
+        int c;
+        if(t1->length < t2->length) {
+            return -1;
+        } else if(t1->length > t2->length) {
+            return 1;
         }
+        for(i = 0; i < t1->length; i++) {
+            c = Minimal_SyntaxTree_cmp(t1->branches[i], t2->branches[i]);
+            if(c != 0) {
+                return c;
+            }
+        }
+        return 0;
         }
     case ST_TUPLE:
         if(t1->size < t2->size) {

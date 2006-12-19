@@ -20,6 +20,9 @@ import _linda_server
 
 builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
 
+if _linda_server.register_types:
+    from type_cache import lookupType
+
 def identity(value):
     return value
 
@@ -33,25 +36,35 @@ def compare_unregistered(t1, t2, checked=None):
 
     func = None
 
+    print t1.type_id, t2.type_id
     if checked is None:
         checked = {(t1.type_id, t2.type_id): func}
-    elif (t1.type_id, t2.type_id) in checked:
+    elif (t1.type_id != 0 and t2.type_id != 0) and (t1.type_id, t2.type_id) in checked:
         return lambda value: checked[(t1.type_id,t2.type_id)](value)
-    else:
+    elif (t1.type_id != 0 and t2.type_id != 0):
         checked[(t1.type_id, t2.type_id)] = func
+    print checked
 
     try:
         if t1.isNil() and t2.isNil():
             func = identity
         elif t1.isId() and t2.isId():
-            if t1.id in builtin or t2.id in builtin:
+            if t1.type_id != 0 or t2.type_id != 0:
+                if t1.type_id == t2.type_id:
+                    func = identity
+                else:
+                    func = compare(lookupType(t1.type_id), lookupType(t2.type_id), checked)
+            elif t1.id in builtin or t2.id in builtin:
                 print t1.id, t2.id
                 if t1.id == t2.id:
                     func = identity
                 else:
                     func = None
             else:
-                func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                try:
+                    func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                except IndexError:
+                    raise IndexError, "%s in %s, or %s in %s" % (t1.id, t1.typemap.keys(), t2.id, t2.typemap.keys())
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
                 return None
@@ -72,13 +85,17 @@ def compare_unregistered(t1, t2, checked=None):
                 for j in range(len(t2)):
                     print "sum_type", map, i, j, len(t1), len(t2)
                     if j in map:
+                        print "continue"
                         continue
-                    f = compare(t1[i], t2[j])
+                    print "compare"
+                    f = compare(t1[i], t2[j], checked)
                     if f is not None:
+                        print "got func"
                         map[i] = j
                 print "done j"
                 if map[i] is None:
                     func = None
+                    break
             print "done i"
             if None not in map:
                 def func(value):
@@ -99,6 +116,9 @@ def compare_unregistered(t1, t2, checked=None):
             res_func = compare(t1.result, t2.result, checked)
             raise SystemError
         else:
+            print "different types", t1, t2
+            print t1.isNil(), t1.isId(), t1.isProductType(), t1.isSumType(), t1.isPtrType(), t1.isFunctionType()
+            print t2.isNil(), t2.isId(), t2.isProductType(), t2.isSumType(), t2.isPtrType(), t2.isFunctionType()
             func = None
     except:
         raise

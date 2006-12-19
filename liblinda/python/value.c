@@ -352,7 +352,7 @@ static PyObject* linda_Value_getstring(linda_ValueObject *self, void *closure) {
 static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getArg - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
-    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch1));
+    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[0]));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
     return Value2PyO(val);
@@ -361,7 +361,7 @@ static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
 static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getResult - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
-    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branch2));
+    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[1]));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
     return Value2PyO(val);
@@ -427,11 +427,7 @@ static PyGetSetDef value_getseters[] = {
 
 static Py_ssize_t linda_Value_len(linda_ValueObject *self) {
     if(Linda_isType(self->val)) {
-        if(self->val->type_spec->branch2 != NULL) {
-            return 2;
-        } else {
-            return 1;
-        }
+        return self->val->type_spec->length;
     } else {
         return Linda_getTupleSize(self->val);
     }
@@ -442,12 +438,7 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
         PyErr_SetString(PyExc_IndexError, "Index out of range for tuple.");
         return NULL;
     } else if(Linda_isType(self->val)) {
-        Minimal_SyntaxTree* tree;
-        if(index == 0) {
-            tree = Minimal_SyntaxTree_copy(self->val->type_spec->branch1);
-        } else {
-            tree = Minimal_SyntaxTree_copy(self->val->type_spec->branch2);
-        }
+        Minimal_SyntaxTree* tree = Minimal_SyntaxTree_copy(self->val->type_spec->branches[index]);
         LindaValue val = Minimal_typeSpec(self->val->type_name, tree);
         Minimal_SyntaxTree_free(tree);
         Linda_addReference((void*)(self->val->typemap));

@@ -55,11 +55,6 @@ static void linda_TypeMap_dealloc(linda_TypeMapObject* self) {
     self->ob_type->tp_free(self);
 }
 
-static PyMethodDef typemap_methods[] = {
-    /* {"setSumPos", (PyCFunction)linda_Value_setSumPos, METH_VARARGS, ""}, */
-    {NULL}  /* Sentinel */
-};
-
 static PyGetSetDef typemap_getseters[] = {
     /* {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL}, */
     {NULL}  /* Sentinel */
@@ -91,6 +86,29 @@ PyMappingMethods linda_TypeMapMappingMethods = {
         (lenfunc)linda_TypeMapLen, /* lenfunc mp_length; */
         (binaryfunc)linda_TypeMapSubScript, /* binaryfunc mp_subscript; */
         0, /* objobjargproc mp_ass_subscript; */
+};
+
+static void find_names(struct Minimal_NameValueMap_t* map, PyObject* list) {
+    if(map == NULL) {
+        return;
+    } else if(map->name != NULL) {
+        PyList_Append(list, PyString_FromString(map->name));
+    }
+    find_names(map->left, list);
+    find_names(map->right, list);
+}
+
+static PyObject* linda_TypeMap_keys(linda_TypeMapObject* self) {
+    PyObject* list = Py_BuildValue("[]");
+
+    find_names(&(self->map->map), list);
+
+    return list;
+}
+
+static PyMethodDef typemap_methods[] = {
+    {"keys", (PyCFunction)linda_TypeMap_keys, METH_NOARGS, ""},
+    {NULL}  /* Sentinel */
 };
 
 PyTypeObject linda_TypeMapType = {

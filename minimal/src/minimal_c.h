@@ -203,8 +203,8 @@ struct Minimal_SyntaxTree_t {
         double floating;
         char* string;
         struct {
-            struct Minimal_SyntaxTree_t* branch1;
-            struct Minimal_SyntaxTree_t* branch2;
+            int length;
+            struct Minimal_SyntaxTree_t** branches;
         };
         struct {
             char* type_name;
