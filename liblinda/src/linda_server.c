@@ -68,6 +68,7 @@ void Linda_init() {
 
     Minimal_init();
 
+#ifdef TYPES
     Linda_typeType = Linda_type("typetype :: type;");
     Linda_typeType->typeobj = Linda_typeType;
     Linda_nilType = Linda_type("niltype :: Nil;");
@@ -76,6 +77,8 @@ void Linda_init() {
     Linda_floatType = Linda_type("floattype :: float;");
     Linda_stringType = Linda_type("stringtype :: string;");
     Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
+#endif
+
     Linda_uts = Minimal_tupleSpace("UTS");
 }
 

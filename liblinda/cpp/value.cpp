@@ -57,11 +57,12 @@ template<> TupleSpace Value::get() {
     return TupleSpace(Linda_copy(this->value));
 }
 
+#ifdef TYPES
 Value boolType(Linda_boolType);
 Value intType(Linda_intType);
 Value floatType(Linda_floatType);
 Value stringType(Linda_stringType);
 Value tuplespaceType(Linda_tupleSpaceType);
+#endif
 
 }
-

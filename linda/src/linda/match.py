@@ -20,11 +20,20 @@ import _linda_server
 
 builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
 
-if _linda_server.register_types:
+if _linda_server.use_types and _linda_server.register_types:
     from type_cache import lookupType
 
 def identity(value):
     return value
+
+def compare_notypes(t1, t2):
+    assert t1.isType()
+    assert t2.isType()
+
+    assert t1.isId()
+    assert t2.isId()
+
+    return t1.id == t2.id
 
 def compare_unregistered(t1, t2, checked=None):
     try:
@@ -173,7 +182,9 @@ def compare_registered(t1, t2, checked=None):
     finally:
         checked.pop()
 
-#if _linda_server.register_types:
-#    compare = compare_registered
-#else:
-compare = compare_unregistered
+if not _linda_server.use_types:
+    compare = compare_notypes
+elif _linda_server.register_types:
+    compare = compare_registered
+else:
+    compare = compare_unregistered

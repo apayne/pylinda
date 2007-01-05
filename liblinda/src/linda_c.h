@@ -34,24 +34,33 @@ typedef MinimalValue LindaValue;
 #define Linda_typeType Minimal_typeType
 #define Linda_nilType Minimal_nilType
 #define Linda_boolType Minimal_boolType
+#ifdef TYPES
 #define Linda_byteType Minimal_byteType
 #define Linda_shortType Minimal_shortType
+#endif
 #define Linda_intType Minimal_intType
 #define Linda_longType Minimal_longType
+#ifdef TYPES
 #define Linda_ubyteType Minimal_ubyteType
 #define Linda_ushortType Minimal_ushortType
 #define Linda_uintType Minimal_uintType
 #define Linda_ulongType Minimal_ulongType
+#endif
 #define Linda_floatType Minimal_floatType
 #define Linda_stringType Minimal_stringType
 #define Linda_tupleSpaceType Minimal_tupleSpaceType
 
+#ifdef TYPES
 extern unsigned char Linda_register_types;
+#endif
 
+#ifdef TYPES
 static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_setType(value, type); }
+#endif
+static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
+
 static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
 static inline int Linda_getSumPos(LindaValue value) { return Minimal_getSumPos(value); }
-static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
 
 static inline unsigned char Linda_isNil(LindaValue v) { return Minimal_isNil(v); }
 static inline LindaValue Linda_nil() { return Minimal_nil(); }
@@ -74,11 +83,13 @@ static inline float Linda_getFloat(LindaValue v) { return Minimal_getFloat(v); }
 
 static inline unsigned char Linda_isType(LindaValue v) { return Minimal_isType(v); }
 
+#ifdef TYPES
 #ifdef REGISTER_TYPES
 void Linda_registerType(LindaValue v);
 #endif
 
 static inline LindaValue Linda_type(const char* typespec) { return Minimal_type(typespec); }
+#endif
 
 static inline unsigned char Linda_isString(LindaValue v) { return Minimal_isString(v); }
 static inline LindaValue Linda_string(char* s) { return Minimal_string(s); }

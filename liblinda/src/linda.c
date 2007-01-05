@@ -44,10 +44,15 @@ unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
 
+#ifndef TYPES
+unsigned char Linda_use_types = 0;
+#else
+unsigned char Linda_use_types = 1;
 #ifdef REGISTER_TYPES
 unsigned char Linda_register_types = 1;
 #else
 unsigned char Linda_register_types = 0;
+#endif
 #endif
 
 LindaValue* Linda_unregistered_type_list = NULL;
@@ -56,7 +61,12 @@ void Linda_init() {
     if(Linda_inited) { return; }
     Linda_inited = 1;
 
+#ifdef TYPES
+    Minimal_use_types = 1;
     Minimal_setOverrideTypeFunc(Linda_registerType);
+#else
+    Minimal_use_types = 0;
+#endif
 
     Minimal_init();
 
@@ -190,6 +200,7 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
     r = Linda_copy(m->tuple);
     Message_free(m);
 
+#ifdef TYPES
     int i;
     for(i = 0; i < Linda_getTupleSize(r); i++) {
         LindaValue v1 = Linda_tupleGet(t, i);
@@ -197,6 +208,7 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
 
         Linda_setType(v2, v1->typeobj);
     }
+#endif
     Linda_delReference(t);
 
     return r;
@@ -214,6 +226,7 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     r = Linda_copy(m->tuple);
     Message_free(m);
 
+#ifdef TYPES
     int i;
     for(i = 0; i < Linda_getTupleSize(r); i++) {
         LindaValue v1 = Linda_tupleGet(t, i);
@@ -221,6 +234,7 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
 
         Linda_setType(v2, v1->typeobj);
     }
+#endif
     Linda_delReference(t);
 
     return r;
@@ -243,6 +257,7 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
         r = Linda_copy(m->tuple);
         Message_free(m);
 
+#ifdef TYPES
         int i;
         for(i = 0; i < Linda_getTupleSize(r); i++) {
             LindaValue v1 = Linda_tupleGet(t, i);
@@ -250,6 +265,7 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
 
             Linda_setType(v2, v1->typeobj);
         }
+#endif
 
         Linda_delReference(t);
         return r;
@@ -273,6 +289,7 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
         r = Linda_copy(m->tuple);
         Message_free(m);
 
+#ifdef TYPES
         int i;
         for(i = 0; i < Linda_getTupleSize(r); i++) {
             LindaValue v1 = Linda_tupleGet(t, i);
@@ -280,6 +297,7 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
 
             Linda_setType(v2, v1->typeobj);
         }
+#endif
 
         Linda_delReference(t);
         return r;

@@ -22,6 +22,11 @@
 ## The elements in the module are actually imported from \ref kernel
 ## \author Andrew Wilkinson <aw@cs.york.ac.uk>
 
-from _linda import connect, disconnect, uts, TupleSpace, version, Function, Type, Value, Ptr
+import _linda
+if _linda.use_types:
+    from _linda import connect, disconnect, uts, TupleSpace, version, Function, Type, Value, Ptr
+else:
+    from _linda import connect, disconnect, uts, TupleSpace, version, Function, Value, Ptr
 
-#import utils
+del _linda
+

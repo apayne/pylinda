@@ -54,6 +54,7 @@ static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
     return PyInt_FromLong(tdata->sd);
 }
 
+#ifdef TYPES
 static PyObject* linda_Type(PyObject* self, PyObject* args) {
     char* typespec;
 
@@ -63,6 +64,7 @@ static PyObject* linda_Type(PyObject* self, PyObject* args) {
 
     return Value2PyO(Linda_type(typespec));
 }
+#endif
 
 static PyObject* linda_Function(PyObject* self, PyObject* args) {
     char* code;
@@ -92,7 +94,9 @@ static PyMethodDef LindaMethods[] = {
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
     {"getSD", LindaPython_getSD, METH_NOARGS, "Returns the socket number connceced to the server."},
+#ifdef TYPES
     {"Type", linda_Type, METH_VARARGS, ""},
+#endif
     {"Function", linda_Function, METH_VARARGS, ""},
     {"Ptr", linda_Ptr, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */
@@ -106,6 +110,8 @@ PyMODINIT_FUNC init_linda(void)
 
     PyModule_AddObject(Linda_module, "version", PyString_FromString(Linda_version));
 
+#ifdef TYPES
+    PyModule_AddObject(Linda_module, "use_types", Py_True);
     if(Linda_register_types) {
         Py_INCREF(Py_True);
         PyModule_AddObject(Linda_module, "register_types", Py_True);
@@ -113,6 +119,9 @@ PyMODINIT_FUNC init_linda(void)
         Py_INCREF(Py_False);
         PyModule_AddObject(Linda_module, "register_types", Py_False);
     }
+#else
+    PyModule_AddObject(Linda_module, "use_types", Py_False);
+#endif
 
     inittuplespace(Linda_module);
     inittsref(Linda_module);

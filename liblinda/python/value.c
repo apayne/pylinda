@@ -42,10 +42,16 @@ static PyObject* linda_Value_new(PyTypeObject* type, PyObject* args, PyObject* k
 static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* kwds) {
     int i;
     PyObject* obj = NULL;
+#ifdef TYPES
     PyObject* type = NULL;
 
     if(!PyArg_ParseTuple(args, "|OO", &obj, &type))
         return -1;
+#else
+    if(!PyArg_ParseTuple(args, "|O", &obj))
+        return -1;
+#endif
+
 
     if(PyObject_IsInstance(obj, (PyObject*)&linda_ValueType)) {
         self->val = Linda_copy(((linda_ValueObject*)obj)->val);
@@ -63,11 +69,9 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
             PyObject* o = PyTuple_GetItem(obj, i);
             LindaValue nv = PyO2Value(o);
             if(nv == NULL) {
-                //Py_DECREF(o);
                 Linda_delReference(self->val);
                 return -1;
             };
-            //Py_DECREF(o);
             Linda_tupleSet(self->val, i, nv); /* Steals reference to nv. */
         }
     } else if(PyType_Check(obj)) {
@@ -96,12 +100,14 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
         return -1;
     }
 
+#ifdef TYPES
     if(type != NULL && PyObject_IsInstance(type, (PyObject*)&linda_ValueType)) {
         Linda_setType(self->val, ((linda_ValueObject*)type)->val);
     } else if(type != NULL) {
         PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type object.\n");
         return -1;
     }
+#endif
 
     return 0;
 }
@@ -367,6 +373,7 @@ static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
     return Value2PyO(val);
 }
 
+#ifdef TYPES
 static PyObject* linda_Value_gettypemap(linda_ValueObject *self, void *closure) {
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getTypeMap - Not a type."); return NULL; }
 
@@ -411,6 +418,7 @@ static int linda_Value_setsumpos(linda_ValueObject* self, PyObject* value, void*
     Linda_setSumPos(self->val, PyInt_AsLong(value));
     return 0;
 }
+#endif
 
 static PyGetSetDef value_getseters[] = {
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
@@ -419,9 +427,11 @@ static PyGetSetDef value_getseters[] = {
     {"string", (getter)linda_Value_getstring, (setter)NULL, "", NULL},
     {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
+#ifdef TYPES
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
     {"sum_pos", (getter)linda_Value_getsumpos, (setter)linda_Value_setsumpos, "", NULL},
+#endif
     {NULL}  /* Sentinel */
 };
 

@@ -52,7 +52,9 @@ public:
 
     ~Value();
 
+#ifdef TYPES
     void makeStringIntoType();
+#endif
 
     template<typename T> T get();
 protected:
@@ -99,6 +101,7 @@ private:
 
 extern TupleSpace uts;
 
+#ifdef TYPES
 extern Value boolType;
 extern Value intType;
 extern Value floatType;
@@ -106,6 +109,7 @@ extern Value stringType;
 extern Value tsType;
 extern Value tupleType;
 extern Value tuplespaceType;
+#endif
 
 template<> int Value::get();
 template<> double Value::get();

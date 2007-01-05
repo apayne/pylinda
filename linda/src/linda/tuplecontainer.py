@@ -27,7 +27,7 @@ import _linda_server
 
 from match import compare
 
-if _linda_server.register_types:
+if _linda_server.use_types and _linda_server.register_types:
     from iso_cache import saveIso, lookupIso
 
 def identity(value):
@@ -35,6 +35,25 @@ def identity(value):
 
 class NoTupleMatch(Exception):
     pass
+
+def doesMatch_notypes(e1, e2):
+    if isinstance(e1, tuple):
+        if len(e1) != len(e2):
+            raise NoTupleMatch
+        for t1, t2 in zip(e1, e2):
+            if not doesMatch(t1, t2):
+                raise NoTupleMatch
+        return e2
+    elif e1.isType():
+        if compare(e1, e2.type):
+            return e2
+        else:
+            raise NoTupleMatch
+    else:
+        if compare(e1.type, e2.type) and e1 == e2:
+            return e2
+        else:
+            raise NoTupleMatch
 
 def doesMatch_registered(e1, e2):
     if isinstance(e1, tuple):
@@ -96,7 +115,9 @@ def doesMatch_unregistered(e1, e2):
         else:
             raise NoTupleMatch
 
-if _linda_server.register_types:
+if not _linda_server.use_types:
+    doesMatch = doesMatch_notypes
+elif _linda_server.register_types:
     import type_cache
     doesMatch = doesMatch_registered
 else:

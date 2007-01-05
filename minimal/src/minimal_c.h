@@ -303,9 +303,10 @@ extern MinimalValue Minimal_tupleSpaceType;
 
 void Minimal_setOverrideTypeFunc(void (*func)(MinimalValue t));
 
-
 typedef MinimalValue* Minimal_TypeList;
 Minimal_TypeList Minimal_getTypeList(MinimalValue type);
+
+extern unsigned char Minimal_use_types;
 
 #ifdef __cplusplus
 }

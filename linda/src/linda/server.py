@@ -40,7 +40,7 @@ import _linda_server
 
 import utils as utils
 
-if _linda_server.register_types:
+if _linda_server.use_types and _linda_server.register_types:
     from type_cache import registerType, updateType, emptyTypeCache
     from iso_cache import emptyIsoCache
 
@@ -552,7 +552,7 @@ def cleanShutdown():
     for s in connections.sockets:
         s.close()
 
-    if _linda_server.register_types:
+    if _linda_server.use_types and _linda_server.register_types:
         emptyTypeCache()
         emptyIsoCache()
 

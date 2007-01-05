@@ -30,6 +30,12 @@
 #include "linda_c.h"
 #include "linda_internal.h"
 
+#ifdef TYPES
+#define INCLUDE_TYPES 1
+#else
+#define INCLUDE_TYPES 0
+#endif
+
 char* Message_getString(Message* msg) {
     LindaValue v;
 
@@ -73,7 +79,7 @@ char* Message_getString(Message* msg) {
         break;
     case RESULT_TUPLE:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_tuple");
-        Minimal_serialiseXML(doc, root, msg->tuple, 1);
+        Minimal_serialiseXML(doc, root, msg->tuple, INCLUDE_TYPES);
         break;
     case UNBLOCK:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"unblock");
@@ -84,7 +90,7 @@ char* Message_getString(Message* msg) {
         xmlNodePtr ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->out.ts));
-        Minimal_serialiseXML(doc, root, msg->out.t, 1);
+        Minimal_serialiseXML(doc, root, msg->out.t, INCLUDE_TYPES);
         break;
         }
     case IN:
@@ -94,7 +100,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
-        Minimal_serialiseXML(doc, root, msg->in.t, 1);
+        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -108,7 +114,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
-        Minimal_serialiseXML(doc, root, msg->rd.t, 1);
+        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -122,7 +128,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
-        Minimal_serialiseXML(doc, root, msg->in.t, 1);
+        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -136,7 +142,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
-        Minimal_serialiseXML(doc, root, msg->rd.t, 1);
+        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES);
 
         xmlNodePtr tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -153,7 +159,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
-        Minimal_serialiseXML(doc, root, msg->collect.t, 1);
+        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES);
         break;
         }
     case COPY_COLLECT:
@@ -166,7 +172,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
-        Minimal_serialiseXML(doc, root, msg->collect.t, 1);
+        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES);
         break;
         }
     case CREATE_TUPLESPACE:
@@ -231,7 +237,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_type");
         xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
-        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, 1);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
         break;
         }
     case UPDATE_TYPE:
@@ -242,7 +248,7 @@ char* Message_getString(Message* msg) {
         Linda_delReference(v);
         xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
-        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, 1);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
         break;
         }
 #endif

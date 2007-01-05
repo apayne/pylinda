@@ -41,6 +41,8 @@ MinimalValue Minimal_doubleType;
 MinimalValue Minimal_stringType;
 MinimalValue Minimal_tupleSpaceType;
 
+unsigned char Minimal_use_types = 1;
+
 #define createIntType(var, type, size8, size16, size32, size64) \
     if(sizeof(type) == 1) { \
         var = Minimal_type(size8); \

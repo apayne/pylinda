@@ -175,6 +175,8 @@ PyMODINIT_FUNC init_linda_server(void)
 {
     LindaServer_module = Py_InitModule("_linda_server", LindaServerMethods);
 
+#ifdef TYPES
+    PyModule_AddObject(LindaServer_module, "use_types", Py_True);
     if(Linda_register_types) {
         Py_INCREF(Py_True);
         PyModule_AddObject(LindaServer_module, "register_types", Py_True);
@@ -182,6 +184,9 @@ PyMODINIT_FUNC init_linda_server(void)
         Py_INCREF(Py_False);
         PyModule_AddObject(LindaServer_module, "register_types", Py_False);
     }
+#else
+    PyModule_AddObject(LindaServer_module, "use_types", Py_False);
+#endif
 
     inittsref(LindaServer_module);
     initvalue(LindaServer_module);

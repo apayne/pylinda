@@ -107,7 +107,8 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
     }
 }
 
-#define AddTypeName(x) if(include_type) { \
+#define AddTypeName(x) if(Minimal_use_types) { \
+                       if(include_type) { \
                         Minimal_includeTypes(doc, x, f); \
                        } \
                        if(f->typeobj != NULL) { \
@@ -121,7 +122,8 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
                          xmlNewProp(x, (xmlChar*)"typeid", (xmlChar*)id); \
                          free(id); \
                         } \
-                      }
+                       } \
+                       }
 #define AddSumPos(x) if(f->sum_pos != -1) { \
                         char* pos = (char*)malloc(snprintf(NULL, 0, "%i", f->sum_pos)+1); \
                         sprintf(pos, "%i", f->sum_pos); \
