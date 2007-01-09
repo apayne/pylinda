@@ -534,7 +534,7 @@ def removeProcess(pid):
     for ts in local_ts:
         local_ts.deleteAllReferences(ts, pid)
 
-def removeProcess(nid):
+def removeServer(nid):
     print "A server (%s) has left. Probably should do something about this..." % (nid, )
 
 def cleanShutdown():
