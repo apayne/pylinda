@@ -187,7 +187,7 @@ def sendMessageToNode(node, msgid, *args):
     if msgid is None:
         msgid = (node, server.node_id, getMsgId())
 
-    assert isinstance(node, str), node
+    assert isinstance(node, str) or (isinstance(node, _linda_server.Value) and node.isString()), node
     assert isinstance(getNeighbourDetails(node), Connection)
     try:
         return getNeighbourDetails(node).sendrecv(msgid, args)

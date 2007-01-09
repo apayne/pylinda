@@ -232,6 +232,16 @@ static PyObject* linda_Value_isLong(linda_ValueObject* self) {
     }
 }
 
+static PyObject* linda_Value_isString(linda_ValueObject* self) {
+    if(Linda_isString(self->val)) {
+        Py_INCREF(Py_True);
+        return Py_True;
+    } else {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+}
+
 /* These are all type related functions */
 
 static PyObject* linda_Value_isNil(linda_ValueObject* self) {
@@ -346,6 +356,7 @@ static PyMethodDef value_methods[] = {
     {"isSumType", (PyCFunction)linda_Value_isSumType, METH_NOARGS, ""},
     {"isPtrType", (PyCFunction)linda_Value_isPtrType, METH_NOARGS, ""},
     {"isFunctionType", (PyCFunction)linda_Value_isFunctionType, METH_NOARGS, ""},
+    {"isString", (PyCFunction)linda_Value_isString, METH_NOARGS, ""},
     {NULL}  /* Sentinel */
 };
 
