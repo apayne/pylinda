@@ -602,6 +602,7 @@ def main():
         return addr+"/"+r
 
     node_id = "N"+guid.generate()
+    _linda_server.setnodeid(node_id)
 
     if options.mdns and not options.disable_mdns:
         import mdns

@@ -30,4 +30,6 @@ void Linda_disconnect(int sd);
 
 extern int Linda_port;
 
+void Linda_setNodeID(char* nid);
+
 #endif

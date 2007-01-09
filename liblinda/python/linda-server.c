@@ -154,6 +154,19 @@ static PyObject* LindaServerPython_sddisconnect(PyObject *self, PyObject* args) 
     return Py_None;
 }
 
+static PyObject* LindaServerPython_setnodeid(PyObject *self, PyObject* args) {
+    char* nid;
+
+    if(!PyArg_ParseTuple(args, "s", &nid)) {
+        return NULL;
+    }
+
+    Linda_setNodeID(nid);
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef LindaServerMethods[] = {
     {"serve",  LindaServerPython_serve, METH_VARARGS, "Create the listening sockets."},
     {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connections"},
@@ -162,12 +175,12 @@ static PyMethodDef LindaServerMethods[] = {
     {"send", LindaPython_send, METH_VARARGS, "Send a message to the socket."},
     {"server_disconnect",  LindaServerPython_disconnect, METH_NOARGS, "Stop serving."},
     {"connect",  LindaServerPython_connect, METH_VARARGS, "Connect to another server."},
-
     {"setblocking",  LindaServerPython_setblocking, METH_VARARGS, "Set blocking or non-blocking mode of the socket."},
     {"getsockname",  LindaServerPython_getsockname, METH_VARARGS, "Return the socket's own address."},
     {"getpeername",  LindaServerPython_getpeername, METH_VARARGS, "Return the remote address to which the socket is connected."},
     {"socket_disconnect",  LindaServerPython_sddisconnect, METH_VARARGS, "Disconnect a socket."},
     {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
+    {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "Set the id of this node."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

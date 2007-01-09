@@ -42,8 +42,8 @@ int Linda_active_connections;
 
 unsigned char Linda_is_server = 1;
 
-char* Linda_process_id;
-char* Linda_thread_id;
+char* Linda_process_id = NULL;
+char* Linda_thread_id = NULL;
 
 #ifdef REGISTER_TYPES
 unsigned char Linda_register_types = 1;
@@ -205,3 +205,7 @@ void Linda_disconnect(int sd) {
     Linda_active_connections -= 1;
 }
 
+void Linda_setNodeID(char* nid) {
+    Linda_process_id = malloc(strlen(nid)+1);
+    strcpy(Linda_process_id, nid);
+}
