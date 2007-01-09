@@ -244,7 +244,7 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
         action = PyString_AsString(PyTuple_GetItem(tuple, 0));
         offset = 0;
     }
-    if(action == NULL) { return NULL; }
+    if(action == NULL) { PyErr_SetString(PyExc_SystemError, "NULL action!"); return NULL; }
 
     if(0) {
     PYTHON_TO_MSG_NONE("DONE", done)

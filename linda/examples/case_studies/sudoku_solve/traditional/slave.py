@@ -58,7 +58,14 @@ def tupleToGrid(tup):
 
     grid = []
     for r in range(9):
-        grid.append([(x != -1 and x) or (x == -1 and None) for x in tup[r*9:(r+1)*9]])
+        l = []
+        for e in tup[r*9:(r+1)*9]:
+            if e != -1:
+                l.append(e)
+            elif e == -1:
+                l.append(None)
+        grid.append(l)
+        #grid.append([(x != -1 and x) or (x == -1 and None) for x in tup[r*9:(r+1)*9]])
     return grid
 
 def gridToTuple(grid):

@@ -41,7 +41,9 @@ def doesMatch_notypes(e1, e2):
         if len(e1) != len(e2):
             raise NoTupleMatch
         for t1, t2 in zip(e1, e2):
-            if not doesMatch(t1, t2):
+            try:
+                doesMatch_notypes(t1, t2)
+            except NoTupleMatch:
                 raise NoTupleMatch
         return e2
     elif e1.isType():

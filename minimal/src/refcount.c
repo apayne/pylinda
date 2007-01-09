@@ -92,6 +92,10 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 }
 
 void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
+    if(ptr == NULL) {
+        fprintf(stderr, "Error: Minimal_addReference on NULL\n");
+        return;
+    }
     struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
