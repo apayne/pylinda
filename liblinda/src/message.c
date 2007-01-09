@@ -584,7 +584,7 @@ Message* Message_get_node_id() {
 Message* Message_register_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = REGISTER_PARTITION;
-    m->ref.ts = Linda_copy(m->ref.ts);
+    m->ref.ts = Linda_copy(ts);
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;

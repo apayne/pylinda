@@ -380,10 +380,10 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
     } else if(strcmp((char*)node->name, "msgid") == 0) {
         bm->m->msgid = (MsgID*)malloc(sizeof(MsgID));
 
-        bm->m->msgid->source = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"dest")));
+        bm->m->msgid->source = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"dest")) + 1);
         strcpy(bm->m->msgid->source, (char*)xmlGetProp(node, (xmlChar*)"dest"));
 
-        bm->m->msgid->source = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"source")));
+        bm->m->msgid->source = malloc(strlen((char*)xmlGetProp(node, (xmlChar*)"source")) + 1);
         strcpy(bm->m->msgid->source, (char*)xmlGetProp(node, (xmlChar*)"source"));
 
         bm->m->msgid->count = atoi((char*)xmlGetProp(node, (xmlChar*)"count"));
