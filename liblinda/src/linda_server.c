@@ -138,6 +138,7 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
 #endif
         return 0;
     } else {
+        sleep(1);
         return 1;
     }
 }
