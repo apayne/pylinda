@@ -166,7 +166,7 @@ class Connection:
         return "<Connection %i>" % (self.fileno(), )
 
 def getNeighbourDetails(node):
-    assert isinstance(node, str), node
+    assert isinstance(node, str) or (isinstance(node, _linda_server.Value) and node.isString()), node
     if not neighbours.has_key(node):
         if connectTo(node):
             return getNeighbourDetails(node)
