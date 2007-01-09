@@ -387,8 +387,6 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         strcpy(bm->m->msgid->source, (char*)xmlGetProp(node, (xmlChar*)"source"));
 
         bm->m->msgid->count = atoi((char*)xmlGetProp(node, (xmlChar*)"count"));
-
-        printf("got msgid %s %s %i\n", bm->m->msgid->source, bm->m->msgid->dest, bm->m->msgid->count);
     } else {
         fprintf(stderr, "Unknown message tag '%s'. Ignoring.\n", node->name);
     }
