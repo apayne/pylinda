@@ -167,6 +167,7 @@ class Connection:
 
 def getNeighbourDetails(node):
     assert isinstance(node, str) or (isinstance(node, _linda_server.Value) and node.isString()), node
+    node = str(node)
     if not neighbours.has_key(node):
         if connectTo(node):
             return getNeighbourDetails(node)
@@ -185,7 +186,7 @@ def sendMessageToNode(node, msgid, *args):
     assert node != server.node_id, "Cannot send msg %s to self" % (str(args), )
 
     if msgid is None:
-        msgid = (node, server.node_id, getMsgId())
+        msgid = (str(node), str(server.node_id), getMsgId())
 
     assert isinstance(node, str) or (isinstance(node, _linda_server.Value) and node.isString()), node
     assert isinstance(getNeighbourDetails(node), Connection)
@@ -267,7 +268,7 @@ def broadcast_message(*args):
         if n is None:
             print "Broken connection to %s" % (node, )
         elif n[0] != dont_know:
-            todo.extend(n[1])
+            todo.extend([str(x) for x in n[1]])
     return r
 
 def broadcast_firstreplyonly(*args):
@@ -279,7 +280,7 @@ def broadcast_firstreplyonly(*args):
             continue
         else:
             memo.append(node)
-        assert utils.isNodeId(node)
+        assert utils.isNodeId(node), (node, type(node))
         m = sendMessageToNode(node, None, *args)
 
         if m is not None and m[0] != dont_know:

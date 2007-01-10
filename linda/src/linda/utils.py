@@ -78,7 +78,7 @@ def isTupleSpaceId(id):
     This function does not check that a tuplespace exists with this id, only the id is of the correct format
     \param id The id to be checked
     """
-    return isinstance(id, str) and (id == "UTS" or (len(id) == 41 and id[0] == "S"))
+    return (isinstance(id, str) or (isinstance(id, _linda_server.Value) and id.isString())) and (id == "UTS" or (len(id) == 41 and id[0] == "S"))
 
 def isNodeId(id):
     """\internal
@@ -87,7 +87,7 @@ def isNodeId(id):
     This function does not check that a node exists with this id, only the id is of the correct format
     \param id The id to be checked
     """
-    return isinstance(id, str) and len(id) == 41 and id[0] == "N"
+    return (isinstance(id, str) or (isinstance(id, _linda_server.Value) and id.isString())) and len(id) == 41 and id[0] == "N"
 
 def isProcessId(id):
     """\internal
@@ -96,7 +96,7 @@ def isProcessId(id):
     This function does not check that a process exists with this id, only the id is of the correct format
     \param id The id to be checked
     """
-    return isinstance(id, str) and len(id) == 41 and id[0] == "P"
+    return (isinstance(id, str) or (isinstance(id, _linda_server.Value) and id.isString())) and len(id) == 41 and id[0] == "P"
 
 def isThreadId(id):
     """\internal
@@ -106,7 +106,7 @@ def isThreadId(id):
     \param id The id to be checked
     """
     try:
-        if not isinstance(id, str):
+        if not (isinstance(id, str) or (isinstance(id, _linda_server.Value) and id.isString())):
             return False
         pid, thread = id.split("!")
         if not isProcessId(pid): raise ValueError

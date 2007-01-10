@@ -114,15 +114,16 @@ class LindaConnection:
 
     def my_name_is(self, req, msgid, message, data):
         # when someone connects who already has an id they need to let us know who they are...
-        assert utils.isNodeId(data[0])
+        name = str(data[0])
+        assert utils.isNodeId(name)
 
-        req.name = data[0]
+        req.name = str(name)
         req.send(msgid, (done, ))
-        if neighbours.has_key(data[0]):
+        if neighbours.has_key(name):
             return
-        neighbours[data[0]] = req
+        neighbours[name] = req
         req.type = "SERVER"
-        sendMessageToNode(data[0], None, my_name_is, node_id)
+        sendMessageToNode(name, None, my_name_is, node_id)
 
         stats.inc_stat("server_con_current")
         stats.inc_stat("server_con_total")
@@ -184,7 +185,7 @@ class LindaConnection:
     def unregister_server(self, req, msgid, message, data):
         nid, local = data
 
-        req.send(msgid, done)
+        req.send(msgid, ("DONE", ))
 
         removeServer(nid, local)
 
@@ -192,14 +193,14 @@ class LindaConnection:
         # try to find out how to connect to a server
         if data[0] == node_id:
             # they're looking for us! Return our details
-            req.send(msgid, ((self.request.getsockname()[0], getOptions().port), None))
+            req.send(msgid, ("RESULT_TUPLE", ((req.getsockname()[0], getOptions().port), None)))
         elif data[0] in neighbours.keys():
             # they're looking for our neighbour, ask them how to connect to them
             r = sendMessageToNode(data[0], None, get_connect_details, data[0])
             if isinstance(neighbours[data[0]], str): # we don't have a direct connection
-                req.send(msgid, (r[0], neighbours[data[0]]))
+                req.send(msgid, ("RESULT_TUPLE", (r[0], neighbours[data[0]])))
             else: # we have a direct connection, tell people to go through us
-                req.send(msgid, (r[0], node_id))
+                req.send(msgid, ("RESULT_TUPLE", (r[0], node_id)))
         else:
             # we don't know the node they're looking for
             req.send(msgid, (dont_know, ))

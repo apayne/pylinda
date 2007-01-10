@@ -593,14 +593,14 @@ Message* Message_register_partition(LindaValue ts, char* ref) {
 Message* Message_get_partitions(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = GET_PARTITIONS;
-    m->ref.ts = Linda_copy(m->ts);
+    m->ref.ts = Linda_copy(ts);
     return m;
 }
 
 Message* Message_deleted_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = DELETED_PARTITION;
-    m->ref.ts = Linda_copy(m->ref.ts);
+    m->ref.ts = Linda_copy(ts);
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;
@@ -609,7 +609,7 @@ Message* Message_deleted_partition(LindaValue ts, char* ref) {
 Message* Message_get_requests(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = GET_REQUESTS;
-    m->ref.ts = Linda_copy(m->ref.ts);
+    m->ref.ts = Linda_copy(ts);
     return m;
 }
 
@@ -630,7 +630,7 @@ Message* Message_get_connection_details(char* id) {
 Message* Message_tuple_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = TUPLE_REQUEST;
-    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.ts = Linda_copy(ts);
     m->tuple_request.t = Linda_copy(t);
     return m;
 }
@@ -638,7 +638,7 @@ Message* Message_tuple_request(LindaValue ts, LindaValue t) {
 Message* Message_cancel_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = CANCEL_REQUEST;
-    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.ts = Linda_copy(ts);
     m->tuple_request.t = Linda_copy(t);
     return m;
 }
@@ -646,7 +646,7 @@ Message* Message_cancel_request(LindaValue ts, LindaValue t) {
 Message* Message_multiple_in(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = MULTIPLE_IN;
-    m->tuple_request.ts = Linda_copy(m->tuple_request.ts);
+    m->tuple_request.ts = Linda_copy(ts);
     m->tuple_request.t = Linda_copy(t);
     return m;
 }

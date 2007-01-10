@@ -475,24 +475,41 @@ static PyGetSetDef value_getseters[] = {
 static Py_ssize_t linda_Value_len(linda_ValueObject *self) {
     if(Linda_isType(self->val)) {
         return self->val->type_spec->length;
-    } else {
+    } else if(Linda_isString(self->val)) {
+        return strlen(self->val->string);
+    } else if(Linda_isTuple(self->val)) {
         return Linda_getTupleSize(self->val);
+    } else {
+        PyErr_SetString(PyExc_TypeError, "Taking length of a type without a length.");
+        return -1;
     }
 }
 
 static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
-    if(index < 0 || index >= linda_Value_len(self)) {
-        PyErr_SetString(PyExc_IndexError, "Index out of range for tuple.");
-        return NULL;
-    } else if(Linda_isType(self->val)) {
+    if(Linda_isType(self->val)) {
         Minimal_SyntaxTree* tree = Minimal_SyntaxTree_copy(self->val->type_spec->branches[index]);
         LindaValue val = Minimal_typeSpec(self->val->type_name, tree);
         Minimal_SyntaxTree_free(tree);
         Linda_addReference((void*)(self->val->typemap));
         val->typemap = self->val->typemap;
         return Value2PyO(val);
+    } else if(Linda_isTuple(self->val)) {
+        if(index < 0 || index >= linda_Value_len(self)) {
+            PyErr_SetString(PyExc_IndexError, "Index out of range for tuple.");
+            return NULL;
+        } else {
+            return Value2PyO(Linda_tupleGet(self->val, index));
+        } 
+    } else if(Linda_isString(self->val)) {
+        if(index < 0 || index >= strlen(self->val->string)) {
+            PyErr_SetString(PyExc_IndexError, "Index out of range for string.");
+            return NULL;
+        } else {
+            return Py_BuildValue("c", self->val->string[index]);
+        }
     } else {
-        return Value2PyO(Linda_tupleGet(self->val, index));
+        PyErr_SetString(PyExc_TypeError, "Getting item from a type with is a single element.");
+        return NULL;
     }
 }
 

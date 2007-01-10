@@ -357,7 +357,11 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             }
             cur_node = cur_node->next;
         }
-        value = Minimal_string(text);
+        if(text != NULL) {
+            value = Minimal_string(text);
+        } else {
+            value = Minimal_string("");
+        }
     } else if(strcmp((char*)(node->name), "tuple") == 0) {
         value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
