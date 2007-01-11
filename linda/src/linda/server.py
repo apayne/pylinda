@@ -158,7 +158,6 @@ class LindaConnection:
         type = data[0]
 
         typeid = registerType(type)
-        print "register", type, typeid
 
         req.send(msgid, ("RESULT_INT", typeid))
 
@@ -167,7 +166,6 @@ class LindaConnection:
 
         type.type_id = type_id
         updateType(type_id, type)
-        print "update", type, type_id
 
         req.send(msgid, ("DONE", ))
 
@@ -198,9 +196,9 @@ class LindaConnection:
             # they're looking for our neighbour, ask them how to connect to them
             r = sendMessageToNode(data[0], None, get_connect_details, data[0])
             if isinstance(neighbours[data[0]], str): # we don't have a direct connection
-                req.send(msgid, ("RESULT_TUPLE", (r[0], neighbours[data[0]])))
+                req.send(msgid, ("RESULT_TUPLE", (r[1], neighbours[data[0]])))
             else: # we have a direct connection, tell people to go through us
-                req.send(msgid, ("RESULT_TUPLE", (r[0], node_id)))
+                req.send(msgid, ("RESULT_TUPLE", (r[1], node_id)))
         else:
             # we don't know the node they're looking for
             req.send(msgid, (dont_know, ))
@@ -216,8 +214,6 @@ class LindaConnection:
     def out_tuple(self, req, msgid, message, data):
         # output a tuple into a tuplespace
         ts, tup = data
-
-        #print "out", ts, [str(x) for x in tup]
 
         assert utils.isTupleSpaceId(ts), "%s is not a tuplespace id" % (ts, )
         assert local_ts.has_key(ts)
@@ -248,8 +244,6 @@ class LindaConnection:
     def in_tuple(self, req, msgid, message, data):
         ts, template, tid = data
         unblockable = message == inp_tuple
-
-        #print "in", ts, [str(x) for x in template]
 
         blocked_threads[tid] = (req, ts)
 
@@ -348,13 +342,14 @@ class LindaConnection:
         req.send(msgid, ("RESULT_INT", total))
 
     def tuple_request(self, req, msgid, message, data):
-        ts, template = data
+        ts, template = str(data[0]), data[1]
 
         if local_ts.has_key(ts):
             r = local_ts[ts].tuple_request(msgid[1], template)
         else:
             r = []
-        req.send(msgid, ("RESULT_TUPLE", tuple(r)))
+        # we ignore the original representation and only pass on the converted format.
+        req.send(msgid, ("RESULT_TUPLE", tuple([x[1] for x in r])))
 
     def cancel_request(self, req, msgid, message, data):
         ts, template = data
@@ -450,7 +445,7 @@ class LindaConnection:
         req.send(msgid, ("RESULT_STRING", str(local_ts.keys())))
 
     def inspect_ts(self, req, msgid, message, data):
-        ts = data[0]
+        ts = str(data[0])
         try:
             ts = local_ts[ts]
         except KeyError:
@@ -476,7 +471,7 @@ class LindaConnection:
         req.send(msgid, ("RESULT_TUPLE", tuple(routes)))
 
     def get_partitions(self, req, msgid, message, data):
-        tsid = data[0]
+        tsid = str(data[0])
         try:
             ts = local_ts[tsid]
         except KeyError:
@@ -485,7 +480,7 @@ class LindaConnection:
             req.send(msgid, ("RESULT_TUPLE", tuple(ts.partitions + [node_id])))
 
     def register_partition(self, req, msgid, message, data):
-        tsid, nid = data[0], data[1]
+        tsid, nid = str(data[0]), str(data[1])
         try:
             ts = local_ts[tsid]
         except KeyError:
@@ -495,7 +490,7 @@ class LindaConnection:
             req.send(msgid, (done, ))
 
     def deleted_partition(self, req, msgid, message, data):
-        tsid, nid = data[0], data[1]
+        tsid, nid = str(data[0]), str(data[1])
         try:
             ts = local_ts[tsid]
         except KeyError:

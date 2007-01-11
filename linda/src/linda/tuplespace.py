@@ -60,7 +60,7 @@ class TupleSpace:
 
             ps = broadcast_firstreplyonly(get_partitions, self._id)
             if ps != dont_know:
-                self.partitions.extend([p for p in ps[1] if p != server.node_id])
+                self.partitions.extend([str(p) for p in ps[1] if str(p) != server.node_id])
 
             r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
             if r != dont_know:
@@ -154,7 +154,7 @@ class TupleSpace:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
-                            self._out(t)
+                            self._out(tuple(t))
                     # check that we have created a deadlock
                     if self.isDeadLocked():
                         # if we have then unblock a random process
@@ -184,8 +184,8 @@ class TupleSpace:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
-                            self._out(t)
-                    # check that we have created a deadlock
+                            self._out(tuple(t))
+                    # check if we have created a deadlock
                     if self.isDeadLocked():
                         # if we have then unblock a random process
                         self.unblockRandom()
@@ -194,6 +194,8 @@ class TupleSpace:
 
                 # if we didn't find a tuple then we block
                 self.blocked_list[tid] = (pattern, unblockable, True)
+            except:
+                raise
             else:
                 # we found a tuple so update the references and return it
                 self.ts.delete(real) # since this is destructive delete the tuple from the tuplespace
@@ -412,9 +414,9 @@ class TupleSpace:
             except StopIteration: # Stop when we get a StopIteration exception
                 return []
             else:
-                self.ts.delete(t)
+                self.ts.delete(t[0])
                 self.lock.release()
-                utils.changeOwner(t, self._id, self._id, node)
+                utils.changeOwner(t[1], self._id, self._id, node)
                 self.lock.acquire()
                 return [t] # return the list of tuples
         finally:

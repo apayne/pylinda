@@ -79,7 +79,7 @@ def socket_watcher():
                     server.removeServer(s.name)
                     connect_lock.acquire()
                     try:
-                        del neighbours[s.name]
+                        del neighbours[str(s.name)]
                     finally:
                         connect_lock.release()
                 elif s.type == "CLIENT":
@@ -196,7 +196,7 @@ def sendMessageToNode(node, msgid, *args):
         if e[0] == 32:
             connect_lock.acquire()
             try:
-                del neighbours[node]
+                del neighbours[str(node)]
             finally:
                 connect_lock.release()
         else:
@@ -206,8 +206,8 @@ connect_lock = threading.Semaphore()
 def connectTo(node):
     connect_lock.acquire()
     try:
-        if not neighbours.has_key(node): # check that we still don't know how to connect
-            connectToMain(node)
+        if not neighbours.has_key(str(node)): # check that we still don't know how to connect
+            connectToMain(str(node))
     finally:
         connect_lock.release()
 
@@ -219,22 +219,22 @@ def connectToMain(node):
     if details == "DONT_KNOW":
         sys.stderr.write("Failed to get connection details for %s.\n" % (node, ))
         return False
-    neighbours[node] = details[1]
+    neighbours[str(node)] = details[1]
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.connect(details[0])
     except socket.error, e:
         print "Failed to connect to", details
-        neighbours[node] = details[1]
+        neighbours[str(node)] = details[1]
     else:
-        neighbours[node] = s
+        neighbours[str(node)] = s
 
         utils.send(s, None, None, (get_node_id, ))
         cnode = utils.recv(s)[1]
 
         if cnode != node:
             print "Failed to connect to", details
-            neighbours[node] = None
+            neighbours[str(node)] = None
             s.shutdown(1)
             s.close()
             return False
@@ -243,7 +243,7 @@ def connectToMain(node):
 
         s = Connection(s)
         s.name = node
-        neighbours[node] = s
+        neighbours[str(node)] = s
         addr = (socket.gethostbyname(details[0][0]), details[0][1])
         server.server.process_request(s, addr)
         return True
@@ -255,10 +255,10 @@ def broadcast_message(*args):
 
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
-        if node in memo:
+        if str(node) in memo:
             continue
         else:
-            memo.append(node)
+            memo.append(str(node))
 
         m = sendMessageToNode(node, None, *args)
         if m is not None and m[0] != dont_know:
@@ -276,11 +276,11 @@ def broadcast_firstreplyonly(*args):
     todo = neighbours.keys()
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
-        if node in memo:
+        if str(node) in memo:
             continue
         else:
-            memo.append(node)
-        assert utils.isNodeId(node), (node, type(node))
+            memo.append(str(node))
+
         m = sendMessageToNode(node, None, *args)
 
         if m is not None and m[0] != dont_know:
@@ -296,10 +296,10 @@ def broadcast_tonodes(nodes, firstreplyonly, *args):
     todo = nodes[:]
     r = []
     for n in todo:
+        n = str(n)
         assert utils.isNodeId(n)
         m = sendMessageToNode(n, None, *args)
 
-        print m
         if m is None or m[0] == dont_know:
             pass
         elif firstreplyonly:

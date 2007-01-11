@@ -127,16 +127,16 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "MY_NAME_IS", m->string);
             break;
         case REGISTER_PARTITION:
-            t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", m->ref.ts, m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case GET_PARTITIONS:
-            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", m->ts);
+            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", Minimal_getTupleSpace(m->ts));
             break;
         case DELETED_PARTITION:
-            t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", m->ref.ts, m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
         case GET_REQUESTS:
-            t = Py_BuildValue("(Oss)", msgid, "GET_REQUESTS", m->ts);
+            t = Py_BuildValue("(Oss)", msgid, "GET_REQUESTS", Minimal_getTupleSpace(m->ts));
             break;
         case GET_NEIGHBOURS:
             t = Py_BuildValue("(Os)", msgid, "GET_NEIGHBOURS");
@@ -145,13 +145,13 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "GET_CONNECTION_DETAILS", m->string);
             break;
         case TUPLE_REQUEST:
-            t = Py_BuildValue("(OssO)", msgid, "TUPLE_REQUEST", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
+            t = Py_BuildValue("(OssO)", msgid, "TUPLE_REQUEST", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
         case CANCEL_REQUEST:
-            t = Py_BuildValue("(OssO)", msgid, "CANCEL_REQUEST", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
+            t = Py_BuildValue("(OssO)", msgid, "CANCEL_REQUEST", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
         case MULTIPLE_IN:
-            t = Py_BuildValue("(OssO)", msgid, "MULTIPLE_IN", m->tuple_request.ts, Tuple2PyO(m->tuple_request.t));
+            t = Py_BuildValue("(OssO)", msgid, "MULTIPLE_IN", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
         default:
             PyErr_SetObject(PyExc_SystemError, PyString_FromFormat("Received invalid message (%i).", m->type));
