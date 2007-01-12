@@ -52,7 +52,6 @@ def doesMatch_notypes(e1, e2):
         else:
             raise NoTupleMatch
     else:
-        print "compare", e1, e2
         if compare(e1.type, e2.type) and e1 == e2:
             return e2
         else:

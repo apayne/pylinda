@@ -205,7 +205,6 @@ class TupleSpace:
                 raise
             else:
                 # we found a tuple so update the references and return it
-                print real, matched
                 self.ts.delete(real) # since this is destructive delete the tuple from the tuplespace
                 utils.changeOwner(matched, self._id, utils.getProcessIdFromThreadId(tid))
                 return matched
