@@ -30,6 +30,9 @@ from connections import broadcast_message, broadcast_firstreplyonly, broadcast_t
 from tuplecontainer import TupleContainer, doesMatch, NoTupleMatch
 from messages import *
 
+class MatchedTuple(Exception):
+    pass
+
 ## \class TupleSpace
 ## \internal
 ## \brief This class is the actual tuplespace stored on the server. The class kernel::TupleSpace is a reference to one instance of this class.
@@ -114,26 +117,30 @@ class TupleSpace:
                     threading.Thread(target=do_return_tuple).start()
 
                     if destructive == True: # if they were doing an in then stop here, otherwise we continue
-                        raise EOFError
+                        raise MatchedTuple
 
             try:
                 map(check_blocked, blist)
-            except EOFError:
+            except MatchedTuple:
                 return
 
             def check_requests((node, pattern)):
-                if doesMatch(pattern, tup):
+                try:
+                    orig, matched = doesMatch(pattern, tup):
+                except NoTupleMatch:
+                    return
+                else:
                     def do_return_tuple():
-                        utils.changeOwner(tup, self._id, self._id, node)
-                        sendMessageToNode(node, None, multiple_in, self._id, (tup, )) # return the tuple to the process
+                        utils.changeOwner(matched, self._id, self._id, node)
+                        sendMessageToNode(node, None, multiple_in, self._id, (matched, )) # return the tuple to the server
 
                     threading.Thread(target=do_return_tuple).start()
 
-                    raise EOFError
+                    raise MatchedTuple
 
             try:
                 map(check_requests, self.requests)
-            except EOFError:
+            except MatchedTuple:
                 return
 
             self.ts.add(tup) # add the tuple to the tuplespace
