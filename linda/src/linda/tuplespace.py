@@ -126,7 +126,7 @@ class TupleSpace:
 
             def check_requests((node, pattern)):
                 try:
-                    orig, matched = doesMatch(pattern, tup):
+                    orig, matched = doesMatch(pattern, tup)
                 except NoTupleMatch:
                     return
                 else:
