@@ -148,6 +148,10 @@ class Connection:
             msgid = str(msgid[0]), str(msgid[1]), int(msgid[2])
             ms_lock.acquire()
             try:
+                if message_store.has_key(msgid[2]):
+                    m = message_store[msgid[2]]
+                    del message_store[msgid[2]]
+                    return m
                 s = threading.Semaphore(0)
                 return_locks[msgid[2]] = s
             finally:
