@@ -126,7 +126,7 @@ class TupleSpace:
 
             def check_requests((node, pattern)):
                 try:
-                    orig, matched = doesMatch(pattern, tup)
+                    matched = doesMatch(pattern, tup)
                 except NoTupleMatch:
                     return
                 else:
@@ -439,6 +439,8 @@ class TupleSpace:
         self.lock.acquire()
         try:
             del self.requests[self.requests.index((node, pattern))]
+        except ValueError:
+            raise ValueError, "%s not found in %s" % (str((node, pattern)), str(self.requests))
         finally:
             self.lock.release()
 
