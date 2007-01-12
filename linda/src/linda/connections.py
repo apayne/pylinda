@@ -94,18 +94,17 @@ def socket_watcher():
                 msgid, msg = m[0], m[1:]
                 if msgid is None:
                     thread_pool.giveJob(target=Handler.handle, args=(s, None, msg))
-                elif msgid[0] != server.node_id and msgid[1] != server.node_id:
-                    sendMessageToNode(msgid[0], msgid, *msg)
-                elif msgid[0] == server.node_id:
-                    thread_pool.giveJob(target=Handler.handle, args=(s, msgid, msg))
-                elif msgid[1] == server.node_id:
-                    msgid = str(msgid[0]), str(msgid[1]), int(msgid[2])
+                elif str(msgid[0]) == server.node_id and str(msgid[1]) == server.node_id:
                     ms_lock.acquire()
                     try:
-                        message_store[msgid] = (msgid, msg)
-                        return_locks[msgid].release()
+                        message_store[int(msgid[2])] = (msgid, msg)
+                        return_locks[int(msgid[2])].release()
                     finally:
                         ms_lock.release()
+                elif str(msgid[0]) != server.node_id:
+                    sendMessageToNode(msgid[0], msgid, *msg)
+                elif str(msgid[0]) == server.node_id:
+                    thread_pool.giveJob(target=Handler.handle, args=(s, msgid, msg))
                 else:
                     raise SystemError
 
@@ -127,6 +126,8 @@ class Connection:
     def __int__(self):
         return self.sd
     def send(self, msgid, msg):
+        if str(msgid[0]) == server.node_id:
+            msgid = msgid[1], msgid[1], msgid[2]
         assert isinstance(msg, tuple), type(msg)
         msg = utils.makeMessageXMLSafe(msg)
         if msgid:
@@ -142,18 +143,18 @@ class Connection:
             ms_lock.acquire()
             try:
                 s = threading.Semaphore(0)
-                return_locks[msgid] = s
+                return_locks[msgid[2]] = s
             finally:
                 ms_lock.release()
             s.acquire()
             ms_lock.acquire()
             try:
                 try:
-                    del return_locks[msgid]
+                    del return_locks[msgid[2]]
                 except IndexError:
                     raise IndexError, "Missing return lock %s in %s" % (str(msgid), str(return_locks.keys()))
-                m = message_store[msgid]
-                del message_store[msgid]
+                m = message_store[msgid[2]]
+                del message_store[msgid[2]]
             finally:
                 ms_lock.release()
             return m[1]
