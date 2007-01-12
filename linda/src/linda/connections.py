@@ -99,6 +99,7 @@ def socket_watcher():
                 elif msgid[0] == server.node_id:
                     thread_pool.giveJob(target=Handler.handle, args=(s, msgid, msg))
                 elif msgid[1] == server.node_id:
+                    msgid = str(msgid[0]), str(msgid[1]), int(msgid[2])
                     ms_lock.acquire()
                     try:
                         message_store[msgid] = (msgid, msg)
@@ -146,7 +147,10 @@ class Connection:
             s.acquire()
             ms_lock.acquire()
             try:
-                del return_locks[msgid]
+                try:
+                    del return_locks[msgid]
+                except IndexError:
+                    raise IndexError, "Missing return lock %s in %s" % (str(msgid), str(return_locks.keys()))
                 m = message_store[msgid]
                 del message_store[msgid]
             finally:
