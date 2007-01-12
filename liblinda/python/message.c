@@ -266,6 +266,15 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
+        } else if(PyTuple_Size(tuple) == (offset+2)
+               && PyObject_IsInstance(PyTuple_GetItem(tuple, offset+1), (PyObject*)&linda_ValueType)
+               && Linda_isTuple(((linda_ValueObject*)PyTuple_GetItem(tuple, offset+1))->val)) {
+            LindaValue t = ((linda_ValueObject*)PyTuple_GetItem(tuple, offset+1))->val;
+            Linda_addReference(t);
+            m = Message_result_tuple(t);
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Linda_delReference(t);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
