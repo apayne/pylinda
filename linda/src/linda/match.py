@@ -27,8 +27,8 @@ def identity(value):
     return value
 
 def compare_notypes(t1, t2):
-    assert t1.isType()
-    assert t2.isType()
+    assert isinstance(t1, _linda_server.Value) and t1.isType()
+    assert isinstance(t1, _linda_server.Value) and t2.isType()
 
     assert t1.isId()
     assert t2.isId()

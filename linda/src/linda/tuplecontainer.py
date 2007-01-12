@@ -37,7 +37,7 @@ class NoTupleMatch(Exception):
     pass
 
 def doesMatch_notypes(e1, e2):
-    if isinstance(e1, tuple):
+    if isinstance(e1, tuple) or (isinstance(e1, _linda_server.Value) and e1.isTuple()):
         if len(e1) != len(e2):
             raise NoTupleMatch
         for t1, t2 in zip(e1, e2):
@@ -52,6 +52,7 @@ def doesMatch_notypes(e1, e2):
         else:
             raise NoTupleMatch
     else:
+        print "compare", e1, e2
         if compare(e1.type, e2.type) and e1 == e2:
             return e2
         else:

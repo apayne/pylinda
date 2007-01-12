@@ -242,6 +242,16 @@ static PyObject* linda_Value_isString(linda_ValueObject* self) {
     }
 }
 
+static PyObject* linda_Value_isTuple(linda_ValueObject* self) {
+    if(Linda_isTuple(self->val)) {
+        Py_INCREF(Py_True);
+        return Py_True;
+    } else {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+}
+
 /* These are all type related functions */
 
 static PyObject* linda_Value_isNil(linda_ValueObject* self) {
@@ -357,6 +367,7 @@ static PyMethodDef value_methods[] = {
     {"isPtrType", (PyCFunction)linda_Value_isPtrType, METH_NOARGS, ""},
     {"isFunctionType", (PyCFunction)linda_Value_isFunctionType, METH_NOARGS, ""},
     {"isString", (PyCFunction)linda_Value_isString, METH_NOARGS, ""},
+    {"isTuple", (PyCFunction)linda_Value_isTuple, METH_NOARGS, ""},
     {NULL}  /* Sentinel */
 };
 
