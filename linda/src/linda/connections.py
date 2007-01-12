@@ -138,6 +138,7 @@ class Connection:
         if msgid is None:
             return self.realrecv()
         else:
+            msgid = str(msgid[0]), str(msgid[1]), int(msgid[2])
             ms_lock.acquire()
             try:
                 s = threading.Semaphore(0)
