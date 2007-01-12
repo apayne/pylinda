@@ -97,8 +97,14 @@ def socket_watcher():
                 elif str(msgid[0]) == server.node_id and str(msgid[1]) == server.node_id:
                     ms_lock.acquire()
                     try:
-                        message_store[int(msgid[2])] = (msgid, msg)
-                        return_locks[int(msgid[2])].release()
+                        try:
+                            message_store[int(msgid[2])] = (msgid, msg)
+                        except KeyError:
+                            raise KeyError, "%s not found in %s" % (msgid, return_locks.keys())
+                        try:
+                            return_locks[int(msgid[2])].release()
+                        except KeyError:
+                            raise KeyError, "%s not found in %s" % (msgid, return_locks.keys())
                     finally:
                         ms_lock.release()
                 elif str(msgid[0]) != server.node_id:
