@@ -126,11 +126,11 @@ class Connection:
     def __int__(self):
         return self.sd
     def send(self, msgid, msg):
-        if str(msgid[0]) == server.node_id:
-            msgid = msgid[1], msgid[1], msgid[2]
         assert isinstance(msg, tuple), type(msg)
         msg = utils.makeMessageXMLSafe(msg)
         if msgid:
+            if str(msgid[0]) == server.node_id:
+                msgid = msgid[1], msgid[1], msgid[2]
             _linda_server.send(self.sd, (msgid, ) + msg)
         else:
             _linda_server.send(self.sd, msg)
