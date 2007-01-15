@@ -24,6 +24,12 @@
 
 #include PYTHON_H
 
+#if (PY_VERSION_HEX < 0x02050000)
+typedef int Py_ssize_t;
+#define lenfunc inquiry
+#define ssizeargfunc intargfunc
+#endif
+
 #include "linda.h"
 #include "linda_python.h"
 
@@ -657,8 +663,10 @@ PyNumberMethods linda_ValueNum = {
         0,  /* binaryfunc nb_true_divide; */
         0,  /* binaryfunc nb_inplace_floor_divide; */
         0,  /* binaryfunc nb_inplace_true_divide; */
+#if (PY_VERSION_HEX >= 0x02050000)
         /* Added in release 2.5 */
         0,  /* unaryfunc nb_index; */
+#endif
 };
 
 PyTypeObject linda_ValueType = {
