@@ -438,9 +438,10 @@ class TupleSpace:
 
         self.lock.acquire()
         try:
-            del self.requests[self.requests.index((node, pattern))]
-        except ValueError:
-            raise ValueError, "%s not found in %s" % (str((node, pattern)), str(self.requests))
+            try:
+                del self.requests[self.requests.index((node, pattern))]
+            except ValueError:
+                raise ValueError, "%s not found in %s" % (str((node, pattern)), str(self.requests))
         finally:
             self.lock.release()
 
