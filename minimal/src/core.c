@@ -53,7 +53,7 @@ unsigned char Minimal_use_types = 1;
     } else if(sizeof(type) == 8) { \
         var = Minimal_type(size64); \
     } else { \
-        fprintf(stderr, "Error, this machine has an unrecognised byte size (%s = %li).\n", size8, sizeof(type)); \
+        fprintf(stderr, "Error, this machine has an unrecognised byte size (%s = %i).\n", size8, (int)sizeof(type)); \
     }
 
 void Minimal_init() {
