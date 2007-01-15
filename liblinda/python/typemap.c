@@ -24,6 +24,12 @@
 
 #include PYTHON_H
 
+#if (PY_VERSION_HEX < 0x02050000)
+typedef int Py_ssize_t;
+#define lenfunc inquiry
+#define ssizeargfunc intargfunc
+#endif
+
 #include "linda.h"
 #include "linda_python.h"
 
