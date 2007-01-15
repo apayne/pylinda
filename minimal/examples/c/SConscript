@@ -1,7 +1,8 @@
 Import("env")
 Import("lib")
+Import("libs")
 
-env.Program("type_object", "type_object.c", LIBS=["minimal", "minimal_nolinda", "fl", "readline", "xml2"])
-env.Program("recursive", "recursive.c", LIBS=["minimal", "minimal_nolinda", "fl", "readline", "xml2"])
-env.Program("parse_object", "parse_object.c", LIBS=["minimal", "minimal_nolinda", "fl", "readline", "xml2"])
-env.Program("multi_type", "multi_type.c", LIBS=["minimal", "minimal_nolinda", "fl", "readline", "xml2"])
+env.Program("type_object", "type_object.c", LIBS=libs)
+env.Program("recursive", "recursive.c", LIBS=libs)
+env.Program("parse_object", "parse_object.c", LIBS=libs)
+env.Program("multi_type", "multi_type.c", LIBS=libs)

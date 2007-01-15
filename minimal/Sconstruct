@@ -10,6 +10,9 @@ lib = env.SharedLibrary("minimal++", cpp)
 nolindalib = env.SharedLibrary("minimal_nolinda", nolinda)
 Export("lib")
 
-env.Program("minimal", interpreter, LIBS=["minimal", "minimal_nolinda", "fl", "readline", "xml2"])
+libs = ["minimal", "minimal_nolinda", "fl", "readline", "xml2"]
+Export("libs")
+
+env.Program("minimal", interpreter, LIBS=libs)
 
 SConscript("examples/SConscript")

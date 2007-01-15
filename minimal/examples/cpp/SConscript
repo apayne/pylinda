@@ -1,4 +1,5 @@
 Import("env")
 Import("lib")
+Import("libs")
 
-env.Program("type_object", "type_object.cpp", LIBS=["minimal++", "minimal", "minimal_nolinda", "fl", "readline", "xml2"])
+env.Program("type_object", "type_object.cpp", LIBS=["minimal++"] + libs)
