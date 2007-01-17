@@ -24,6 +24,7 @@
 ## \author Andrew Wilkinson <aw@cs.york.ac.uk>
 ##
 
+import sys
 import threading
 
 from connections import broadcast_message, broadcast_firstreplyonly, broadcast_tonodes, sendMessageToNode
