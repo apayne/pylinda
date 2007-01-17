@@ -68,7 +68,8 @@ class TupleSpace:
 
             r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
             if r != dont_know:
-                for (nid, template) in r:
+                for i in range(len(r)):
+                    nid, template = r[i][0], r[i][1]
                     self.requests.append((str(nid), template))
         finally:
             self.lock.release(msg=("end start", self._id))
