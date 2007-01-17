@@ -67,7 +67,8 @@ class TupleSpace:
                 self.partitions.extend([str(p) for p in ps[1] if str(p) != server.node_id])
 
             r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
-            if r != dont_know:
+            if r[0] != dont_know:
+                r = r[1]
                 for i in range(len(r)):
                     nid, template = r[i][0], r[i][1]
                     self.requests.append((str(nid), template))
