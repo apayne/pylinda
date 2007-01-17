@@ -414,7 +414,7 @@ class TupleSpace:
         assert isinstance(pattern, tuple)
 
         self.lock.acquire()
-        self.requests.append((node, pattern))
+        self.requests.append((str(node), pattern))
         try:
             try:
                 t = self.ts.matchOneTuple(pattern) # Create the iterator
@@ -423,7 +423,7 @@ class TupleSpace:
             else:
                 self.ts.delete(t[0])
                 self.lock.release()
-                utils.changeOwner(t[1], self._id, self._id, node)
+                utils.changeOwner(t[1], self._id, self._id, str(node))
                 self.lock.acquire()
                 return [t] # return the list of tuples
         finally:
@@ -439,9 +439,9 @@ class TupleSpace:
         self.lock.acquire()
         try:
             try:
-                del self.requests[self.requests.index((node, pattern))]
+                del self.requests[self.requests.index((str(node), pattern))]
             except ValueError:
-                raise ValueError, "%s not found in %s" % (str((node, pattern)), str(self.requests))
+                sys.stderr.write("Cancel Request: %s not found in %s.\n" % (str((node, pattern)), str(self.requests)))
         finally:
             self.lock.release()
 

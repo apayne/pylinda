@@ -104,7 +104,7 @@ def socket_watcher():
                         try:
                             return_locks[int(msgid[2])].release()
                         except KeyError:
-                            raise KeyError, "%s not found in %s" % (msgid, return_locks.keys())
+                            pass # we have recieved the message before the return lock has been created!
                     finally:
                         ms_lock.release()
                 elif str(msgid[0]) != server.node_id:
