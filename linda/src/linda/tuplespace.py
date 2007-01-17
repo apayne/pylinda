@@ -71,7 +71,7 @@ class TupleSpace:
                 r = r[1]
                 for i in range(len(r)):
                     nid, template = r[i][0], r[i][1]
-                    self.requests.append((str(nid), template))
+                    self.requests.append((str(nid), tuple(template)))
         finally:
             self.lock.release(msg=("end start", self._id))
 

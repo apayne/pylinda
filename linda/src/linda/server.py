@@ -533,6 +533,8 @@ def removeProcess(pid):
 def removeServer(nid):
     print "A server (%s) has left. Probably should do something about this..." % (nid, )
 
+    del neighbours[nid]
+
 def cleanShutdown():
     # Stop accepting new connections
     _linda_server.server_disconnect();
