@@ -142,7 +142,7 @@ class LindaConnection:
 
     def register_thread(self, req, msgid, message, data):
         # When a new thread connects they need to acquire new thread id
-        p_id = data[0]
+        p_id = str(data[0])
         t_id = "%s!%i" % (p_id, pthread_count[p_id].next())
         pthreads[p_id].append(t_id)
         threads[t_id] = req
@@ -162,7 +162,7 @@ class LindaConnection:
         req.send(msgid, ("RESULT_INT", typeid))
 
     def update_type(self, req, msgid, message, data):
-        type_id, type = data[0], data[1]
+        type_id, type = str(data[0]), data[1]
 
         type.type_id = type_id
         updateType(type_id, type)
@@ -173,7 +173,7 @@ class LindaConnection:
         # if a process is about to disconnect they can let us know first
         # removeProcess removes any references held by the process
 
-        pid, tid = data
+        pid, tid = str(data[0]), str(data[1])
 
         pthreads[pid].remove(tid)
         del threads[tid]
@@ -181,7 +181,7 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def unregister_server(self, req, msgid, message, data):
-        nid, local = data
+        nid, local = str(datap[0]), data[1]
 
         req.send(msgid, ("DONE", ))
 
@@ -189,14 +189,14 @@ class LindaConnection:
 
     def get_connect_details(self, req, msgid, message, data):
         # try to find out how to connect to a server
-        if data[0] == node_id:
+        if str(data[0]) == node_id:
             # they're looking for us! Return our details
             req.send(msgid, ("RESULT_TUPLE", ((req.getsockname()[0], getOptions().port), None)))
-        elif data[0] in neighbours.keys():
+        elif str(data[0]) in neighbours.keys():
             # they're looking for our neighbour, ask them how to connect to them
-            r = sendMessageToNode(data[0], None, get_connect_details, data[0])
-            if isinstance(neighbours[data[0]], str): # we don't have a direct connection
-                req.send(msgid, ("RESULT_TUPLE", (r[1], neighbours[data[0]])))
+            r = sendMessageToNode(str(data[0]), None, get_connect_details, str(data[0]))
+            if isinstance(neighbours[str(data[0])], str): # we don't have a direct connection
+                req.send(msgid, ("RESULT_TUPLE", (r[1], neighbours[str(data[0])])))
             else: # we have a direct connection, tell people to go through us
                 req.send(msgid, ("RESULT_TUPLE", (r[1], node_id)))
         else:
@@ -208,12 +208,12 @@ class LindaConnection:
         ts = "S%s" % (guid.generate(), )
 
         local_ts.newTupleSpace(ts)
-        local_ts.addReference(ts, utils.getProcessIdFromThreadId(data[0]))
+        local_ts.addReference(ts, utils.getProcessIdFromThreadId(str(data[0])))
         req.send(msgid, ("RESULT_STRING", ts))
 
     def out_tuple(self, req, msgid, message, data):
         # output a tuple into a tuplespace
-        ts, tup = data
+        ts, tup = str(data[0]), data[1]
 
         assert utils.isTupleSpaceId(ts), "%s is not a tuplespace id" % (ts, )
         assert local_ts.has_key(ts)
@@ -224,7 +224,7 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def read_tuple(self, req, msgid, message, data):
-        ts, template, tid = data
+        ts, template, tid = str(data[0]), data[1], str(data[2])
         unblockable = message == inp_tuple
 
         blocked_threads[tid] = (req, ts)
@@ -242,7 +242,7 @@ class LindaConnection:
             pass # this thread is now blocked
 
     def in_tuple(self, req, msgid, message, data):
-        ts, template, tid = data
+        ts, template, tid = str(data[0]), data[1], str(data[2])
         unblockable = message == inp_tuple
 
         blocked_threads[tid] = (req, ts)
@@ -260,7 +260,7 @@ class LindaConnection:
             pass # this thread is now blocked
 
     def return_tuple(self, req, msgid, message, data):
-        tid, tup = data
+        tid, tup = str(data[0]), data[1]
 
         assert tid in blocked_threads.keys()
 
@@ -272,7 +272,7 @@ class LindaConnection:
         req.send(msgid, done)
 
     def collect(self, req, msgid, message, data):
-        ts, dest_ts, template = data
+        ts, dest_ts, template = str(data[0]), str(data[1]), data[2]
 
         try:
             ts = local_ts[ts]
@@ -307,7 +307,7 @@ class LindaConnection:
         req.send(msgid, ("RESULT_INT", total))
 
     def copy_collect(self, req, msgid, message, data):
-        ts, dest_ts, template = data
+        ts, dest_ts, template = str(data[0]), str(data[1]), data[2]
 
         try:
             ts = local_ts[ts]
@@ -352,7 +352,7 @@ class LindaConnection:
         req.send(msgid, ("RESULT_TUPLE", tuple([x[1] for x in r])))
 
     def cancel_request(self, req, msgid, message, data):
-        ts, template = data
+        ts, template = str(data[0]), data[1]
 
         if local_ts.has_key(ts):
             local_ts[ts].cancel_request(msgid[1], template)
@@ -360,7 +360,7 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def get_requests(self, req, msgid, message, data):
-        ts = data[0]
+        ts = str(data[0])
 
         if local_ts.has_key(ts):
             req.send(msgid, ("RESULT_TUPLE", tuple(local_ts[ts].get_requests())))
@@ -369,14 +369,14 @@ class LindaConnection:
 
     def is_deadlocked(self, req, msgid, message, data):
         try:
-            ts = local_ts[data[0]]
+            ts = local_ts[str(data[0])]
         except KeyError:
             req.send(msgid, True)
         else:
             req.send(msgid, ts.isLocallyDeadlocked())
 
     def multiple_in(self, req, msgid, message, data):
-        ts, tups = data
+        ts, tups = str(data[0]), data[1]
 
         assert local_ts.has_key(ts)
 
@@ -385,7 +385,7 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def add_reference(self, req, msgid, message, data):
-        ts, ref = data
+        ts, ref = str(data[0]), str(data[1])
 
         if utils.isThreadId(ref):
             ref = utils.getProcessIdFromThreadId(ref)
@@ -397,7 +397,7 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def delete_reference(self, req, msgid, message, data):
-        ts, ref = data
+        ts, ref = str(data[0]), str(data[1])
 
         if ts == "UTS":
             req.send(msgid, (done, ))
@@ -417,14 +417,14 @@ class LindaConnection:
         req.send(msgid, (done, ))
 
     def has_tuplespace(self, req, msgid, message, data):
-        ts = data[0]
+        ts = str(data[0])
         if local_ts.has_key(ts):
             req.send(msgid, node_id)
         else:
             req.send(msgid, dont_know)
 
     def get_threads(self, req, msgid, message, data):
-        pid = data[0]
+        pid = str(data[0])
 
         assert pthreads.has_key(pid)
 
