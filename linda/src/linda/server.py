@@ -164,7 +164,8 @@ class LindaConnection:
     def update_type(self, req, msgid, message, data):
         type_id, type = str(data[0]), data[1]
 
-        type.type_id = type_id
+        print "update type", type_id
+        type.type_id = int(type_id)
         updateType(type_id, type)
 
         req.send(msgid, ("DONE", ))
