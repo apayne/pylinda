@@ -63,7 +63,9 @@ void Linda_init() {
 
 #ifdef TYPES
     Minimal_use_types = 1;
+#ifdef REGISTER_TYPES
     Minimal_setOverrideTypeFunc(Linda_registerType);
+#endif
 #else
     Minimal_use_types = 0;
 #endif
