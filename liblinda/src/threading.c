@@ -18,18 +18,19 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "linda_internal.h"
+
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "linda.h"
-#include "linda_internal.h"
 
 static pthread_key_t key = 0;
 static pthread_once_t key_once = PTHREAD_ONCE_INIT;

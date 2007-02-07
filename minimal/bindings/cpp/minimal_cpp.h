@@ -23,44 +23,57 @@
 #ifndef MINIMAL_CPP_H
 #define MINIMAL_CPP_H
 
+#ifdef WIN32
+#define EXPORT __declspec(dllexport)
+#define IMPORT __declspec(dllimport)
+#else
+#define EXPORT
+#define IMPORT
+#endif
+
 struct MinimalValue_t;
 typedef struct MinimalValue_t* MinimalValue;
 
 namespace Minimal {
 
-void init();
-void finalise();
+EXPORT void init();
+EXPORT void finalise();
 
 class Value {
 public:
-    Value();
-    Value(int i);
-    Value(bool b);
+    EXPORT Value();
+    EXPORT Value(int i);
+    EXPORT Value(bool b);
 
-    std::string serialise(bool include_type);
+    EXPORT std::string serialise(bool include_type);
 
-    void setType(Value& type);
-    void setSumPos(int pos);
+    EXPORT void setType(Value& type);
+    EXPORT void setSumPos(int pos);
 
-    void set(int pos, Value obj);
+    EXPORT void set(int pos, Value obj);
 
-    Value& operator=(Value& other);
-    Value& operator=(MinimalValue other);
+    EXPORT Value& operator=(Value& other);
+    EXPORT Value& operator=(MinimalValue other);
 
-    Value& operator=(int i);
+    EXPORT Value& operator=(int i);
 
-    Value operator[](int index);
+    EXPORT Value operator[](int index);
 
-    void addReference();
-    void delReference();
+    EXPORT void addReference();
+    EXPORT void delReference();
 
 private:
     MinimalValue value;
 };
 
-Value Type(std::string spec);
-Value Tuple(int size);
+EXPORT Value Type(std::string spec);
+EXPORT Value Tuple(int size);
 
+#ifdef MINIMAL_INTERNAL
+EXPORT 
+#else
+IMPORT
+#endif
 extern Value Nil;
 
 }

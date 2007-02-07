@@ -18,9 +18,10 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "../../minimal/src/minimal_internal.h"
+#ifndef LINDA_PYTHON_H
+#define LINDA_PYTHON_H
 
-#ifndef LINDA_PYTHON
+#include "linda.h"
 
 void inittuplespace(PyObject* m);
 void inittsref(PyObject* m);

@@ -30,8 +30,9 @@ typedef int Py_ssize_t;
 #define ssizeargfunc intargfunc
 #endif
 
-#include "linda.h"
 #include "linda_python.h"
+#define HACKY_MAGIC
+#include "../../minimal/src/minimal_internal.h"
 
 static PyObject* linda_Value_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
@@ -136,9 +137,9 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 1;
         }
-    } else if(self->val->type == NIL) {
+    } else if(self->val->type == M_NIL) {
         return 0;
-    } else if(self->val->type == BOOLEAN) {
+    } else if(self->val->type == M_BOOLEAN) {
         if(self->val->boolean == 0 && other->val->boolean == 0) {
             return 0;
         } else if(self->val->boolean == 0 && other->val->boolean == 1) {
@@ -148,7 +149,7 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    } else if(self->val->type == INTEGER || self->val->type == LONG) {
+    } else if(self->val->type == M_INTEGER || self->val->type == M_LONG) {
         if(self->val->integer < other->val->integer) {
             return -1;
         } else if(self->val->integer > other->val->integer) {
@@ -156,9 +157,9 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    } else if(self->val->type == STRING) {
+    } else if(self->val->type == M_STRING) {
         return strcmp(self->val->string, other->val->string);
-    } else if(self->val->type == TUPLE) {
+    } else if(self->val->type == M_TUPLE) {
         if(self->val->size < other->val->size) {
             return -1;
         } else if(self->val->size > other->val->size) {
@@ -177,9 +178,9 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
             }
             return 0;
         }
-    } else if(self->val->type == FUNCTION) {
+    } else if(self->val->type == M_FUNCTION) {
         return strcmp(self->val->func_name, other->val->func_name);
-    } else if(self->val->type == TYPE) {
+    } else if(self->val->type == M_TYPE) {
         if(strcmp(self->val->type_name, other->val->type_name)) {
             return strcmp(self->val->type_name, other->val->type_name);
         } else {
@@ -388,9 +389,11 @@ static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
+    PyObject* string;
+
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getID - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_IDENTIFIER) { PyErr_SetString(PyExc_TypeError, "getID - Not an identifier."); return NULL; }
-    PyObject* string = PyString_FromString(self->val->type_spec->string);
+    string = PyString_FromString(self->val->type_spec->string);
     if(string == NULL) {
         PyErr_SetString(PyExc_TypeError, "Failed to get id string.");
         return NULL;
@@ -410,18 +413,22 @@ static PyObject* linda_Value_getstring(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
+    LindaValue val;
+
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getArg - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
-    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[0]));
+    val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[0]));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
     return Value2PyO(val);
 }
 
 static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
+    LindaValue val;
+
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getResult - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
-    LindaValue val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[1]));
+    val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[1]));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
     return Value2PyO(val);
@@ -429,9 +436,10 @@ static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
 
 #ifdef TYPES
 static PyObject* linda_Value_gettypemap(linda_ValueObject *self, void *closure) {
+    linda_TypeMapObject* map;
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getTypeMap - Not a type."); return NULL; }
 
-    linda_TypeMapObject* map = (linda_TypeMapObject*)PyObject_CallFunction((PyObject*)&linda_TypeMapType, "", 0);
+    map = (linda_TypeMapObject*)PyObject_CallFunction((PyObject*)&linda_TypeMapType, "", 0);
 
     if(Linda_isType(self->val)) {
         Linda_addReference((void*)(self->val->typemap));
@@ -562,35 +570,35 @@ static PyObject* linda_Value_sub(linda_ValueObject* self, linda_ValueObject* oth
 }
 
 static int linda_Value_nonzero(linda_ValueObject* self) {
-    if(self->val->type == NIL) {
+    if(self->val->type == M_NIL) {
         return 0;
-    } else if(self->val->type == BOOLEAN) {
+    } else if(self->val->type == M_BOOLEAN) {
         if(self->val->boolean == 0) {
             return 0;
         } else {
             return 1;
         }
-    } else if(self->val->type == INTEGER || self->val->type == LONG) {
+    } else if(self->val->type == M_INTEGER || self->val->type == M_LONG) {
         if(self->val->integer == 0) {
             return 0;
         } else {
             return 1;
         }
-    } else if(self->val->type == STRING) {
+    } else if(self->val->type == M_STRING) {
         if(strlen(self->val->string) == 0) {
             return 0;
         } else {
             return 1;
         }
-    } else if(self->val->type == TUPLE) {
+    } else if(self->val->type == M_TUPLE) {
         if(self->val->size == 0) {
             return 0;
         } else {
             return 1;
         }
-    } else if(self->val->type == FUNCTION) {
+    } else if(self->val->type == M_FUNCTION) {
         return 1;
-    } else if(self->val->type == TYPE) {
+    } else if(self->val->type == M_TYPE) {
         return 1;
     } else {
         PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("PyLibLinda: Unknown type (%i) in nb_nonzero.\n", self->val->type));
@@ -721,8 +729,9 @@ LindaValue PyO2Value(PyObject* obj) {
             PyErr_SetString(PyExc_SystemError, "Failed to create Value from Python Object."); 
             return NULL;
         } else {
+            LindaValue v;
             Linda_addReference(((linda_ValueObject*)o)->val);
-            LindaValue v = ((linda_ValueObject*)o)->val;
+            v = ((linda_ValueObject*)o)->val;
             Py_DECREF(o);
             return v;
         }

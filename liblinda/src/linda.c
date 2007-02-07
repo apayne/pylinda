@@ -18,16 +18,24 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
+#endif
 #include <sys/types.h> 
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 
-#include "linda.h"
 #include "linda_internal.h"
 
 char* Linda_version = "0.7a";
@@ -87,6 +95,7 @@ void Linda_finalise() {
 }
 
 unsigned char Linda_connect(int port) {
+    struct sockaddr_in addr_in;
     int err;
     Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
@@ -113,7 +122,6 @@ unsigned char Linda_connect(int port) {
     tdata->sd = socket(PF_INET, SOCK_STREAM, 0);
     if(tdata->sd == -1) return 0;
 
-    struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_port = htons(port);
     if(inet_aton("127.0.0.1", (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) { close(tdata->sd); tdata->sd = 0; return 0; }
@@ -165,7 +173,11 @@ unsigned char Linda_connect(int port) {
 void Linda_disconnect() {
     Linda_thread_data* tdata = Linda_get_thread_data();
     if(tdata->sd == 0) { return; }
+#ifdef WIN32
+    shutdown(tdata->sd, SD_BOTH);
+#else
     shutdown(tdata->sd, SHUT_RDWR);
+#endif
     tdata->sd = 0;
     free(tdata->thread_id);
     tdata->thread_id = NULL;
@@ -179,10 +191,11 @@ void Linda_disconnect() {
 }
 
 void Linda_out(LindaValue ts, LindaValue t) {
+    Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_addReference(t);
     Linda_scanTuple(t, ts);
-    Message* m = Message_out(ts, t);
+    m = Message_out(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -191,10 +204,11 @@ void Linda_out(LindaValue ts, LindaValue t) {
 }
 
 LindaValue Linda_in(LindaValue ts, LindaValue t) {
+    Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_addReference(t);
-    Message* m = Message_in(ts, t);
+    m = Message_in(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -203,12 +217,14 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
     Message_free(m);
 
 #ifdef TYPES
+    {
     int i;
     for(i = 0; i < Linda_getTupleSize(r); i++) {
         LindaValue v1 = Linda_tupleGet(t, i);
         LindaValue v2 = Linda_tupleGet(r, i);
 
         Linda_setType(v2, v1->typeobj);
+    }
     }
 #endif
     Linda_delReference(t);
@@ -217,10 +233,11 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
 }
 
 LindaValue Linda_rd(LindaValue ts, LindaValue t) {
+    Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_addReference(t);
-    Message* m = Message_rd(ts, t);
+    m = Message_rd(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -229,12 +246,14 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     Message_free(m);
 
 #ifdef TYPES
+    {
     int i;
     for(i = 0; i < Linda_getTupleSize(r); i++) {
         LindaValue v1 = Linda_tupleGet(t, i);
         LindaValue v2 = Linda_tupleGet(r, i);
 
         Linda_setType(v2, v1->typeobj);
+    }
     }
 #endif
     Linda_delReference(t);
@@ -243,14 +262,15 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
 }
 
 LindaValue Linda_inp(LindaValue ts, LindaValue t) {
+    Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
-    Message* m = Message_inp(ts, t);
+    m = Message_inp(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { Linda_delReference(t); return NULL; }
-    if(m->type == UNBLOCK) {
+    if(m->type == L_UNBLOCK) {
         Message_free(m);
 
         Linda_delReference(t);
@@ -260,12 +280,14 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
         Message_free(m);
 
 #ifdef TYPES
+        {
         int i;
         for(i = 0; i < Linda_getTupleSize(r); i++) {
             LindaValue v1 = Linda_tupleGet(t, i);
             LindaValue v2 = Linda_tupleGet(r, i);
 
             Linda_setType(v2, v1->typeobj);
+        }
         }
 #endif
 
@@ -275,14 +297,15 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
 }
 
 LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
+    Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
-    Message* m = Message_rdp(ts, t);
+    m = Message_rdp(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { return NULL; }
-    if(m->type == UNBLOCK) {
+    if(m->type == L_UNBLOCK) {
         Message_free(m);
 
         Linda_delReference(t);
@@ -292,12 +315,14 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
         Message_free(m);
 
 #ifdef TYPES
+        {
         int i;
         for(i = 0; i < Linda_getTupleSize(r); i++) {
             LindaValue v1 = Linda_tupleGet(t, i);
             LindaValue v2 = Linda_tupleGet(r, i);
 
             Linda_setType(v2, v1->typeobj);
+        }
         }
 #endif
 
@@ -308,8 +333,9 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
 
 int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     int i;
+    Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
-    Message* m = Message_collect(ts1, ts2, t);
+    m = Message_collect(ts1, ts2, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -321,8 +347,9 @@ int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
 
 int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     int i;
+    Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
-    Message* m = Message_copy_collect(ts1, ts2, t);
+    m = Message_copy_collect(ts1, ts2, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -342,8 +369,9 @@ void Linda_registerType(LindaValue t) {
 
         Minimal_TypeList types = Minimal_getTypeList(t);
         for(i = 0; types[i] != NULL; i++) {
+            Message* m;
             if(t->type_id != 0) { continue; }
-            Message* m = Message_register_type(types[i]);
+            m = Message_register_type(types[i]);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             m = Message_recv(tdata->sd);
@@ -352,9 +380,10 @@ void Linda_registerType(LindaValue t) {
             Message_free(m);
         }
         for(i = 0; types[i] != NULL; i++) {
+            Message* m;
             int type_id = types[i]->type_id;
             types[i]->type_id = 0; /* Force type spec to be produced by hiding the type_id. */
-            Message* m = Message_update_type(type_id, types[i]);
+            m = Message_update_type(type_id, types[i]);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             types[i]->type_id = type_id;

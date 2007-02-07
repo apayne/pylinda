@@ -19,13 +19,11 @@
 */
 
 #ifndef __LINDA_CPP_H__
+#define __LINDA_CPP_H__
 
 #define FORCE_C
 #include "linda.h"
 #undef FORCE_C
-
-#include <string>
-#include <vector>
 
 namespace Linda {
 

@@ -21,6 +21,7 @@
 ##
 ## \author Andrew Wilkinson <aw@cs.york.ac.uk>
 
+import os
 import linda
 from optparse import OptionParser
 import sys
@@ -78,8 +79,14 @@ def getOptions():
     parser.add_option("-d", "--disable-domain", default=True, action="store_false", dest="use_domain",
                       help="Disable the use of Unix Domain Sockets")
 
-    parser.add_option("-D", "--daemon", default=False, action="store_true", dest="daemon",
-                      help="Disable the interactive shell for the server. Default: Enabled.")
+    try:
+        os.fork
+    except AttributeError:
+        parser.add_option("-D", "--daemon", default=True, action="store_true", dest="daemon",
+                          help="Disable the interactive shell for the server. Default: Enabled.")
+    else:
+        parser.add_option("-D", "--daemon", default=False, action="store_true", dest="daemon",
+                          help="Disable the interactive shell for the server. Default: Enabled.")
 
     parser.add_option("-e", "--execute", default=[], action="append", dest="execute",
                       help="Execute these commands in the monitor on start up. Multiple options are executed in order.")

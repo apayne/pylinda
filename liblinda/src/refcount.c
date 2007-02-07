@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "linda.h"
 #include "linda_internal.h"
 
 void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
@@ -29,6 +28,7 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
     Message* m;
     LindaValue* realscanned = NULL;
     Linda_thread_data* tdata;
+    LindaValue* newscanned;
 
     if(scanned == NULL) {
         realscanned = (LindaValue*)malloc(sizeof(void*));
@@ -49,7 +49,7 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         }
         return;
     }
-    LindaValue* newscanned = malloc(sizeof(void*)*(i+1));
+    newscanned = malloc(sizeof(void*)*(i+1));
     memcpy(newscanned, *scanned, sizeof(void*)*i);
     newscanned[i] = Linda_getPtr(t);
     newscanned[i+1] = NULL;
@@ -59,15 +59,15 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
     for(i=0; i<Linda_getTupleSize(t); i++) {
         LindaValue v = Linda_tupleGet(t, i);
         switch(v->type) {
-        case NIL:
-        case BOOLEAN:
-        case INTEGER:
-        case FLOAT:
-        case STRING:
-        case TYPE:
-        case FUNCTION:
+        case M_NIL:
+        case M_BOOLEAN:
+        case M_INTEGER:
+        case M_FLOAT:
+        case M_STRING:
+        case M_TYPE:
+        case M_FUNCTION:
             break;
-        case TSREF:
+        case M_TSREF:
             tdata = Linda_get_thread_data();
             m = Message_addReference2(v, Minimal_getTupleSpace(ref));
             Message_send(tdata->sd, NULL, m);
@@ -75,10 +75,10 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
             m = Message_recv(tdata->sd);
             Message_free(m);
             break;
-        case TUPLE:
+        case M_TUPLE:
             Linda_scanTuple2(v, ref, scanned);
             break;
-        case POINTER:
+        case M_POINTER:
             Linda_scanTuple2(Linda_getPtr(v), ref, scanned);
             break;
         default:

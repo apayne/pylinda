@@ -30,6 +30,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node);
 MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer types);
 
 Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
+    Minimal_SyntaxTree* tree;
     xmlDocPtr doc = xmlReadMemory(code, strlen(code), NULL, NULL, 0);
 
     xmlNodePtr node = xmlDocGetRootElement(doc);
@@ -39,7 +40,7 @@ Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
         return NULL;
     }
 
-    Minimal_SyntaxTree* tree = Minimal_xmlToSyntaxTree(node);
+    tree = Minimal_xmlToSyntaxTree(node);
     xmlFreeDoc(doc);
 
     return tree;
@@ -48,10 +49,11 @@ Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code) {
 Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
     if(strcmp((char*)(node->name), "minimal") == 0) {
         int i = 0;
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_SEQENTIAL_DEFS;
         tree->branches = NULL;
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
@@ -67,11 +69,13 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
     } else if(strcmp((char*)(node->name), "function") == 0) {
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = NULL;
+        xmlChar* fn;
+        xmlNode* cur_node;
         tree->type = ST_FUNCTION_DEF;
-        xmlChar* fn = xmlGetProp(node, (xmlChar*)"name");
+        fn = xmlGetProp(node, (xmlChar*)"name");
         tree->func_name = (char*)malloc(strlen((char*)fn)+1);
         strcpy(tree->func_name, (char*)fn);
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 tree2 = Minimal_xmlToSyntaxTree(cur_node);
@@ -81,10 +85,11 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         return tree;
     } else if(strcmp((char*)(node->name), "product_type") == 0) {
         int i = 0;
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_PRODUCT_TYPE;
         tree->branches = NULL;
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
@@ -99,10 +104,11 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         return tree;
     } else if(strcmp((char*)(node->name), "sum_type") == 0) {
         int i = 0;
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_SUM_TYPE;
         tree->branches = NULL;
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 Minimal_SyntaxTree** b = (Minimal_SyntaxTree**)malloc(sizeof(void*) * (i + 1));
@@ -117,12 +123,13 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         return tree;
     } else if(strcmp((char*)(node->name), "type_function") == 0) {
         int i;
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_TYPE_FUNCTION;
         tree->length = 2;
         tree->branches = (Minimal_SyntaxTree**)malloc(sizeof(void*) * 2);
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && i < 2) {
                 tree2->branches[i] = Minimal_xmlToSyntaxTree(cur_node);
@@ -151,15 +158,17 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         free(val);
         return tree;
     } else if(strcmp((char*)(node->name), "type") == 0) {
+        xmlChar* name;
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_TYPE_SPEC;
 
-        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+        name = xmlGetProp(node, (xmlChar*)"name");
         tree->type_name = (char*)malloc(strlen((char*)name)+1);
         strcpy(tree->type_name, (char*)name);
         free(name);
 
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 tree->type_def = Minimal_xmlToSyntaxTree(cur_node);
@@ -176,6 +185,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         free(name);
         return tree;
     } else if(strcmp((char*)(node->name), "parameter_list") == 0) {
+        xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_PARAMETER_LIST;
@@ -183,16 +193,17 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         tree->var_name = NULL;
         tree->next_var = NULL;
 
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "param") == 0) {
+                xmlChar* name;
                 if(tree2->var_name != NULL) {
                     tree2->next_var = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
                     tree2 = tree2->next_var;
                     tree2->type = ST_PARAMETER_LIST;
                     tree2->next_var = NULL;
                 }
-                xmlChar* name = xmlGetProp(cur_node, (xmlChar*)"name");
+                name = xmlGetProp(cur_node, (xmlChar*)"name");
                 tree2->var_name = (char*)malloc(strlen((char*)name)+1);
                 strcpy(tree2->var_name, (char*)name);
                 free(name);
@@ -211,6 +222,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         }
         return tree;
     } else if(strcmp((char*)(node->name), "operator") == 0) {
+        xmlNode* cur_node;
         xmlChar* op = xmlGetProp(node, (xmlChar*)"op");
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_OPERATOR;
@@ -220,7 +232,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
 
         tree->op1 = NULL; tree->op2 = NULL;
 
-        xmlNode* cur_node = node->children;
+        cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE) {
                 if(tree->op1 == NULL) {
@@ -257,12 +269,13 @@ MinimalValue Minimal_parseXMLValue(const char* code) {
 }
 
 MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
+    MinimalLayer types;
     MinimalValue value;
     ValueMemo memo;
     memo.found = NULL;
     memo.waiting = NULL;
 
-    MinimalLayer types = Minimal_createLayer();
+    types = Minimal_createLayer();
 
     value = Minimal_xmlToValue2(node, &memo, types);
 
@@ -287,15 +300,17 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
                 Minimal_setTypeMap(type, types);
                 Minimal_addName(&(types->map), type->type_name, type);
             } else if(root == NULL) {
+                char* type;
+                char* typeid;
                 root = Minimal_xmlToValue2(node, memo, types);
-                char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
+                type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
                     MinimalValue t = Minimal_getName(types, type);
                     Minimal_setType(root, t);
                     Minimal_delReference(t);
                     free(type);
                 }
-                char* typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
+                typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
                 if(typeid != NULL) {
                     Minimal_setType(root, Minimal_typeFromId(atoi(typeid)));
                     free(typeid);
@@ -306,15 +321,17 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
                 }
                 Minimal_setTypeMap(root, types);
             } else {
+                char* type;
+                char* typeid;
                 MinimalValue v = Minimal_xmlToValue2(node, memo, types);
-                char* type = (char*)xmlGetProp(node, (xmlChar*)"typename");
+                type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
                     MinimalValue t = Minimal_getName(types, type);
                     Minimal_setType(root, t);
                     Minimal_delReference(t);
                     free(type);
                 }
-                char* typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
+                typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
                 if(typeid != NULL) {
                     Minimal_setType(root, Minimal_typeFromId(atoi(typeid)));
                     free(typeid);
@@ -334,6 +351,8 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
 
 MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer types) {
     MinimalValue value = NULL;
+	xmlChar* tid;
+	xmlChar* cid;
     if(strcmp((char*)(node->name), "minimal") == 0) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
@@ -363,8 +382,8 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             value = Minimal_string("");
         }
     } else if(strcmp((char*)(node->name), "tuple") == 0) {
-        value = Minimal_tuple(0);
         xmlNode* cur_node = node->children;
+        value = Minimal_tuple(0);
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "type") == 0) {
                 MinimalValue type = Minimal_xmlToValue2(cur_node, memo, types);
@@ -379,6 +398,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         value = Minimal_xmlSeriesToValue(node->children, memo, types);
     } else if(strcmp((char*)(node->name), "type") == 0) {
         Minimal_SyntaxTree* tree = NULL;
+		xmlChar* name;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
@@ -386,13 +406,14 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             }
             cur_node = cur_node->next;
         }
-        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+        name = xmlGetProp(node, (xmlChar*)"name");
         value = Minimal_typeSpec((char*)name, tree);
         Minimal_SyntaxTree_free(tree);
         free(name);
         Minimal_setTypeMap(value, types);
     } else if(strcmp((char*)(node->name), "typeobj") == 0) {
         Minimal_SyntaxTree* tree = NULL;
+		xmlChar* tid;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
@@ -400,7 +421,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             }
             cur_node = cur_node->next;
         }
-        xmlChar* tid = xmlGetProp(node, (xmlChar*)"typeid");
+        tid = xmlGetProp(node, (xmlChar*)"typeid");
         if(tid != NULL) {
             int i = atoi((char*)tid);
             value = Minimal_typeFromId(i);
@@ -518,6 +539,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         Minimal_SyntaxTree* type = NULL;
         Minimal_SyntaxTree* params = NULL;
         Minimal_SyntaxTree* code = NULL;
+		xmlChar* name;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {
@@ -536,7 +558,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         } else if(code == NULL) {
             fprintf(stderr, "Error: Didn't get code in function.\n"); return NULL;
         }
-        xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
+        name = xmlGetProp(node, (xmlChar*)"name");
         value = Minimal_function2((char*)name, type, params, code);
         Minimal_SyntaxTree_free(type);
         Minimal_SyntaxTree_free(params);
@@ -547,7 +569,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         return NULL;
     }
 
-    xmlChar* tid = xmlGetProp(node, (xmlChar*)"typeid");
+    tid = xmlGetProp(node, (xmlChar*)"typeid");
     if(tid == NULL) {
         MinimalValue type = NULL;
         xmlNode* cur_node = node->children;
@@ -567,7 +589,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         free(tid);
     }
 
-    xmlChar* cid = xmlGetProp(node, (xmlChar*)"id");
+    cid = xmlGetProp(node, (xmlChar*)"id");
     if(cid != NULL) {
         unsigned long id;
         sscanf((char*)cid, "%li", &id);

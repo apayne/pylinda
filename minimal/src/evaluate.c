@@ -20,16 +20,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef NO_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "minimal_internal.h"
 
 MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
-    if(func->type != FUNCTION) { fprintf(stderr, "Error: Minimal_eval didn't get function for function call.\n"); return NULL; }
-    MinimalLayer new_layer = Minimal_createLayer2(func->layer);
-    Minimal_SyntaxTree* param = func->parameter_list;
+    MinimalLayer new_layer;
+    Minimal_SyntaxTree* param;
     int i;
+    MinimalValue r;
+
+    if(func->type != M_FUNCTION) { fprintf(stderr, "Error: Minimal_eval didn't get function for function call.\n"); return NULL; }
+    new_layer = Minimal_createLayer2(func->layer);
+    param = func->parameter_list;
     for(i=0; i < args->size; i++) {
         MinimalValue param_val = Minimal_tupleGet(args, i);
         Minimal_addReference(param_val);
@@ -37,7 +43,7 @@ MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
 
         param = param->next_var;
     }
-    MinimalValue r = Minimal_evaluate(func->code, new_layer);
+    r = Minimal_evaluate(func->code, new_layer);
     Minimal_delReference(new_layer);
     return r;
 }
@@ -72,14 +78,19 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         return Minimal_getName(layer, tree->type_name);
     case ST_FUNCTION_CALL:
         {
+        MinimalLayer new_layer;
+        Minimal_SyntaxTree* param;
+        Minimal_SyntaxTree* arg;
+        MinimalValue r;
+
         MinimalValue function = Minimal_evaluate(tree->function, layer);
         if(function == NULL) { return NULL; }
-        if(function->type != FUNCTION) { fprintf(stderr, "Error: Didn't get function for function call.\n"); return NULL; }
-        MinimalLayer new_layer = Minimal_createLayer2(function->layer);
+        if(function->type != M_FUNCTION) { fprintf(stderr, "Error: Didn't get function for function call.\n"); return NULL; }
+        new_layer = Minimal_createLayer2(function->layer);
         if(new_layer == NULL) { fprintf(stderr, "Error: Got NULL when creating new layer.\n"); return NULL; }
-        Minimal_SyntaxTree* param = function->parameter_list;
+        param = function->parameter_list;
         if(param == NULL) { fprintf(stderr, "Error: Parameter list for %s is NULL.\n", function->func_name); return NULL; }
-        Minimal_SyntaxTree* arg = tree->arguments;
+        arg = tree->arguments;
         while(arg != NULL && arg->type != ST_BLANK) {
             MinimalValue param_val = Minimal_evaluate(arg->argument, layer);
             if(param == NULL) { fprintf(stderr, "Error: Param is NULL.\n"); return NULL; }
@@ -88,7 +99,7 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
 
             param = param->next_var; arg = arg->next_arg;
         }
-        MinimalValue r = Minimal_evaluate(function->code, new_layer);
+        r = Minimal_evaluate(function->code, new_layer);
         Minimal_delReference(new_layer);
         Minimal_delReference(function);
         return r;

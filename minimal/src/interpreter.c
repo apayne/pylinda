@@ -20,8 +20,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef NO_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "minimal_internal.h"
 
@@ -30,11 +32,18 @@ void Minimal_interpreter() {
 
     while(1) {
         MinimalValue v;
+		
+#ifndef NO_READLINE
         char* line = readline("> ");
+#else
+		char* line = gets("> ");
+#endif
         if(line == NULL) { break; }
         if(strlen(line) == 0) { free(line); continue; }
 
+#ifndef NO_READLINE
         add_history(line);
+#endif
 
         tree = Minimal_parseCode(line);
         if(tree == NULL) { free(line); continue; }

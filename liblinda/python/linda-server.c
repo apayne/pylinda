@@ -20,21 +20,30 @@
 
 #include "config.h"
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/socket.h>
+#ifdef USE_DOMAIN_SOCKETS
+#include <sys/un.h>
+#endif
+#include <sys/types.h> 
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 
 #include PYTHON_H
 
 #define LINDA_SERVER
-#include "../src/linda.h"
-#include "../src/linda_internal.h"
-#include "../src/linda_server.h"
-
+#define HACKY_MAGIC
 #include "linda_python.h"
+#define LSEXPORT
+#define LSIMPORT __declspec(dllimport)
+#include "linda_server.h"
 
 PyObject* LindaServer_module;
 
@@ -42,11 +51,12 @@ int LindaPython_is_server = 1;
 
 static PyObject* LindaServerPython_serve(PyObject *self, PyObject* args) {
     int use_domain;
+    int r;
     int port = Linda_port;
     if(!PyArg_ParseTuple(args, "i|i", &use_domain, &port)) {
         return NULL;
     }
-    int r = Linda_serve(use_domain, port);
+    r = Linda_serve(use_domain, port);
     if(r) {
         Py_RETURN_TRUE;
     } else {
@@ -102,13 +112,25 @@ static PyObject* LindaServerPython_setblocking(PyObject *self, PyObject* args) {
         return NULL;
     }
 
+#ifndef WIN32
     oval = fcntl(sd, F_GETFL, 0);
+#endif
     if(val) {
+#ifdef WIN32
+        ioctlsocket(sd, FIONBIO, &val);
+#else
         oval &= O_NONBLOCK;
+#endif
     } else {
+#ifdef WIN32
+        ioctlsocket(sd, FIONBIO, &val);
+#else
         oval = ~(~oval & O_NONBLOCK);
+#endif
     }
+#ifndef WIN32
     fcntl(sd, F_GETFL, oval);
+#endif
 
     Py_INCREF(Py_None);
     return Py_None;

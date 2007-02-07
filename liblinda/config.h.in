@@ -20,6 +20,10 @@
 
 #ifndef LIBLINDA_CONFIG_H
 
+#ifdef _WIN32
+#define PYTHON_H "Python.h"
+#else
 #define PYTHON_H "python%(PYTHON_VERSION)s/Python.h"
+#endif
 
 #endif

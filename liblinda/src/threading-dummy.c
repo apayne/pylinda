@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "linda.h"
 #include "linda_internal.h"
 
 Linda_thread_data Linda_main_thread = {0, NULL};

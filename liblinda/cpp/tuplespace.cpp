@@ -22,10 +22,6 @@
 
 #include "linda.h"
 
-#define FORCE_C
-#include "linda.h"
-#include "../src/linda_internal.h"
-
 namespace Linda {
 
 TupleSpace::TupleSpace() {
@@ -120,16 +116,16 @@ int TupleSpace::copy_collect(TupleSpace& ts, Tuple& t) {
 
 TupleSpace& TupleSpace::operator=(const TupleSpace& ts) {
     if(ts.initialised) {
-        Linda_addTSReference(ts.tsid);
+        Linda_addReference(ts.tsid);
         if(this->initialised) {
-            Linda_delTSReference(this->tsid);
+            Linda_delReference(this->tsid);
         }
 
         this->tsid = ts.tsid;
         this->initialised = true;
     } else {
         if(this->initialised) {
-            Linda_delTSReference(this->tsid);
+            Linda_delReference(this->tsid);
         }
 
         this->tsid = NULL;

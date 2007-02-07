@@ -5,12 +5,27 @@ defines = {"PYTHON_VERSION": "%s.%s" % (sys.version_info[0], sys.version_info[1]
 text = open(str("config.h.in"), "r").read() % defines
 open(str("config.h"), "w").write(text)
 
+if sys.platform == "win32":
+    ccflags = "/DWIN32 /D_CRT_SECURE_NO_DEPRECATE "
+    cppflags = "/EHsc "
+    includes = ["C:\\Development\\Python25\\include", "C:\\Documents And Settings\\Andrew Wilkinson\\My Documents\\Development\\pylinda\\minimal\\src"]
+    libdir = ["C:\\Documents And Settings\\Andrew Wilkinson\\My Documents\\Development\\pylinda\\minimal"]
+    libs = ["ws2_32"]
+    pylib = ["python25"]
+else:
+    ccflags = "-g -Wall -Werror"
+    cppflags = ""
+    includes = ["/home/andrew/include", "/usr/include/libxml2"]
+    libdir = [".", "/home/andrew/lib"]
+    libs = []
+    pylib = ["python2.5", "readline"]
+
 debug = int(ARGUMENTS.get("debug", "1"))
 types = int(ARGUMENTS.get("types", "1"))
 register = int(ARGUMENTS.get("register", "1"))
 
-env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"], LIBPATH=[".", "/home/andrew/lib"])
-cppenv = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#cpp/", "#", "/home/andrew/include", "/usr/include/libxml2"])
+env = Environment(CCFLAGS=ccflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
+cppenv = Environment(CCFLAGS=ccflags + cppflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
 
 if debug:
     env.Append(CCFLAGS=" -DDEBUG")
@@ -27,9 +42,16 @@ clientobjs, serverobjs = SConscript("src/SConscript")
 cppclientobjs = SConscript("cpp/SConscript")
 pyclientobjs, pyserverobjs = SConscript("python/SConscript")
 
-env.SharedLibrary(target = "linda", source = clientobjs)
-cppenv.SharedLibrary(target = "linda++", source = cppclientobjs)
-env.SharedLibrary(target = "linda-server", source = serverobjs)
+linda = env.SharedLibrary(target = "linda", source = clientobjs, LIBS=["minimal", "xml2", "fl"] + libs)
+cppenv.SharedLibrary(target = "linda++", source = cppclientobjs, LIBS=["linda", "minimal", "xml2", "fl"] + libs)
+linda_server = env.SharedLibrary(target = "linda-server", source = serverobjs, LIBS=["minimal", "xml2", "fl"] + libs)
 
-env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["linda", "minimal", "xml2", "python2.5", "readline", "fl"])
-env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["linda-server", "minimal", "xml2"])
+pylinda = env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["linda", "minimal", "xml2", "fl"] + pylib)
+pylinda_server = env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["linda-server", "minimal", "xml2"] + libs + pylib)
+
+env.Depends(pylinda, linda)
+env.Depends(pylinda_server, linda_server)
+
+if sys.platform == "win32":
+    env.Command("_linda.pyd", "_linda.dll", Copy("$TARGET", "$SOURCE"))
+    env.Command("_linda_server.pyd", "_linda_server.dll", Copy("$TARGET", "$SOURCE"))

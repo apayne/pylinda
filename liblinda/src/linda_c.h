@@ -20,10 +20,38 @@
 
 #include <stdlib.h>
 
-#include "minimal.h"
-
 #ifndef __LINDA_C_H__
 #define __LINDA_C_H__
+
+#include "minimal.h"
+
+#ifdef WIN32
+#define inline
+#ifdef LINDA_SERVER
+#define EXPORT
+#define IMPORT __declspec(dllimport)
+#ifdef LINDA_INTERNAL
+#define LSEXPORT __declspec(dllexport)
+#define LSIMPORT __declspec(dllexport)
+#else
+#define LSEXPORT
+#define LSIMPORT __declspec(dllimport)
+#endif
+#else
+#ifdef LINDA_INTERNAL
+#define EXPORT __declspec(dllexport)
+#define IMPORT __declspec(dllexport)
+#else
+#define EXPORT
+#define IMPORT __declspec(dllimport)
+#endif
+#endif
+#else
+#define EXPORT
+#define LSEXPORT
+#define IMPORT
+#define LSIMPORT
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,7 +79,11 @@ typedef MinimalValue LindaValue;
 #define Linda_tupleSpaceType Minimal_tupleSpaceType
 
 #ifdef TYPES
-extern unsigned char Linda_register_types;
+#ifdef LINDA_SERVER
+LSIMPORT extern unsigned char Linda_register_types;
+#else
+IMPORT extern unsigned char Linda_register_types;
+#endif
 #endif
 
 #ifdef TYPES
@@ -85,7 +117,7 @@ static inline unsigned char Linda_isType(LindaValue v) { return Minimal_isType(v
 
 #ifdef TYPES
 #ifdef REGISTER_TYPES
-void Linda_registerType(LindaValue v);
+EXPORT void Linda_registerType(LindaValue v);
 #endif
 
 static inline LindaValue Linda_type(const char* typespec) { return Minimal_type(typespec); }
@@ -120,34 +152,49 @@ static inline void Linda_delReference2(LindaValue v, char* file, int line) { Min
 
 static inline LindaValue Linda_apply(LindaValue func, LindaValue args) { return Minimal_apply(func, args); }
 
-extern unsigned char Linda_is_server;
+#ifdef LINDA_SERVER
+LSIMPORT extern unsigned char Linda_is_server;
+LSIMPORT extern char* Linda_process_id;
+LSIMPORT extern LindaValue Linda_uts;
+#else
+IMPORT extern unsigned char Linda_is_server;
+IMPORT extern char* Linda_process_id;
+IMPORT extern LindaValue Linda_uts;
+#endif
 
-extern char* Linda_version;
-extern char* Linda_process_id;
+IMPORT extern char* Linda_version;
 
 #ifndef NULL
 #define NULL (void*)0
 #endif
 
 #ifndef LINDA_SERVER
-void Linda_init();
-unsigned char Linda_connect(int port);
-extern int Linda_port;
-void Linda_disconnect();
+EXPORT void Linda_init();
+EXPORT unsigned char Linda_connect(int port);
+IMPORT extern int Linda_port;
+EXPORT void Linda_disconnect();
 #endif
 
-LindaValue Linda_createTuplespace();
+EXPORT LindaValue Linda_createTuplespace();
 
-void Linda_out(LindaValue ts, LindaValue t);
-LindaValue Linda_in(LindaValue ts, LindaValue t);
-LindaValue Linda_rd(LindaValue ts, LindaValue t);
-LindaValue Linda_inp(LindaValue ts, LindaValue t);
-LindaValue Linda_rdp(LindaValue ts, LindaValue t);
+EXPORT void Linda_out(LindaValue ts, LindaValue t);
+EXPORT LindaValue Linda_in(LindaValue ts, LindaValue t);
+EXPORT LindaValue Linda_rd(LindaValue ts, LindaValue t);
+EXPORT LindaValue Linda_inp(LindaValue ts, LindaValue t);
+EXPORT LindaValue Linda_rdp(LindaValue ts, LindaValue t);
 
-int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
-int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+EXPORT int Linda_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+EXPORT int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
 
-extern LindaValue Linda_uts;
+struct Linda_thread_data_t {
+    int sd;
+    char* thread_id;
+};
+typedef struct Linda_thread_data_t Linda_thread_data;
+EXPORT Linda_thread_data* Linda_get_thread_data();
+
+/*EXPORT void Linda_addTSReference(LindaValue ts);
+EXPORT void Linda_delTSReference(LindaValue ts);*/
 
 #ifdef __cplusplus
 }

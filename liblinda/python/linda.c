@@ -22,18 +22,17 @@
 
 #include PYTHON_H
 
-#include "linda.h"
-#include "linda_internal.h"
 #include "linda_python.h"
 
 PyObject* Linda_module;
 
 static PyObject* LindaPython_connect(PyObject* self, PyObject* args) {
     int port = Linda_port;
+    int r;
     if(!PyArg_ParseTuple(args, "|i", &port)) {
         return NULL;
     }
-    int r = Linda_connect(port);
+    r = Linda_connect(port);
     if(r) {
         PyModule_AddStringConstant(Linda_module, "process_id", Linda_process_id);
 
@@ -78,12 +77,13 @@ static PyObject* linda_Function(PyObject* self, PyObject* args) {
 
 static PyObject* linda_Ptr(PyObject* self, PyObject* args) {
     PyObject* obj;
+    LindaValue v;
 
     if(!PyArg_ParseTuple(args, "O", &obj)) {
         return NULL;
     }
 
-    LindaValue v = PyO2Value(obj);
+    v = PyO2Value(obj);
 
     return Value2PyO(Linda_ptr(v));
 }

@@ -30,10 +30,7 @@ typedef int Py_ssize_t;
 #define ssizeargfunc intargfunc
 #endif
 
-#include "linda.h"
 #include "linda_python.h"
-
-#include "../../minimal/src/minimal_internal.h"
 
 static PyObject* linda_TypeMap_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 {
@@ -72,6 +69,7 @@ static Py_ssize_t linda_TypeMapLen(linda_TypeMapObject *self) {
 
 static PyObject* linda_TypeMapSubScript(linda_TypeMapObject* self, PyObject* arg) {
     char* name;
+    LindaValue v;
 
     if(!PyString_Check(arg)) {
         PyErr_SetString(PyExc_TypeError, "Must be string");
@@ -80,7 +78,7 @@ static PyObject* linda_TypeMapSubScript(linda_TypeMapObject* self, PyObject* arg
 
     name = PyString_AsString(arg);
 
-    LindaValue v = Minimal_getName(self->map, name);
+    v = Minimal_getName(self->map, name);
     if(v != NULL) {
         return Value2PyO(v);
     } else {

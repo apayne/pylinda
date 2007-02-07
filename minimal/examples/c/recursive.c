@@ -25,12 +25,14 @@
 
 int main(int argc, char* argv[]) {
     char* buf;
+	MinimalValue rectype;
+	MinimalValue recvalue;
 
     Minimal_init();
 
-    MinimalValue rectype = Minimal_type("rectype :: int * ptr(rectype);");
+    rectype = Minimal_type("rectype :: int * ptr(rectype);");
 
-    MinimalValue recvalue = Minimal_tuple(2);
+    recvalue = Minimal_tuple(2);
     Minimal_setType(recvalue, rectype);
     Minimal_tupleSet(recvalue, 0, Minimal_int(1));
     Minimal_tupleSet(recvalue, 1, Minimal_ptr(recvalue));

@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "linda.h"
 #include "linda_internal.h"
 
 LindaValue Linda_createTuplespace() {
@@ -32,7 +31,7 @@ LindaValue Linda_createTuplespace() {
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { return NULL; }
-    else if(m->type != RESULT_STRING) {
+    else if(m->type != L_RESULT_STRING) {
         return NULL;
     }
     ts = Minimal_tupleSpace(m->string);
@@ -41,11 +40,13 @@ LindaValue Linda_createTuplespace() {
 }
 
 void Linda_addTSReference(LindaValue ts) {
+    Message* m;
+    Linda_thread_data* tdata;
     if(Linda_is_server) { return; }
-    Linda_thread_data* tdata = Linda_get_thread_data();
+    tdata = Linda_get_thread_data();
     if(strcmp(Minimal_getTupleSpace(ts), "UTS") == 0) { return; }
     if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
-    Message* m = Message_addReference(ts);
+    m = Message_addReference(ts);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);
@@ -53,11 +54,13 @@ void Linda_addTSReference(LindaValue ts) {
 }
 
 void Linda_delTSReference(LindaValue ts) {
+    Message* m;
+    Linda_thread_data* tdata;
     if(Linda_is_server) { return; }
-    Linda_thread_data* tdata = Linda_get_thread_data();
+    tdata = Linda_get_thread_data();
     if(strcmp(Minimal_getTupleSpace(ts), "UTS") == 0) { return; }
     if(Linda_active_connections == 0) { return; } /* We've been disconnected so ignore this message. */
-    Message* m = Message_deleteReference(ts);
+    m = Message_deleteReference(ts);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
     m = Message_recv(tdata->sd);

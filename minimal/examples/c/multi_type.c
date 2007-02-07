@@ -26,16 +26,20 @@
 
 int main(int argc, char* argv[]) {
     char* buf;
+	MinimalValue atype;
+	MinimalValue btype;
+	MinimalValue val;
+	MinimalValue val2;
 
     Minimal_init();
 
-    MinimalValue atype = Minimal_type("a :: int * ptr(b);");
-    MinimalValue btype = Minimal_type("b :: float;");
+    atype = Minimal_type("a :: int * ptr(b);");
+    btype = Minimal_type("b :: float;");
 
-    MinimalValue val2 = Minimal_float(1.0);
+    val2 = Minimal_float(1.0);
     Minimal_setType(val2, btype);
 
-    MinimalValue val = Minimal_tuple(2);
+    val = Minimal_tuple(2);
     Minimal_tupleSet(val, 0, Minimal_int(1));
     Minimal_tupleSet(val, 1, Minimal_ptr(val2));
     Minimal_setType(val, atype);

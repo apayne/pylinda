@@ -1,16 +1,25 @@
-env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
+import os
+import platform
+
+if platform.system() == "Windows":
+	env = Environment(CCFLAGS="/EHsc /DWIN32 /DNO_READLINE", CPPPATH=["#src/", "#bindings/cpp", r"c:\Program Files\GnuWin32\include"], LIBPATH="#.", YACC="bison", LEX="flex", LEXFLAGS="-headerfile=yy.lex.h")
+	env.Append(ENV=os.environ)
+	readline = []
+else:
+	env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
+	readline = ["readline"]
 
 Export("env")
 
-objs, interpreter, nolinda = SConscript("src/SConscript")
+objs, interpreter = SConscript("src/SConscript")
 cpp = SConscript("bindings/SConscript")
 
-lib = env.SharedLibrary("minimal", objs)
-lib = env.SharedLibrary("minimal++", cpp)
-nolindalib = env.SharedLibrary("minimal_nolinda", nolinda)
+lib = env.SharedLibrary("minimal", objs, LIBS=["fl", "xml2"])
+lib = env.SharedLibrary("minimal++", cpp, LIBS=["minimal"])
+#nolindalib = env.SharedLibrary("minimal_nolinda", nolinda)
 Export("lib")
 
-libs = ["minimal", "minimal_nolinda", "fl", "readline", "xml2"]
+libs = ["minimal", "fl", "xml2"] + readline
 Export("libs")
 
 env.Program("minimal", interpreter, LIBS=libs)

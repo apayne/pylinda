@@ -18,11 +18,10 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "linda.h"
+#include <string>
+#include <vector>
 
-#define FORCE_C
 #include "linda.h"
-#include "../src/linda_internal.h"
 
 namespace Linda {
 

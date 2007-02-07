@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "minimal_internal.h"
+#include "minimal.h"
 
 int main(int argc, char* argv[]) {
     Minimal_init();

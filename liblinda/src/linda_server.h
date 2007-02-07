@@ -21,15 +21,18 @@
 #ifndef __LINDA_SERVER_H__
 #define __LINDA_SERVER_H__
 
-unsigned char Linda_serve(unsigned char use_domain, int port);
-int Linda_accept(int sd);
-int Linda_server_disconnect();
+#define LINDA_SERVER
+#include "linda_internal.h"
 
-int Linda_connect(char* address);
-void Linda_disconnect(int sd);
+LSEXPORT unsigned char Linda_serve(unsigned char use_domain, int port);
+LSEXPORT int Linda_accept(int sd);
+LSEXPORT int Linda_server_disconnect();
 
-extern int Linda_port;
+LSEXPORT int Linda_connect(char* address);
+LSEXPORT void Linda_disconnect(int sd);
 
-void Linda_setNodeID(char* nid);
+LSIMPORT extern int Linda_port;
+
+LSEXPORT void Linda_setNodeID(char* nid);
 
 #endif

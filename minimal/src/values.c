@@ -24,17 +24,19 @@
 
 #include "minimal_internal.h"
 
-#include "../../liblinda/src/linda_internal.h"
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
 
-MinimalValue Minimal_Nil;
+EXPORT MinimalValue Minimal_Nil;
 
 unsigned char Minimal_isNil(MinimalValue v) {
-    return v->type == NIL;
+    return v->type == M_NIL;
 }
 
 MinimalValue Minimal_nil() {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = NIL;
+    v->type = M_NIL;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_nilType);
     v->sum_pos = -1;
@@ -42,12 +44,12 @@ MinimalValue Minimal_nil() {
 }
 
 unsigned char Minimal_isBool(MinimalValue v) {
-    return v->type == BOOLEAN;
+    return v->type == M_BOOLEAN;
 }
 
 MinimalValue Minimal_bool(unsigned char b) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = BOOLEAN;
+    v->type = M_BOOLEAN;
     v->boolean = b;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_boolType);
@@ -60,33 +62,33 @@ unsigned char Minimal_getBool(MinimalValue v) {
 }
 
 unsigned char Minimal_isByte(MinimalValue v) {
-    return v->type == BYTE;
+    return v->type == M_BYTE;
 }
 unsigned char Minimal_isShort(MinimalValue v) {
-    return v->type == SHORT;
+    return v->type == M_SHORT;
 }
 unsigned char Minimal_isInt(MinimalValue v) {
-    return v->type == INTEGER;
+    return v->type == M_INTEGER;
 }
 unsigned char Minimal_isLong(MinimalValue v) {
-    return v->type == LONG;
+    return v->type == M_LONG;
 }
 unsigned char Minimal_isUByte(MinimalValue v) {
-    return v->type == UBYTE;
+    return v->type == M_UBYTE;
 }
 unsigned char Minimal_isUShort(MinimalValue v) {
-    return v->type == USHORT;
+    return v->type == M_USHORT;
 }
 unsigned char Minimal_isUInt(MinimalValue v) {
-    return v->type == UINTEGER;
+    return v->type == M_UINTEGER;
 }
 unsigned char Minimal_isULong(MinimalValue v) {
-    return v->type == ULONG;
+    return v->type == M_ULONG;
 }
 
 MinimalValue Minimal_byte(char i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = BYTE;
+    v->type = M_BYTE;
     v->integer = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -95,7 +97,7 @@ MinimalValue Minimal_byte(char i) {
 }
 MinimalValue Minimal_short(short i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = SHORT;
+    v->type = M_SHORT;
     v->integer = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -104,7 +106,7 @@ MinimalValue Minimal_short(short i) {
 }
 MinimalValue Minimal_int(int i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = INTEGER;
+    v->type = M_INTEGER;
     v->integer = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -113,7 +115,7 @@ MinimalValue Minimal_int(int i) {
 }
 MinimalValue Minimal_long(long i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = LONG;
+    v->type = M_LONG;
     v->integer = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -123,7 +125,7 @@ MinimalValue Minimal_long(long i) {
 
 MinimalValue Minimal_ubyte(unsigned char i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = BYTE;
+    v->type = M_BYTE;
     v->uinteger = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -132,7 +134,7 @@ MinimalValue Minimal_ubyte(unsigned char i) {
 }
 MinimalValue Minimal_ushort(unsigned short i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = SHORT;
+    v->type = M_SHORT;
     v->uinteger = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -141,7 +143,7 @@ MinimalValue Minimal_ushort(unsigned short i) {
 }
 MinimalValue Minimal_uint(unsigned int i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = INTEGER;
+    v->type = M_INTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -150,7 +152,7 @@ MinimalValue Minimal_uint(unsigned int i) {
 }
 MinimalValue Minimal_ulong(unsigned long i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = LONG;
+    v->type = M_LONG;
     v->uinteger = i;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -185,12 +187,12 @@ unsigned long Minimal_getULong(MinimalValue v) {
 }
 
 unsigned char Minimal_isFloat(MinimalValue v) {
-    return v->type == FLOAT;
+    return v->type == M_FLOAT;
 }
 
 MinimalValue Minimal_float(float f) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = FLOAT;
+    v->type = M_FLOAT;
     v->singlefloat = f;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -203,12 +205,12 @@ float Minimal_getFloat(MinimalValue v) {
 }
 
 unsigned char Minimal_isDouble(MinimalValue v) {
-    return v->type == DOUBLE;
+    return v->type == M_DOUBLE;
 }
 
 MinimalValue Minimal_double(double f) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = DOUBLE;
+    v->type = M_DOUBLE;
     v->doublefloat = f;
     v->typeobj = NULL;
     v->sum_pos = -1;
@@ -221,12 +223,12 @@ double Minimal_getDouble(MinimalValue v) {
 }
 
 unsigned char Minimal_isString(MinimalValue v) {
-    return v->type == STRING;
+    return v->type == M_STRING;
 }
 
 MinimalValue Minimal_string(char* s) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = STRING;
+    v->type = M_STRING;
     v->length = strlen(s) + 1;
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
@@ -239,7 +241,7 @@ MinimalValue Minimal_string(char* s) {
 
 MinimalValue Minimal_string2(char* s, unsigned int len) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = STRING;
+    v->type = M_STRING;
     v->length = len;
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
@@ -257,7 +259,7 @@ unsigned int Minimal_getStringLen(MinimalValue v) {
 }
 
 unsigned char Minimal_isType(MinimalValue v) {
-    return v->type == TYPE;
+    return v->type == M_TYPE;
 }
 
 void (*Minimal_override_type_func)(MinimalValue t) = NULL;
@@ -266,9 +268,21 @@ void Minimal_setOverrideTypeFunc(void (*func)(MinimalValue t)) {
     Minimal_override_type_func = func;
 }
 
+void (*Minimal_linda_ts_addref_func)(MinimalValue t) = NULL;
+
+void Minimal_setLindaTSAddRefFunc(void (*func)(MinimalValue t)) {
+    Minimal_linda_ts_addref_func = func;
+}
+
+void (*Minimal_linda_ts_delref_func)(MinimalValue t) = NULL;
+
+void Minimal_setLindaTSDelRefFunc(void (*func)(MinimalValue t)) {
+    Minimal_linda_ts_delref_func = func;
+}
+
 MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = TYPE;
+    v->type = M_TYPE;
     v->type_name = (char*)malloc(strlen(type_name)+1);
     strcpy(v->type_name, type_name);
     v->type_spec = Minimal_SyntaxTree_copy(type_spec);
@@ -289,7 +303,7 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_sp
 
 MinimalValue Minimal_typeFromId(int i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = TYPE;
+    v->type = M_TYPE;
     v->type_name = NULL;
     v->type_spec = NULL;
     v->typeobj = NULL;
@@ -304,6 +318,8 @@ MinimalValue Minimal_typeFromId(int i) {
 }
 
 MinimalValue Minimal_function(char* code) {
+    MinimalValue f;
+    MinimalLayer layer;
     Minimal_SyntaxTree* tree = Minimal_parseCode(code);
     Minimal_SyntaxTree* tree2;
     if(tree == NULL) {
@@ -323,8 +339,7 @@ MinimalValue Minimal_function(char* code) {
         }
     }
 
-    MinimalValue f;
-    MinimalLayer layer = Minimal_getCurrentLayer();
+    layer = Minimal_getCurrentLayer();
     if(tree2->type == ST_TYPE_SPEC) {
         f = Minimal_getName(layer, tree2->type_name);
     } else {
@@ -337,7 +352,7 @@ MinimalValue Minimal_function(char* code) {
 
 MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* func_type, Minimal_SyntaxTree* parameter_list, Minimal_SyntaxTree* code) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = FUNCTION;
+    v->type = M_FUNCTION;
     v->func_name = (char*)malloc(strlen(func_name)+1);
     strcpy(v->func_name, func_name);
     v->parameter_list = Minimal_SyntaxTree_copy(parameter_list);
@@ -354,6 +369,8 @@ MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* func_type, M
 }
 
 MinimalValue Minimal_type(const char* typespec) {
+    MinimalLayer layer;
+    MinimalValue v;
     Minimal_SyntaxTree* tree = Minimal_parseTypeSpec(typespec);
     if(tree == NULL) {
         fprintf(stderr, "Error: Tried to parse type spec but got NULL\n");
@@ -362,9 +379,9 @@ MinimalValue Minimal_type(const char* typespec) {
         fprintf(stderr, "Error: Tried to parse type spec but didn't get a type spec back - got %i\n", tree->type);
         return NULL;
     }
-    MinimalLayer layer = Minimal_getCurrentLayer();
+    layer = Minimal_getCurrentLayer();
     Minimal_Layer_addTree(layer, tree);
-    MinimalValue v = Minimal_getName(layer, tree->type_name);
+    v = Minimal_getName(layer, tree->type_name);
     Minimal_SyntaxTree_free(tree);
     Minimal_delReference(layer);
 
@@ -372,13 +389,13 @@ MinimalValue Minimal_type(const char* typespec) {
 }
 
 unsigned char Minimal_isTuple(MinimalValue v) {
-    return v->type == TUPLE;
+    return v->type == M_TUPLE;
 }
 
 MinimalValue Minimal_tuple(int size) {
     int i;
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = TUPLE;
+    v->type = M_TUPLE;
     v->size = size;
     if(size == 0) {
         v->values = NULL;
@@ -428,12 +445,12 @@ MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos) {
 }
 
 unsigned char Minimal_isPtr(MinimalValue v) {
-    return v->type == POINTER;
+    return v->type == M_POINTER;
 }
 
 MinimalValue Minimal_ptr(MinimalValue value) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = POINTER;
+    v->type = M_POINTER;
     if(value != NULL) {
         Minimal_addReference(value);
     }
@@ -455,12 +472,12 @@ MinimalValue Minimal_getPtrType(MinimalValue v) {
 }
 
 unsigned char Minimal_isTupleSpace(MinimalValue v) {
-    return v->type == TSREF;
+    return v->type == M_TSREF;
 }
 
 MinimalValue Minimal_tupleSpace(const char* ts) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = TSREF;
+    v->type = M_TSREF;
     v->string = malloc(strlen(ts)+1);
     strcpy(v->string, ts);
     v->typeobj = NULL;
@@ -494,7 +511,7 @@ int Minimal_getSumPos(MinimalValue value) {
 
 void Minimal_setTypeMap(MinimalValue v, MinimalLayer types) {
     MinimalLayer tmp;
-    if(v->type == TYPE) {
+    if(v->type == M_TYPE) {
         Minimal_addReference(types);
         tmp = v->typemap;
         v->typemap = types;
@@ -521,11 +538,11 @@ char* Minimal_Value_string(MinimalValue v) {
     }
 
     switch(v->type) {
-    case NIL:
+    case M_NIL:
         r = (char*)malloc(strlen("Nil")+1);
         strcpy(r, "Nil");
         return r;
-    case BOOLEAN:
+    case M_BOOLEAN:
         if(v->boolean) {
             r = (char*)malloc(strlen("True")+1);
             strcpy(r, "True");
@@ -535,48 +552,48 @@ char* Minimal_Value_string(MinimalValue v) {
             strcpy(r, "False");
             return r;
         }
-    case BYTE:
-    case SHORT:
-    case INTEGER:
-    case LONG:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
         {
         int size = snprintf(r, 0, "%li", v->integer);
         r = (char*)malloc(size + 1);
         sprintf(r, "%li", v->integer);
         return r;
         }
-    case UBYTE:
-    case USHORT:
-    case UINTEGER:
-    case ULONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
         {
         int size = snprintf(r, 0, "%li", v->uinteger);
         r = (char*)malloc(size + 1);
         sprintf(r, "%li", v->uinteger);
         return r;
         }
-    case FLOAT:
+    case M_FLOAT:
         {
         int size = snprintf(r, 0, "%f", v->singlefloat);
         r = (char*)malloc(size + 1);
         sprintf(r, "%f", v->singlefloat);
         return r;
         }
-    case DOUBLE:
+    case M_DOUBLE:
         {
         int size = snprintf(r, 0, "%f", v->doublefloat);
         r = (char*)malloc(size + 1);
         sprintf(r, "%f", v->doublefloat);
         return r;
         }
-    case STRING:
+    case M_STRING:
         {
         int size = snprintf(r, 0, "%s", v->string);
         r = (char*)malloc(size + 1);
         sprintf(r, "%s", v->string);
         return r;
         }
-    case TYPE:
+    case M_TYPE:
         {
         if(v->type_name != NULL) {
             int size = snprintf(r, 0, "<Type %s>", v->type_name);
@@ -590,11 +607,11 @@ char* Minimal_Value_string(MinimalValue v) {
             return r;
         }
         }
-    case TSREF:
+    case M_TSREF:
         r = (char*)malloc(strlen("<TSRef>")+1);
         strcpy(r, "<TSRef>");
         return r;
-    case TUPLE:
+    case M_TUPLE:
         {
         int i;
         r = (char*)malloc(2);
@@ -620,11 +637,11 @@ char* Minimal_Value_string(MinimalValue v) {
             return tmp2;
         }
         }
-    case FUNCTION:
+    case M_FUNCTION:
         r = (char*)malloc(strlen("<Function>")+1);
         strcpy(r, "<Function>");
         return r;
-    case POINTER:
+    case M_POINTER:
         r = (char*)malloc(strlen("<Pointer ")+sizeof(void*)*2+3);
         sprintf(r, "<Pointer %p>", v->ptr);
         return r;
@@ -638,20 +655,20 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
     if(v == NULL) { return NULL; }
 
     switch(v->type) {
-    case NIL:
-    case BOOLEAN:
-    case BYTE:
-    case SHORT:
-    case INTEGER:
-    case LONG:
-    case UBYTE:
-    case USHORT:
-    case UINTEGER:
-    case ULONG:
-    case FLOAT:
-    case DOUBLE:
-    case STRING:
-    case TSREF:
+    case M_NIL:
+    case M_BOOLEAN:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+    case M_FLOAT:
+    case M_DOUBLE:
+    case M_STRING:
+    case M_TSREF:
         if(v->typeobj != NULL) {
             MinimalObject* list = malloc(sizeof(void*)*2);
             list[0] = v->typeobj;
@@ -662,7 +679,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             list[0] = NULL;
             return list;
         }
-    case FUNCTION:
+    case M_FUNCTION:
         if(v->typeobj != NULL) {
             MinimalObject* list = malloc(sizeof(void*)*3);
             list[0] = v->layer;
@@ -675,7 +692,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             list[1] = NULL;
             return list;
         }
-    case TYPE:
+    case M_TYPE:
         if(v->typeobj != NULL) {
             MinimalObject* list = malloc(sizeof(void*)*3);
             list[0] = v->typemap;
@@ -688,7 +705,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             list[1] = NULL;
             return list;
         }
-    case TUPLE:
+    case M_TUPLE:
         if(v->typeobj != NULL) {
             int i;
             MinimalObject* list = malloc(sizeof(void*)*(3+v->size));
@@ -707,7 +724,7 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
             list[i] = NULL;
             return list;
         }
-    case POINTER:
+    case M_POINTER:
         if(v->typeobj != NULL) {
             MinimalObject* list = malloc(sizeof(void*)*3);
             list[0] = v->ptr;
@@ -727,9 +744,10 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
 }
 
 MinimalValue Minimal_copy(MinimalValue v) {
+    MinimalValue nv;
     if(v == NULL) { return NULL; }
 
-    MinimalValue nv = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    nv = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     nv->type = v->type;
     if(v->typeobj != NULL) {
         Minimal_addReference(v->typeobj)
@@ -738,35 +756,35 @@ MinimalValue Minimal_copy(MinimalValue v) {
     nv->sum_pos = v->sum_pos;
 
     switch(v->type) {
-    case NIL:
+    case M_NIL:
         break;
-    case BOOLEAN:
+    case M_BOOLEAN:
         nv->boolean = v->boolean;
         break;
-    case BYTE:
-    case SHORT:
-    case INTEGER:
-    case LONG:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
         nv->integer = v->integer;
         break;
-    case UBYTE:
-    case USHORT:
-    case UINTEGER:
-    case ULONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
         nv->uinteger = v->uinteger;
         break;
-    case FLOAT:
+    case M_FLOAT:
         nv->singlefloat = v->singlefloat;
         break;
-    case DOUBLE:
+    case M_DOUBLE:
         nv->doublefloat = v->doublefloat;
         break;
-    case STRING:
+    case M_STRING:
         nv->string = (char*)malloc(v->length);
         memcpy(nv->string, v->string, v->length);
         nv->length = v->length;
         break;
-    case TYPE:
+    case M_TYPE:
         nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
         strcpy(nv->type_name, v->type_name);
         nv->type_spec = Minimal_SyntaxTree_copy(v->type_spec);
@@ -776,12 +794,12 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->typemap = v->typemap;
         nv->type_id = v->type_id;
         break;
-    case TSREF:
-        Linda_addTSReference(v);
+    case M_TSREF:
+        Minimal_linda_ts_addref_func(v);
         nv->string = (char*)malloc(strlen(v->string) + 1);
         strcpy(nv->string, v->string);
         break;
-    case TUPLE:
+    case M_TUPLE:
         {
         int i;
         nv->size = v->size;
@@ -791,7 +809,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
         }
         break;
         }
-    case FUNCTION:
+    case M_FUNCTION:
         nv->func_name = (char*)malloc(strlen(v->func_name) + 1);
         strcpy(nv->func_name, v->func_name);
 
@@ -801,7 +819,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->layer = v->layer;
         Minimal_addReference(nv->layer);
         break;
-    case POINTER:
+    case M_POINTER:
         Minimal_delReference(v->ptr);
         break;
     default:
@@ -819,36 +837,36 @@ void Minimal_Value_free(MinimalValue v) {
     }
 
     switch(v->type) {
-    case NIL:
+    case M_NIL:
         break;
-    case BOOLEAN:
+    case M_BOOLEAN:
         break;
-    case BYTE:
-    case SHORT:
-    case INTEGER:
-    case LONG:
-    case UBYTE:
-    case USHORT:
-    case UINTEGER:
-    case ULONG:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
         break;
-    case FLOAT:
+    case M_FLOAT:
         break;
-    case STRING:
+    case M_STRING:
         free(v->string);
         break;
-    case TYPE:
+    case M_TYPE:
         free(v->type_name);
         Minimal_SyntaxTree_free(v->type_spec);
         if(v->typemap != NULL) {
             Minimal_delReference(v->typemap);
         }
         break;
-    case TSREF:
-        Linda_delTSReference(v);
+    case M_TSREF:
+        Minimal_linda_ts_delref_func(v);
         free(v->string);
         break;
-    case TUPLE:
+    case M_TUPLE:
         {
         int i;
         for(i=0; i<v->size; i++) {
@@ -859,13 +877,13 @@ void Minimal_Value_free(MinimalValue v) {
         free(v->values);
         break;
         }
-    case FUNCTION:
+    case M_FUNCTION:
         free(v->func_name);
         Minimal_SyntaxTree_free(v->parameter_list);
         Minimal_SyntaxTree_free(v->code);
         Minimal_delReference(v->layer);
         break;
-    case POINTER:
+    case M_POINTER:
         Minimal_delReference(v->ptr);
         break;
     default:

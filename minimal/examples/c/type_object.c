@@ -26,13 +26,17 @@
 
 int main(int argc, char* argv[]) {
     char* buf;
-
+	MinimalValue inttype;
+	MinimalValue pairtype;
+	MinimalValue sumtype;
+	MinimalValue intlisttype;
+	
     Minimal_init();
 
-    MinimalValue inttype = Minimal_type("inttype :: int;");
-    MinimalValue pairtype = Minimal_type("pairtype :: int * int;");
-    MinimalValue sumtype = Minimal_type("sumtype :: int + float;");
-    MinimalValue intlisttype = Minimal_type("intlist :: Nil + (int * intlist);");
+    inttype = Minimal_type("inttype :: int;");
+    pairtype = Minimal_type("pairtype :: int * int;");
+    sumtype = Minimal_type("sumtype :: int + float;");
+    intlisttype = Minimal_type("intlist :: Nil + (int * intlist);");
 
     if(strcmp(argv[1], "1") == 0) {
         MinimalValue intvalue = Minimal_int(1);
@@ -68,8 +72,7 @@ int main(int argc, char* argv[]) {
         MinimalValue intlistvalue = Minimal_tuple(2);
         Minimal_setSumPos(intlistvalue, 1);
         Minimal_tupleSet(intlistvalue, 0, Minimal_int(1));
-        Minimal_addReference(Minimal_Nil);
-        Minimal_tupleSet(intlistvalue, 1, Minimal_Nil);
+        Minimal_tupleSet(intlistvalue, 1, Minimal_nil());
         Minimal_setSumPos(Minimal_tupleGet(intlistvalue, 1), 0);
         Minimal_setType(intlistvalue, intlisttype);
         buf = Minimal_serialise(intlistvalue, 1);

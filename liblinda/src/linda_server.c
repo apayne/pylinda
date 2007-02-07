@@ -18,20 +18,23 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
+#endif
 #include <sys/types.h> 
+#ifdef USE_DOMAIN_SOCKETS
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <errno.h>
-#include <stdio.h>
-#include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
+#endif
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <Windows.h>
+#endif
 
-#define LINDA_SERVER
-#include "linda.h"
-#include "linda_internal.h"
+#include "linda_server.h"
 
 int Linda_sd;
 #ifdef USE_DOMAIN_SOCKETS
@@ -54,13 +57,13 @@ unsigned char Linda_register_types = 0;
 unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
-LindaValue Linda_typeType = NULL;
+/*LindaValue Linda_typeType = NULL;
 LindaValue Linda_nilType;
 LindaValue Linda_boolType;
 LindaValue Linda_intType;
 LindaValue Linda_floatType;
 LindaValue Linda_stringType;
-LindaValue Linda_tupleSpaceType;
+LindaValue Linda_tupleSpaceType;*/
 
 void Linda_init() {
     if(Linda_inited) { return; }
@@ -84,6 +87,7 @@ void Linda_init() {
 
 unsigned char Linda_serve(unsigned char use_domain, int port) {
     int err;
+    struct sockaddr_in addr_in;
 
     Linda_init();
 
@@ -116,7 +120,6 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
     Linda_sd = socket(PF_INET, SOCK_STREAM, 0);
     if(Linda_sd == -1) return 0;
 
-    struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     Linda_port = port;
     addr_in.sin_port = htons(port);
@@ -138,7 +141,11 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
 #endif
         return 0;
     } else {
+#ifdef WIN32
+		Sleep(1000);
+#else
         sleep(1); /* It appears that if we accept too soon things fail, so pause. */
+#endif
         return 1;
     }
 }
@@ -158,7 +165,11 @@ int Linda_server_disconnect() {
     unlink("/tmp/pylinda");
     Linda_active_connections -= 1;
 #endif
+#ifdef WIN32
+    shutdown(Linda_sd, SD_BOTH);
+#else
     shutdown(Linda_sd, SHUT_RDWR);
+#endif
     Linda_active_connections -= 1;
     return 1;
 }
@@ -167,6 +178,8 @@ int Linda_connect(char* address) {
     int sd;
     int colon;
     int port;
+    struct sockaddr_in addr_in;
+	int err;
     for(colon=0; colon<strlen(address); colon++) {
         if(address[colon] == ':') {
             break;
@@ -182,7 +195,6 @@ int Linda_connect(char* address) {
     sd = socket(PF_INET, SOCK_STREAM, 0);
     if(sd == -1) { return 0; }
 
-    struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_port = htons(port);
     if(inet_aton(address, (struct in_addr*)&(addr_in.sin_addr.s_addr)) == 0) {
@@ -193,7 +205,7 @@ int Linda_connect(char* address) {
 
     memset(&(addr_in.sin_zero), 0, 8);
 
-    int err = connect(sd, (struct sockaddr*)&addr_in, sizeof(struct sockaddr));
+    err = connect(sd, (struct sockaddr*)&addr_in, sizeof(struct sockaddr));
     if(err == -1) { fprintf(stderr, "Error connecting to %s: %s\n", address, strerror(errno)); return 0; }
 
     Linda_active_connections += 1;
@@ -202,7 +214,11 @@ int Linda_connect(char* address) {
 }
 
 void Linda_disconnect(int sd) {
+#ifdef WIN32
+    shutdown(sd, SD_BOTH);
+#else
     shutdown(sd, SHUT_RDWR);
+#endif
     Linda_active_connections -= 1;
 }
 

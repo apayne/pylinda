@@ -49,8 +49,9 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
+								struct Minimal_SyntaxTree_t** b;
                                 $$ = $1;
-                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
                                 b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                                 free($$.branches); $$.branches = b;
@@ -72,8 +73,9 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
-                                $$ = $1;
-                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                struct Minimal_SyntaxTree_t** b;
+								$$ = $1;
+                                b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
                                 b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                                 free($$.branches); $$.branches = b;
@@ -95,8 +97,9 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
-                                $$ = $1;
-                                struct Minimal_SyntaxTree_t** b = malloc(sizeof(void*) * $$.length + 1);
+                                struct Minimal_SyntaxTree_t** b;
+								$$ = $1;
+                                b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
                                 b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                                 free($$.branches); $$.branches = b;
@@ -231,9 +234,9 @@ argument_list: { $$.type = ST_BLANK; }
 ;
 
 tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
-     | expr YY_COMMA tuple2 { $$ = Minimal_SyntaxTree_createTuple(1);
+     | expr YY_COMMA tuple2 { int i;
+							  $$ = Minimal_SyntaxTree_createTuple(1);
                               $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                              int i;
                               for(i=0; i<$3.size; i++) {
                                   Minimal_SyntaxTree_addToTuple(&$$, $3.tuple[i]);
                               }

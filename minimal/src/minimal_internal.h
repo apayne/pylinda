@@ -20,10 +20,20 @@
 
 #include <libxml/tree.h>
 
-#include "minimal.h"
-
 #ifndef MINIMAL_INTERNAL_H
 #define MINIMAL_INTERNAL_H
+
+#ifdef MINIMAL_C_H
+#ifndef HACKY_MAGIC
+#error Only include minimal_internal.h, not minimal.h and minimal_internal.h
+#endif
+#endif
+#define MINIMAL_INTERNAL
+#include "minimal.h"
+
+#ifdef WIN32
+#define inline
+#endif
 
 void Minimal_Layer_init();
 void Minimal_Layer_finalise();
@@ -33,24 +43,20 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op);
 
-int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2);
+EXPORT int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2);
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size);
 void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree* tree);
 
-Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
-void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
+EXPORT Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
+EXPORT void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree);
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
-MinimalValue Minimal_getName(MinimalLayer layer, char* name);
+EXPORT MinimalValue Minimal_getName(MinimalLayer layer, char* name);
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name);
 void Minimal_delName(Minimal_NameValueMap* map, char* name);
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);
-
-void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree);
-
-void Minimal_interpreter();
 
 void Minimal_Layer_free(MinimalLayer layer);
 void Minimal_Value_free(MinimalValue val);

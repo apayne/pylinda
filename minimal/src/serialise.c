@@ -26,9 +26,15 @@
 
 #include "minimal_internal.h"
 
+#ifdef WIN32
+#define snprintf _snprintf
+#endif
+
 void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* type_spec, MinimalLayer typemap);
 
 xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, unsigned char include_type) {
+    MinimalValue* memo;
+
     if(doc == NULL) {
         doc = xmlNewDoc(NULL);
     }
@@ -37,7 +43,7 @@ xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f,
         xmlDocSetRootElement(doc, parent);
     }
 
-    MinimalValue* memo = malloc(sizeof(NULL));
+    memo = malloc(sizeof(NULL));
     memo[0] = NULL;
 
     Minimal_serialiseValue(doc, parent, parent, f, &memo, include_type);
@@ -50,12 +56,13 @@ xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f,
 char* Minimal_serialise(MinimalValue f, unsigned char include_type) {
     xmlChar* buf;
     int size;
+    char* outbuf;
 
     xmlDocPtr doc = Minimal_serialiseXML(NULL, NULL, f, include_type);
 
     xmlDocDumpFormatMemory(doc, &buf, &size, 1);
 
-    char* outbuf = (char*)malloc(size+1);
+    outbuf = (char*)malloc(size+1);
     memcpy(outbuf, buf, size);
     outbuf[size] = '\0';
 
@@ -73,26 +80,26 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
     }
 
     switch(v->type) {
-    case NIL:
-    case BOOLEAN:
-    case BYTE:
-    case SHORT:
-    case INTEGER:
-    case LONG:
-    case UBYTE:
-    case USHORT:
-    case UINTEGER:
-    case ULONG:
-    case FLOAT:
-    case DOUBLE:
-    case STRING:
+    case M_NIL:
+    case M_BOOLEAN:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+    case M_FLOAT:
+    case M_DOUBLE:
+    case M_STRING:
         break;
-    case TYPE:
+    case M_TYPE:
         if(Minimal_addTypeToTypeList(list, v)) {
             Minimal_getTypeList2(v->type_spec, v->typeobj->typemap, list);
         }
         break;
-    case TUPLE:
+    case M_TUPLE:
         {
         int i;
         for(i = 0; i < Minimal_getTupleSize(v); i++) {
@@ -100,9 +107,9 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
         }
         }
         break;
-    case FUNCTION:
-    case POINTER:
-    case TSREF:
+    case M_FUNCTION:
+    case M_POINTER:
+    case M_TSREF:
         break;
     }
 }
@@ -138,16 +145,19 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
                      }
 
 void Minimal_includeTypes(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
-    if((f->type == TYPE && f->type_id !=0) || (f->typeobj != NULL && f->typeobj->type_id != 0)) {
+    Minimal_TypeList list;
+    int i;
+
+    if((f->type == M_TYPE && f->type_id !=0) || (f->typeobj != NULL && f->typeobj->type_id != 0)) {
         return;
     }
-    if(f->type == TUPLE && f->typeobj == NULL) {
+    if(f->type == M_TUPLE && f->typeobj == NULL) {
         int i;
         int m = 0;
         for(i = 0; i < Minimal_getTupleSize(f); i++) {
             MinimalValue v = Minimal_tupleGet(f, i);
 
-            if(v == NULL || (v->type == TYPE && v->type_id != 0) || (v->typeobj != NULL && v->typeobj->type_id != 0)) {
+            if(v == NULL || (v->type == M_TYPE && v->type_id != 0) || (v->typeobj != NULL && v->typeobj->type_id != 0)) {
                 m++;
             }
         }
@@ -156,12 +166,11 @@ void Minimal_includeTypes(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         }
     }
 
-    Minimal_TypeList list = malloc(sizeof(void*));
+    list = malloc(sizeof(void*));
     list[0] = NULL;
 
     Minimal_addTypesToList(&list, f);
 
-    int i;
     for(i = 0; list[i] != NULL; i++) {
         xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
         xmlAddChild(parent, typenode);
@@ -174,7 +183,7 @@ void Minimal_includeTypes(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
 
 void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type) {
     switch(f->type) {
-    case NIL:
+    case M_NIL:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"nil", NULL);
         xmlAddChild(parent, node);
@@ -183,7 +192,7 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddId(node);
         return;
         }
-    case BOOLEAN:
+    case M_BOOLEAN:
         {
         xmlNodePtr node;
         if(f->boolean) {
@@ -196,137 +205,147 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddId(node);
         return;
         }
-    case BYTE:
+    case M_BYTE:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"byte", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case SHORT:
+    case M_SHORT:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"short", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case INTEGER:
+    case M_INTEGER:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case LONG:
+    case M_LONG:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"long", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case UBYTE:
+    case M_UBYTE:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ubyte", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case USHORT:
+    case M_USHORT:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ushort", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case UINTEGER:
+    case M_UINTEGER:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"uinteger", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case ULONG:
+    case M_ULONG:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ulong", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         free(integer);
         return;
         }
-    case FLOAT:
+    case M_FLOAT:
         {
+        char* floating;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"float", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* floating = (char*)malloc(snprintf(NULL, 0, "%f", f->singlefloat)+1);
+        floating = (char*)malloc(snprintf(NULL, 0, "%f", f->singlefloat)+1);
         sprintf(floating, "%f", f->singlefloat);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)floating);
         free(floating);
         return;
         }
-    case DOUBLE:
+    case M_DOUBLE:
         {
+        char* floating;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"float", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* floating = (char*)malloc(snprintf(NULL, 0, "%f", f->doublefloat)+1);
+        floating = (char*)malloc(snprintf(NULL, 0, "%f", f->doublefloat)+1);
         sprintf(floating, "%f", f->doublefloat);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)floating);
         free(floating);
         return;
         }
-    case STRING:
+    case M_STRING:
         {
         xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"string", (xmlChar*)f->string);
         xmlAddChild(parent, node);
@@ -335,10 +354,11 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddId(node);
         return;
         }
-    case TYPE:
+    case M_TYPE:
         {
+        xmlNodePtr typenode;
         AddTypeName(parent);
-        xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"typeobj", NULL);
+        typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"typeobj", NULL);
         xmlAddChild(parent, typenode);
         AddSumPos(typenode);
         AddId(typenode);
@@ -355,7 +375,7 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         }
         return;
         }
-    case TUPLE:
+    case M_TUPLE:
         {
         int i;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
@@ -364,35 +384,38 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddSumPos(node);
         AddId(node);
         for(i=0; i<f->size; i++) {
+            xmlNodePtr e;
             if(f->values[i] == NULL) { break; }
-            xmlNodePtr e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
+            e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
             xmlAddChild(node, e);
             Minimal_serialiseValue(doc, root, e, f->values[i], memo, 0);
         }
         return;
         }
-    case FUNCTION:
+    case M_FUNCTION:
         {
         Minimal_serialiseFunction(doc, parent, f, memo, 0);
         return;
         }
-    case POINTER:
+    case M_POINTER:
         {
+        int i;
+        char* ptrval;
+        MinimalValue* newmemo;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ptr", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
-        char* ptrval = (char*)malloc(snprintf(NULL, 0, "%li", (unsigned long)f->integer)+1);
+        ptrval = (char*)malloc(snprintf(NULL, 0, "%li", (unsigned long)f->integer)+1);
         sprintf(ptrval, "%li", (unsigned long)f->ptr);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)ptrval);
         free(ptrval);
 
-        int i;
         for(i = 0; (*memo)[i] != NULL; i++) {
             if((*memo)[i] == f->ptr) { return; }
         }
-        MinimalValue* newmemo = malloc(sizeof(void*)*(i+2));
+        newmemo = malloc(sizeof(void*)*(i+2));
         memcpy(newmemo, (*memo), sizeof(void*)*i);
         newmemo[i] = f->ptr;
         newmemo[i+1] = NULL;
@@ -420,14 +443,17 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         }
     case ST_IDENTIFIER:
         {
+        xmlNodePtr node;
         MinimalValue v = Minimal_getName(typemap, type_spec->string);
         if(v != NULL) {
             if(v->type_id != 0) {
+                char* id;
+                int len;
                 xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
                 xmlAddChild(parent, node);
                 xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
-                char* id = NULL;
-                int len = snprintf(id, 0, "%li", v->type_id);
+                id = NULL;
+                len = snprintf(id, 0, "%li", v->type_id);
                 id = malloc(len + 1);
                 snprintf(id, len + 1, "%li", v->type_id);
                 xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)id);
@@ -438,7 +464,7 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
                 Minimal_delReference(v);
             }
         }
-        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
+        node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
         xmlAddChild(parent, node);
         xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
         return;
@@ -512,9 +538,10 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
         }
     case ST_INTEGER:
         {
+        char* integer;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
         xmlAddChild(parent, node);
-        char* integer = (char*)malloc(snprintf(NULL, 0, "%i", tree->integer)+1);
+        integer = (char*)malloc(snprintf(NULL, 0, "%i", tree->integer)+1);
         sprintf(integer, "%i", tree->integer);
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         return;
@@ -535,6 +562,8 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
 }
 
 void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type) {
+    xmlNodePtr type_spec;
+    xmlNodePtr code;
     xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"function", NULL);
     xmlNewProp(node, (xmlChar*)"name", (xmlChar*)f->func_name);
     xmlAddChild(parent, node);
@@ -542,14 +571,14 @@ void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f,
     AddSumPos(node);
     AddId(node);
 
-    xmlNodePtr type_spec = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
+    type_spec = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
     xmlAddChild(node, type_spec);
     xmlNewProp(type_spec, (xmlChar*)"name", (xmlChar*)f->func_name);
     Minimal_serialiseTypeSpec(doc, type_spec, f->type_spec, f->typemap);
 
     Minimal_serialiseParameterList(doc, node, f->parameter_list);
 
-    xmlNodePtr code = xmlNewDocNode(doc, NULL, (xmlChar*)"code", NULL);
+    code = xmlNewDocNode(doc, NULL, (xmlChar*)"code", NULL);
     xmlAddChild(node, code);
     Minimal_serialiseCode(doc, code, f->code);
 }

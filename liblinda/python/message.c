@@ -22,9 +22,9 @@
 
 #include PYTHON_H
 
-#include "linda.h"
-#include "../src/linda_internal.h"
 #include "linda_python.h"
+#define HACKY_MAGIC
+#include "linda_internal.h"
 
 PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
     int sd;
@@ -48,109 +48,109 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             msgid = Py_BuildValue("(ssi)", m->msgid->dest, m->msgid->source, m->msgid->count);
         }
         switch(m->type) {
-        case DONE:
+        case L_DONE:
             t = Py_BuildValue("(Os)", msgid, "DONE");
             break;
-        case DONT_KNOW:
+        case L_DONT_KNOW:
             t = Py_BuildValue("(Os)", msgid, "DONT_KNOW");
             break;
-        case RESULT_STRING:
+        case L_RESULT_STRING:
             t = Py_BuildValue("(Oss)", msgid, "RESULT_STRING", m->string);
             break;
-        case RESULT_INT:
+        case L_RESULT_INT:
             t = Py_BuildValue("(Osi)", msgid, "RESULT_INT", m->i);
             break;
-        case RESULT_TUPLE:
+        case L_RESULT_TUPLE:
             t = Py_BuildValue("(OsO)", msgid, "RESULT_TUPLE", Tuple2PyO(m->tuple));
             break;
-        case OUT:
+        case L_OUT:
             t = Py_BuildValue("(OssO)", msgid, "OUT", Minimal_getTupleSpace(m->out.ts), Tuple2PyO(m->out.t));
             break;
-        case IN:
+        case L_IN:
             t = Py_BuildValue("(OssOs)", msgid, "IN", Minimal_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->in.tid);
             break;
-        case RD:
+        case L_RD:
             t = Py_BuildValue("(OssOs)", msgid, "RD", Minimal_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->in.tid);
             break;
-        case INP:
+        case L_INP:
             t = Py_BuildValue("(OssOs)", msgid, "INP", Minimal_getTupleSpace(m->in.ts), Tuple2PyO(m->in.t), m->rd.tid);
             break;
-        case RDP:
+        case L_RDP:
             t = Py_BuildValue("(OssOs)", msgid, "RDP", Minimal_getTupleSpace(m->rd.ts), Tuple2PyO(m->rd.t), m->rd.tid);
             break;
-        case COLLECT:
+        case L_COLLECT:
             t = Py_BuildValue("(OsssO)", msgid, "COLLECT", Minimal_getTupleSpace(m->collect.ts1), Minimal_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
-        case COPY_COLLECT:
+        case L_COPY_COLLECT:
             t = Py_BuildValue("(OsssO)", msgid, "COPY_COLLECT", Minimal_getTupleSpace(m->collect.ts1), Minimal_getTupleSpace(m->collect.ts2), Tuple2PyO(m->collect.t));
             break;
-        case UNBLOCK:
+        case L_UNBLOCK:
             t = Py_BuildValue("(Os)", msgid, "UNBLOCK");
             break;
-        case CREATE_TUPLESPACE:
+        case L_CREATE_TUPLESPACE:
             t = Py_BuildValue("(Oss)", msgid, "CREATE_TUPLESPACE", m->string);
             break;
-        case ADD_REFERENCE:
+        case L_ADD_REFERENCE:
             t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
-        case DELETE_REFERENCE:
+        case L_DELETE_REFERENCE:
             t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
-        case MONITOR:
+        case L_MONITOR:
             t = Py_BuildValue("(Os)", msgid, "MONITOR");
             break;
-        case LIST_TS:
+        case L_LIST_TS:
             t = Py_BuildValue("(Os)", msgid, "LIST_TS");
             break;
-        case INSPECT:
+        case L_INSPECT:
             t = Py_BuildValue("(Oss)", msgid, "INSPECT", Minimal_getTupleSpace(m->ts));
             break;
-        case GET_ROUTES:
+        case L_GET_ROUTES:
             t = Py_BuildValue("(Os)", msgid, "GET_ROUTES");
             break;
-        case REGISTER_PROCESS:
+        case L_REGISTER_PROCESS:
             t = Py_BuildValue("(Os)", msgid, "REGISTER_PROCESS");
             break;
-        case REGISTER_THREAD:
+        case L_REGISTER_THREAD:
             t = Py_BuildValue("(Oss)", msgid, "REGISTER_THREAD", m->ts);
             break;
-        case REGISTER_TYPE:
+        case L_REGISTER_TYPE:
             t = Py_BuildValue("(OsO)", msgid, "REGISTER_TYPE", Value2PyO(m->typestruct.typeobj));
             break;
-        case UPDATE_TYPE:
+        case L_UPDATE_TYPE:
             t = Py_BuildValue("(OsiO)", msgid, "UPDATE_TYPE", m->typestruct.type_id, Value2PyO(m->typestruct.typeobj));
             break;
-        case GET_NODE_ID:
+        case L_GET_NODE_ID:
             t = Py_BuildValue("(Os)", msgid, "GET_NODE_ID");
             break;
-        case MY_NAME_IS:
+        case L_MY_NAME_IS:
             t = Py_BuildValue("(Oss)", msgid, "MY_NAME_IS", m->string);
             break;
-        case REGISTER_PARTITION:
+        case L_REGISTER_PARTITION:
             t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
-        case GET_PARTITIONS:
+        case L_GET_PARTITIONS:
             t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", Minimal_getTupleSpace(m->ts));
             break;
-        case DELETED_PARTITION:
+        case L_DELETED_PARTITION:
             t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
             break;
-        case GET_REQUESTS:
+        case L_GET_REQUESTS:
             t = Py_BuildValue("(Oss)", msgid, "GET_REQUESTS", Minimal_getTupleSpace(m->ts));
             break;
-        case GET_NEIGHBOURS:
+        case L_GET_NEIGHBOURS:
             t = Py_BuildValue("(Os)", msgid, "GET_NEIGHBOURS");
             break;
-        case GET_CONNECTION_DETAILS:
+        case L_GET_CONNECTION_DETAILS:
             t = Py_BuildValue("(Oss)", msgid, "GET_CONNECTION_DETAILS", m->string);
             break;
-        case TUPLE_REQUEST:
+        case L_TUPLE_REQUEST:
             t = Py_BuildValue("(OssO)", msgid, "TUPLE_REQUEST", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
-        case CANCEL_REQUEST:
+        case L_CANCEL_REQUEST:
             t = Py_BuildValue("(OssO)", msgid, "CANCEL_REQUEST", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
-        case MULTIPLE_IN:
+        case L_MULTIPLE_IN:
             t = Py_BuildValue("(OssO)", msgid, "MULTIPLE_IN", Minimal_getTupleSpace(m->tuple_request.ts), Tuple2PyO(m->tuple_request.t));
             break;
         default:

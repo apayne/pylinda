@@ -23,13 +23,14 @@
 #include "minimal_internal.h"
 
 unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type) {
+	Minimal_TypeList newlist;
     int i;
     for(i = 0; (*list)[i] != NULL; i++) {
         if((*list)[i] == type) {
             return 0;
         }
     }
-    Minimal_TypeList newlist = malloc(sizeof(void*)*(i+2));
+    newlist = malloc(sizeof(void*)*(i+2));
     memcpy(newlist, (*list), sizeof(void*)*i);
     Minimal_addReference(type);
     newlist[i] = type;

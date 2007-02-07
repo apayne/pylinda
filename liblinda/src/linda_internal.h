@@ -18,15 +18,24 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "linda.h"
+#ifndef LINDA_INTERNAL_H
+#define LINDA_INTERNAL_H
 
-#ifndef LINDA_INTERNAL
+#ifdef __LINDA_C_H__
+#ifndef HACKY_MAGIC
+#error Only include linda_internal.h, not linda.h and linda_internal.h
+#endif
+#endif
+#define LINDA_INTERNAL
+#include "linda.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifndef WIN32
 #define USE_DOMAIN_SOCKETS
+#endif
 
 struct MsgID_t {
     char* dest;
@@ -39,44 +48,44 @@ void MsgID_clear(MsgID* msgid);
 
 struct Message_t {
      enum {
-        DONE,
-        DONT_KNOW,
-        RESULT_STRING,
-        RESULT_INT,
-        RESULT_TUPLE,
-        UNBLOCK,
-        OUT,
-        IN,
-        RD,
-        INP,
-        RDP,
-        COLLECT,
-        COPY_COLLECT,
-        CREATE_TUPLESPACE,
-        ADD_REFERENCE,
-        DELETE_REFERENCE,
+        L_DONE,
+        L_DONT_KNOW,
+        L_RESULT_STRING,
+        L_RESULT_INT,
+        L_RESULT_TUPLE,
+        L_UNBLOCK,
+        L_OUT,
+        L_IN,
+        L_RD,
+        L_INP,
+        L_RDP,
+        L_COLLECT,
+        L_COPY_COLLECT,
+        L_CREATE_TUPLESPACE,
+        L_ADD_REFERENCE,
+        L_DELETE_REFERENCE,
 /* Monitor messages */
-        MONITOR,
-        LIST_TS,
-        INSPECT,
-        GET_ROUTES,
+        L_MONITOR,
+        L_LIST_TS,
+        L_INSPECT,
+        L_GET_ROUTES,
 /* Monitor messages */
-        REGISTER_PROCESS,
-        REGISTER_THREAD,
-        REGISTER_TYPE,
-        UPDATE_TYPE,
+        L_REGISTER_PROCESS,
+        L_REGISTER_THREAD,
+        L_REGISTER_TYPE,
+        L_UPDATE_TYPE,
 /* Server Messages */
-        MY_NAME_IS,
-        GET_NODE_ID,
-        REGISTER_PARTITION,
-        GET_PARTITIONS,
-        DELETED_PARTITION,
-        GET_REQUESTS,
-        GET_NEIGHBOURS,
-        GET_CONNECTION_DETAILS,
-        TUPLE_REQUEST,
-        CANCEL_REQUEST,
-        MULTIPLE_IN
+        L_MY_NAME_IS,
+        L_GET_NODE_ID,
+        L_REGISTER_PARTITION,
+        L_GET_PARTITIONS,
+        L_DELETED_PARTITION,
+        L_GET_REQUESTS,
+        L_GET_NEIGHBOURS,
+        L_GET_CONNECTION_DETAILS,
+        L_TUPLE_REQUEST,
+        L_CANCEL_REQUEST,
+        L_MULTIPLE_IN
 /* Server Messages */
      } type;
      MsgID* msgid;
@@ -122,60 +131,60 @@ struct Message_t {
 typedef struct Message_t Message;
 
 char* Message_getString(Message* msg);
-void Message_send(int sd, MsgID* msgid, Message* msg);
-Message* Message_recv(int s);
-Message* Message_parse(char* text, int len, unsigned char final);
+EXPORT void Message_send(int sd, MsgID* msgid, Message* msg);
+EXPORT Message* Message_recv(int s);
+EXPORT Message* Message_parse(char* text, int len, unsigned char final);
 
-Message* Message_result_string(char* text);
-Message* Message_result_int(int i);
-Message* Message_result_tuple(LindaValue t);
+EXPORT Message* Message_result_string(char* text);
+EXPORT Message* Message_result_int(int i);
+EXPORT Message* Message_result_tuple(LindaValue t);
 
-Message* Message_done();
-Message* Message_dont_know();
+EXPORT Message* Message_done();
+EXPORT Message* Message_dont_know();
 
-Message* Message_out(LindaValue ts, LindaValue t);
-Message* Message_in(LindaValue ts, LindaValue t);
-Message* Message_rd(LindaValue ts, LindaValue t);
-Message* Message_inp(LindaValue ts, LindaValue t);
-Message* Message_rdp(LindaValue ts, LindaValue t);
-Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
-Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
-Message* Message_unblock();
+EXPORT Message* Message_out(LindaValue ts, LindaValue t);
+EXPORT Message* Message_in(LindaValue ts, LindaValue t);
+EXPORT Message* Message_rd(LindaValue ts, LindaValue t);
+EXPORT Message* Message_inp(LindaValue ts, LindaValue t);
+EXPORT Message* Message_rdp(LindaValue ts, LindaValue t);
+EXPORT Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+EXPORT Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t);
+EXPORT Message* Message_unblock();
 
-Message* Message_createTuplespace();
-Message* Message_addReference(LindaValue ts);
-Message* Message_addReference2(LindaValue ts, char* id);
-Message* Message_deleteReference(LindaValue ts);
+EXPORT Message* Message_createTuplespace();
+EXPORT Message* Message_addReference(LindaValue ts);
+EXPORT Message* Message_addReference2(LindaValue ts, char* id);
+EXPORT Message* Message_deleteReference(LindaValue ts);
 
-Message* Message_monitor();
-Message* Message_list_ts();
-Message* Message_inspect(LindaValue ts);
-Message* Message_get_routes();
+EXPORT Message* Message_monitor();
+EXPORT Message* Message_list_ts();
+EXPORT Message* Message_inspect(LindaValue ts);
+EXPORT Message* Message_get_routes();
 
-Message* Message_register_process();
-Message* Message_register_thread();
+EXPORT Message* Message_register_process();
+EXPORT Message* Message_register_thread();
 #ifdef REGISTER_TYPES
-Message* Message_register_type(LindaValue v);
-Message* Message_update_type(int type_id, LindaValue v);
+EXPORT Message* Message_register_type(LindaValue v);
+EXPORT Message* Message_update_type(int type_id, LindaValue v);
 #endif
 
-Message* Message_my_name_is(char* name);
-Message* Message_get_node_id();
+EXPORT Message* Message_my_name_is(char* name);
+EXPORT Message* Message_get_node_id();
 
-Message* Message_register_partition(LindaValue ts, char* ref);
-Message* Message_get_partitions(LindaValue ts);
-Message* Message_deleted_partition(LindaValue ts, char* ref);
+EXPORT Message* Message_register_partition(LindaValue ts, char* ref);
+EXPORT Message* Message_get_partitions(LindaValue ts);
+EXPORT Message* Message_deleted_partition(LindaValue ts, char* ref);
 
-Message* Message_get_requests(LindaValue ts);
+EXPORT Message* Message_get_requests(LindaValue ts);
 
-Message* Message_get_neighbours();
-Message* Message_get_connection_details(char* id);
+EXPORT Message* Message_get_neighbours();
+EXPORT Message* Message_get_connection_details(char* id);
 
-Message* Message_tuple_request(LindaValue ts, LindaValue t);
-Message* Message_cancel_request(LindaValue ts, LindaValue t);
-Message* Message_multiple_in(LindaValue ts, LindaValue t);
+EXPORT Message* Message_tuple_request(LindaValue ts, LindaValue t);
+EXPORT Message* Message_cancel_request(LindaValue ts, LindaValue t);
+EXPORT Message* Message_multiple_in(LindaValue ts, LindaValue t);
 
-void Message_free(Message* m);
+EXPORT void Message_free(Message* m);
 
 void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned);
 static inline void Linda_scanTuple(LindaValue t, LindaValue ref) { Linda_scanTuple2(t, ref, NULL); }
@@ -186,23 +195,13 @@ struct Tuplequeue_t {
 };
 typedef struct Tuplequeue_t* Tuplequeue;
 
-struct Linda_thread_data_t {
-    int sd;
-    char* thread_id;
-};
-typedef struct Linda_thread_data_t Linda_thread_data;
-Linda_thread_data* Linda_get_thread_data();
-
 #ifdef LINDA_SERVER
 #ifdef USE_DOMAIN_SOCKETS
 extern int Linda_udd;
 #endif
-extern int Linda_sd;
+LSIMPORT extern int Linda_sd;
 #endif
 extern int Linda_active_connections;
-
-void Linda_addTSReference(LindaValue ts);
-void Linda_delTSReference(LindaValue ts);
 
 #ifdef __cplusplus
 }

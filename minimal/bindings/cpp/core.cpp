@@ -18,6 +18,7 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#define MINIMAL_INTERNAL
 #include "minimal.h"
 #define FORCE_C
 #include "minimal.h"
@@ -29,7 +30,7 @@ Value Nil;
 void init() {
     Minimal_init();
 
-    Nil = Minimal_Nil;
+    Nil = Minimal_nil();
 }
 
 void finalise() {

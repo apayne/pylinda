@@ -25,9 +25,11 @@
 #include "minimal.h"
 
 int main(int argc, char* argv[]) {
-    char* buf = malloc(1); buf[0] = '\0';
     char tmp[1024];
     int i;
+	MinimalValue value;
+	char* s;
+    char* buf = malloc(1); buf[0] = '\0';
 
     Minimal_init();
 
@@ -42,8 +44,8 @@ int main(int argc, char* argv[]) {
         buf = buf2;
     }
 
-    MinimalValue value = Minimal_parseValue(buf);
-    char* s = Minimal_Value_string(value);
+    value = Minimal_parseValue(buf);
+    s = Minimal_Value_string(value);
 
     printf("%s\n", s);
 

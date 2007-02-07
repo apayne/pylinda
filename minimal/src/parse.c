@@ -30,12 +30,13 @@ Minimal_SyntaxTree yy_result;
 
 Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code) {
     int r;
+	YY_BUFFER_STATE buf;
 
     if(code[0] == '<' && code[1] == '?' && code[2] == 'x' && code[3] == 'm' && code[4] == 'l') {
         return Minimal_parseXMLCode(code);
     }
 
-    YY_BUFFER_STATE buf = yy_scan_string(code);
+    buf = yy_scan_string(code);
     r = yyparse(code);
     if(r != 0) {
         yy_delete_buffer(buf);
@@ -52,12 +53,13 @@ Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code) {
 
 Minimal_SyntaxTree* Minimal_parseCode(char* code) {
     int r;
+	YY_BUFFER_STATE buf;
 
     if(code[0] == '<' && code[1] == '?' && code[2] == 'x' && code[3] == 'm' && code[4] == 'l') {
         return Minimal_parseXMLCode(code);
     }
 
-    YY_BUFFER_STATE buf = yy_scan_string(code);
+    buf = yy_scan_string(code);
     r = yyparse(code);
     if(r != 0) {
         yy_delete_buffer(buf);

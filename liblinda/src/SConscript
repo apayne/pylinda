@@ -1,6 +1,13 @@
+import sys
+
 Import("env")
 
-clientobjs = env.SharedObject(["linda.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c", "threading.c"])
-serverobjs = env.SharedObject(["linda_server.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c", "threading-dummy.c"])
+if sys.platform == "win32":
+    threading = ["threading-dummy.c"]
+else:
+    threading = ["threading.c"]
+
+clientobjs = env.SharedObject(["linda.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c", "utils.c"] + threading)
+serverobjs = env.SharedObject(["linda_server.c", "message.c", "messageread.c", "tuplespace.c", "refcount.c", "threading-dummy.c", "utils.c"])
 
 Return("clientobjs", "serverobjs")

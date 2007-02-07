@@ -40,6 +40,9 @@ int Minimal_refCountListUsed = 0;
 struct MinimalRefCount** Minimal_refCountList = NULL;
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line) {
+	int index;
+	struct MinimalRefCount* newchain;
+
     if(Minimal_refCountListSize == 0) {
         int i;
         Minimal_refCountListSize = 128;
@@ -75,8 +78,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
         Minimal_refCountListSize = Minimal_refCountListSize * 4;
     }
 
-    int index = hash(ptr);
-    struct MinimalRefCount* newchain = malloc(sizeof(struct MinimalRefCount));
+    index = hash(ptr);
+    newchain = malloc(sizeof(struct MinimalRefCount));
     newchain->ptr = ptr;
     newchain->type_id = type_id;
     newchain->count = 1;
@@ -92,11 +95,14 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 }
 
 void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
+	struct MinimalRefCount* list;
+	int i;
+
     if(ptr == NULL) {
         fprintf(stderr, "Error: Minimal_addReference on NULL\n");
         return;
     }
-    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
             list->count++;
@@ -105,7 +111,7 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
         list = list->next;
     }
     fprintf(stderr, "Error: addReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
-    int i = *((int*)ptr);
+    i = *((int*)ptr);
     i = i + 1;
 }
 
@@ -143,11 +149,13 @@ MinimalTypeId Minimal_getTypeId(MinimalObject ptr) {
 }
 
 void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
+    struct MinimalRefCount* list;
+    
     if(Minimal_refCountListSize == 0) {
         fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
         return;
     }
-    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
             if(list->count > 0) {
@@ -219,6 +227,8 @@ void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr) {
 }
 
 MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr) {
+    MinimalObject* list;
+
     switch(type_id) {
     case MINIMAL_VALUE:
         return Minimal_Value_getReferences((MinimalValue)ptr);
@@ -231,7 +241,7 @@ MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr) {
         break;
     default:
         fprintf(stderr, "Error: Getting references for object with unrecognised type_id (%i).\n", type_id);
-        MinimalObject* list = malloc(sizeof(void*));
+        list = malloc(sizeof(void*));
         list[0] = NULL;
         return list;
     }
