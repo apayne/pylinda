@@ -18,6 +18,8 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "linda_server.h"
+
 #ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
 #endif
@@ -26,6 +28,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
 #endif
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -33,8 +38,6 @@
 #include <ws2tcpip.h>
 #include <Windows.h>
 #endif
-
-#include "linda_server.h"
 
 int Linda_sd;
 #ifdef USE_DOMAIN_SOCKETS

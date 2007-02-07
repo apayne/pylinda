@@ -203,6 +203,9 @@ LSIMPORT extern int Linda_sd;
 #endif
 extern int Linda_active_connections;
 
+EXPORT void Linda_addTSReference(LindaValue ts);
+EXPORT void Linda_delTSReference(LindaValue ts);
+
 #ifdef __cplusplus
 }
 #endif

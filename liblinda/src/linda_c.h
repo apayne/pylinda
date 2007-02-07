@@ -144,6 +144,7 @@ static inline LindaValue Linda_ptr(LindaValue v) { return Minimal_ptr(v); }
 static inline LindaValue Linda_getPtr(LindaValue v) { return Minimal_getPtr(v); }
 
 static inline LindaValue Linda_copy(LindaValue v) { return Minimal_copy(v); }
+
 #define Linda_addReference(obj) Linda_addReference2(obj, __FILE__, __LINE__);
 static inline void Linda_addReference2(LindaValue v, char* file, int line) { Minimal_addReference2(v, file, line); }
 static inline int Linda_getReferenceCount(LindaValue v) { return Minimal_getReferenceCount(v); }
@@ -192,9 +193,6 @@ struct Linda_thread_data_t {
 };
 typedef struct Linda_thread_data_t Linda_thread_data;
 EXPORT Linda_thread_data* Linda_get_thread_data();
-
-/*EXPORT void Linda_addTSReference(LindaValue ts);
-EXPORT void Linda_delTSReference(LindaValue ts);*/
 
 #ifdef __cplusplus
 }

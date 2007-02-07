@@ -53,7 +53,6 @@ EXPORT void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree);
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
-EXPORT MinimalValue Minimal_getName(MinimalLayer layer, char* name);
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name);
 void Minimal_delName(Minimal_NameValueMap* map, char* name);
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);

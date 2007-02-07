@@ -20,6 +20,17 @@
 
 #include "config.h"
 
+#include PYTHON_H
+
+#define LINDA_SERVER
+#define HACKY_MAGIC
+#include "linda_python.h"
+#ifdef WIN32
+#define LSEXPORT
+#define LSIMPORT __declspec(dllimport)
+#endif
+#include "linda_server.h"
+
 #ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
 #endif
@@ -34,16 +45,10 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <unistd.h>
+#include <fcntl.h>
 #endif
-
-#include PYTHON_H
-
-#define LINDA_SERVER
-#define HACKY_MAGIC
-#include "linda_python.h"
-#define LSEXPORT
-#define LSIMPORT __declspec(dllimport)
-#include "linda_server.h"
 
 PyObject* LindaServer_module;
 

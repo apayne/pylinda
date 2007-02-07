@@ -31,6 +31,8 @@
 #ifdef WIN32
 #define snprintf _snprintf
 #include "winsock2.h"
+#else
+#include <arpa/inet.h>
 #endif
 
 #ifdef TYPES

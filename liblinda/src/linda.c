@@ -18,6 +18,8 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "linda_internal.h"
+
 #ifdef USE_DOMAIN_SOCKETS
 #include <sys/un.h>
 #endif
@@ -35,8 +37,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-
-#include "linda_internal.h"
 
 char* Linda_version = "0.7a";
 
@@ -77,6 +77,8 @@ void Linda_init() {
 #else
     Minimal_use_types = 0;
 #endif
+    Minimal_setLindaTSAddRefFunc(Linda_addTSReference);
+    Minimal_setLindaTSDelRefFunc(Linda_delTSReference);
 
     Minimal_init();
 

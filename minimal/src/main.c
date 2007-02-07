@@ -22,6 +22,8 @@
 #include <stdlib.h>
 
 #include "minimal.h"
+#define HACKY_MAGIC
+#include "minimal_internal.h"
 
 int main(int argc, char* argv[]) {
     Minimal_init();

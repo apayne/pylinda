@@ -316,8 +316,8 @@ IMPORT extern MinimalValue Minimal_stringType;
 IMPORT extern MinimalValue Minimal_tupleSpaceType;
 
 EXPORT void Minimal_setOverrideTypeFunc(void (*func)(MinimalValue t));
-EXPORT void Minimal_setTSAddRefFunc(void (*func)(MinimalValue t));
-EXPORT void Minimal_setTSDelRefFunc(void (*func)(MinimalValue t));
+EXPORT void Minimal_setLindaTSAddRefFunc(void (*func)(MinimalValue t));
+EXPORT void Minimal_setLindaTSDelRefFunc(void (*func)(MinimalValue t));
 
 typedef MinimalValue* Minimal_TypeList;
 EXPORT Minimal_TypeList Minimal_getTypeList(MinimalValue type);
@@ -329,6 +329,8 @@ IMPORT extern unsigned char Minimal_use_types;
 EXPORT void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree* tree);
 
 EXPORT void Minimal_interpreter();
+
+EXPORT MinimalValue Minimal_getName(MinimalLayer layer, char* name);
 
 #ifdef __cplusplus
 }
