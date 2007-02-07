@@ -18,15 +18,6 @@
 *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-/*
-%{
-void Minimal_nevercall() {
-    unput('a');
-}
-%}
-*/
-
-
 %{
 #include <math.h>
 
@@ -78,3 +69,10 @@ CLOSEB     [)]
 {WHITESPACE} { }
 {CDEFINE} { }
 
+%{
+#ifndef WIN32
+void Minimal_nevercall() {
+    unput('a');
+}
+#endif
+%}
