@@ -2,7 +2,7 @@ import os
 import platform
 
 if platform.system() == "Windows":
-	env = Environment(CCFLAGS="/EHsc /DWIN32 /DNO_READLINE", CPPPATH=["#src/", "#bindings/cpp", r"c:\Program Files\GnuWin32\include"], LIBPATH="#.", YACC="bison", LEX="flex", LEXFLAGS="-headerfile=yy.lex.h")
+	env = Environment(CCFLAGS="/D_CRT_SECURE_NO_DEPRECATE /EHsc /DWIN32 /DNO_READLINE", CPPPATH=["#src/", "#bindings/cpp", r"c:\Program Files\GnuWin32\include"], LIBPATH="#.", YACC="bison", LEX="flex", LEXFLAGS="-headerfile=yy.lex.h")
 	env.Append(ENV=os.environ)
 	readline = []
 else:

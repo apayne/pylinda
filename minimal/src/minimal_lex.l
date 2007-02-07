@@ -69,8 +69,10 @@ CLOSEB     [)]
 {WHITESPACE} { }
 {CDEFINE} { }
 
+%{
 #ifndef WIN32
 void Minimal_nevercall() {
     unput('a');
 }
 #endif
+%}
