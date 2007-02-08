@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# This is the slave. %(this_addr)s.
+#
+# The master is at %(master_addr)s.
+
+echo "This is a slave."
+
+cd /home/pylinda
+svn up
+cd minimal
+scons
+cd ../liblinda
+scons debug=0 types=0
+
+cd /root/tests
+
+wget %(test_dir)s/slave-py
+
+wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/master > /dev/null 2>&1
+
+while [ $? -ne 0 ]; do
+        sleep 5
+        wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/master > /dev/null 2>&1
+done
+
+echo "Master is up - connect!"
+
+linda_server -D -c %(master_addr)s &
+echo $! > linda_server.pid
+
+sleep 10
+
+python slave-py &
+echo $! > slave.pid
+
+curl http://scoobies.dyndns.org:2223/pylinda/ready.py

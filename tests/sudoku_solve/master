@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# This is the master %(master_addr)s
+
+echo "This is the master."
+
+cd /home/pylinda
+svn up
+cd minimal
+scons
+cd ../liblinda
+scons debug=0 types=0
+
+cd /root/tests
+
+wget %(test_dir)s/master-py
+wget %(test_dir)s/slave-py
+wget %(test_dir)s/puzzle.sudoku
+
+linda_server -D &
+echo $! > linda_server.pid
+
+sleep 10
+
+curl http://scoobies.dyndns.org:2223/pylinda/master-ready.py
+
+python slave-py &
+echo $! > slave.pid
+
+curl http://scoobies.dyndns.org:2223/pylinda/ready.py
+
+wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/block > /dev/null 2>&1
+
+while [ $? -ne 0 ]; do
+        sleep 5
+        wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/block > /dev/null 2>&1
+done
+
+python master-py puzzle.sudoku > output.txt 2>&1
+
+curl -F "filename=%(master_addr)s" -F "file=@output.txt" http://scoobies.dyndns.org:2223/pylinda/upload.py

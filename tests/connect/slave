@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This is the slave. %(this_addr)s.
+#
+# The master is at %(master_addr)s.
+
+echo "This is a slave."

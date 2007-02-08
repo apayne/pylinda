@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# %(this_addr)s
+
+echo "This is the master."
+
+cd /home/pylinda
+svn up
+cd minimal
+scons
+cd ../liblinda
+scons debug=0 types=1 register=0
+
+cd /root/tests
+
+wget %(test_dir)s/out-py
+
+curl http://scoobies.dyndns.org:2223/pylinda/ready.py
+
+rm -f %(this_addr)s.txt
+
+touch %(this_addr)s.txt
+
+for ((i=11;i<=50;i+=1)); do
+    linda_server -D &
+    echo $! > linda_server.pid
+
+    sleep 10
+
+    python out-py $i >> %(this_addr)s.txt
+
+    cat %(this_addr)s.txt
+
+    kill `cat linda_server.pid`
+    rm -f /tmp/pylinda
+
+    sleep 10
+done
+
+curl -F "filename=%(this_addr)s" -F "file=@%(this_addr)s.txt" http://scoobies.dyndns.org:2223/pylinda/upload.py

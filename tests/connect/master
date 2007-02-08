@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# This is the master %(master_addr)s
+
+echo "This is the master."

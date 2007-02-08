@@ -1,0 +1,87 @@
+#!/usr/bin/python
+
+import time
+import sys
+import os
+import EC2
+
+sys.path = ["/home/andrew/python/pylinda/tests/webroot/"] + sys.path
+import test
+
+import db as dbsqlite
+
+db = None
+
+pylinda_img = open("/home/andrew/.ec2/pylinda-img").read().strip()
+
+def connect():
+    awsid = open("/home/andrew/.ec2/aws-id").read().strip()
+    secretid = open("/home/andrew/.ec2/secret-aws-key").read().strip()
+
+    return EC2.AWSAuthConnection(awsid, secretid)
+
+def createInstances(con):
+    global db
+    try:
+        os.unlink("/home/andrew/python/pylinda/tests/webroot/db.sqlite")
+    except OSError:
+        pass
+
+    db = dbsqlite.connect()
+    os.chmod("/home/andrew/python/pylinda/tests/webroot/db.sqlite", 0777)
+
+    assert int(sys.argv[1]) > 0 and int(sys.argv[1]) <= 20
+    instances = con.run_instances(pylinda_img, int(sys.argv[1]), int(sys.argv[1]), "pylinda-keypair")
+
+    instances = [i for i in str(instances).split("\t") if i.startswith("i-")]
+
+    print "Got instances", instances
+    running = []
+
+    print "Waiting for start",
+    while len(instances) > 0:
+        print ".",
+        sys.stdout.flush()
+        runningtext = con.describe_instances(instances)
+        runningtext = str(runningtext).split("\n")
+        for line in runningtext:
+            for i in instances[:]:
+                if i in line and "running" in line:
+                    del instances[instances.index(i)]
+                    running.append(i)
+                    print "\n", i, "now running on", line.split("\t")[3]
+        time.sleep(5)
+
+    print "Nodes connected:",
+    while len(dbsqlite.list_nodes(db)) < len(running):
+        print len(dbsqlite.list_nodes(db)),
+        sys.stdout.flush()
+        time.sleep(5)
+
+    print
+    for addr, type in dbsqlite.list_nodes(db):
+        print addr, "is running as", type
+
+    return running
+
+def terminateInstances(con, instances):
+    con.terminate_instances(instances)
+
+con = connect()
+
+test.init_test()
+
+instances = createInstances(con)
+try:
+    print "%i instances running" % (int(sys.argv[1]), )
+
+    test.start_test(db)
+
+    while test.test_running(db):
+        time.sleep(10)
+except:
+    print "Manually terminate instances", ", ".join(instances)
+    raise
+else:
+    terminateInstances(con, instances)
+    test.end_test(db)

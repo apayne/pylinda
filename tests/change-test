@@ -1,0 +1,14 @@
+#!/bin/bash
+
+. vars
+
+prevdir=`pwd`
+
+cd $ROOT/webroot
+rm -f test
+
+ln -s $ROOT/$1 test
+
+rm -f $ROOT/db.sqlite
+
+cd $prevdir

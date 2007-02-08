@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# %(this_addr)s
+
+echo "This is the master."
+
+cd /root/tests
+
+wget %(test_dir)s/ping-py
+
+curl http://scoobies.dyndns.org:2223/pylinda/ready.py
+
+wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/block > /dev/null 2>&1
+
+while [ $? -ne 0 ]; do
+        sleep 5
+        wget --output-document=- http://scoobies.dyndns.org:2223/pylinda/block > /dev/null 2>&1
+done
+
+wget %(main_dir)s/hosts.txt
+
+python ping-py %(this_addr)s
+
+curl -F "filename=%(this_addr)s" -F "file=@%(this_addr)s.txt" http://scoobies.dyndns.org:2223/pylinda/upload.py

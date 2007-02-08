@@ -1,0 +1,22 @@
+import sys
+import subprocess
+
+fp = open("%s.txt" % (sys.argv[1], ), "w")
+
+for host in open("hosts.txt", "r").readlines():
+    if host.strip() == sys.argv[1]:
+        continue
+    print "pinging", host
+    p = subprocess.Popen("ping -c 100 %s" % (host.strip(), ), shell=True, stdout=subprocess.PIPE)
+    p.wait()
+    t = p.communicate()[0].strip()
+    print repr(t)
+    t = t.split("\n")[-1]
+    print t
+    try:
+        fp.write(t.split("/")[4] + t.split(" ")[4] + "\n")
+        if t.split(" ")[4].endswith(","):
+            fp.write("! " + t + "\n")
+    except IndexError:
+        print t
+        raise
