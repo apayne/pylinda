@@ -41,6 +41,10 @@ OPERATOR   [+-\/%\^*]
 EQUAL      [=]
 OPENB      [(]
 CLOSEB     [)]
+IF         "if"
+THEN       "then"
+ELSE       "else"
+ENDIF      "endif"
 
 %%
 
@@ -50,8 +54,18 @@ CLOSEB     [)]
          }
 
 {ID} {
-        yylval = Minimal_SyntaxTree_createID(yytext);
-        return YY_ID;
+        if(strcmp(yytext, "if") == 0) {
+            return YY_IF;
+        } else if(strcmp(yytext, "then") == 0) {
+            return YY_THEN;
+        } else if(strcmp(yytext, "else") == 0) {
+            return YY_ELSE;
+        } else if(strcmp(yytext, "endif") == 0) {
+            return YY_ENDIF;
+        } else {
+            yylval = Minimal_SyntaxTree_createID(yytext);
+            return YY_ID;
+        }
      }
 
 {ARROW} { return YY_FUNCTION; }

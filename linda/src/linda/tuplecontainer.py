@@ -102,18 +102,20 @@ def doesMatch_unregistered(e1, e2):
     if isinstance(e1, tuple):
         if len(e1) != len(e2):
             raise NoTupleMatch
+        l = []
         for t1, t2 in zip(e1, e2):
-            if not doesMatch(t1, t2):
-                raise NoTupleMatch
-        return True
+            l.append(doesMatch(t1, t2))
+        return tuple(l)
     elif e1.isType():
-        if compare(e1, e2.type):
-            return True
+        f = compare(e1, e2.type)
+        if f is not None:
+            return f(e1)
         else:
             raise NoTupleMatch
     else:
-        if compare(e1.type, e2.type) and e1 == e2:
-            return True
+        f = compare(e1.type, e2.type)
+        if f is not None and f(e1) == e2:
+            return e2
         else:
             raise NoTupleMatch
 

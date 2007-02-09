@@ -209,7 +209,8 @@ struct Minimal_SyntaxTree_t {
         ST_PRODUCT_TYPE,
         ST_SUM_TYPE,
         ST_TUPLE,
-        ST_POINTER
+        ST_POINTER,
+        ST_IFEXPR
     } type;
     union {
         int integer;
@@ -249,6 +250,11 @@ struct Minimal_SyntaxTree_t {
         struct {
             int size;
             struct Minimal_SyntaxTree_t** tuple;
+        };
+        struct {
+            struct Minimal_SyntaxTree_t* _if;
+            struct Minimal_SyntaxTree_t* _then;
+            struct Minimal_SyntaxTree_t* _else;
         };
         char* ptr;
     };

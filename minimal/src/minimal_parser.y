@@ -31,7 +31,7 @@ void yyerror(char* s) {
 }
 %}
 
-%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB
+%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_IF YY_THEN YY_ELSE YY_ENDIF
 
 %% /* Grammar rules and actions follow */
 
@@ -186,6 +186,7 @@ expr: value { $$ = $1; }
                             }
     | function_call { $$ = $1; }
     | tuple { $$ = $1; }
+    | if_expr { $$ = $1; }
 ;
 
 value: YY_ID { if(strcmp($1.string, "Nil") == 0) {
@@ -252,5 +253,12 @@ tuple2: { $$.type = ST_BLANK; }
                             $$ = $1;
                           }
 ;
+
+if_expr: YY_IF expr YY_THEN expr YY_ELSE expr YY_ENDIF {
+        $$ = Minimal_SyntaxTree_createIfExpr();
+        $$._if = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+        $$._then = Minimal_SyntaxTree_copy(&$4); Minimal_SyntaxTree_clear(&$4);
+        $$._else = Minimal_SyntaxTree_copy(&$6); Minimal_SyntaxTree_clear(&$6);
+        }
 
 %%

@@ -150,7 +150,7 @@ MinimalTypeId Minimal_getTypeId(MinimalObject ptr) {
 
 void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
     struct MinimalRefCount* list;
-    
+
     if(Minimal_refCountListSize == 0) {
         fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
         return;

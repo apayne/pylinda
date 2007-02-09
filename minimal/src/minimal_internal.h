@@ -42,6 +42,7 @@ void Minimal_refCountFinalise();
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op);
+Minimal_SyntaxTree Minimal_SyntaxTree_createIfExpr();
 
 EXPORT int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2);
 

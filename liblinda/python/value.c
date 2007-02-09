@@ -629,6 +629,96 @@ static int linda_Value_coerce(PyObject** self, PyObject** other) {
     }
 }
 
+static long linda_ValueHash(linda_ValueObject* self) {
+    switch(self->val->type) {
+    case M_NIL:
+        return 0;
+    case M_BOOLEAN:
+        if(self->val->boolean) {
+            return PyObject_Hash(Py_True);
+        } else {
+            return PyObject_Hash(Py_False);
+        }
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+        {
+        PyObject* r = PyInt_FromLong(self->val->integer);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+        {
+        PyObject* r = PyInt_FromLong(self->val->integer);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_FLOAT:
+        {
+        PyObject* r = PyFloat_FromDouble(self->val->singlefloat);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_DOUBLE:
+        {
+        PyObject* r = PyFloat_FromDouble(self->val->doublefloat);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_STRING:
+        {
+        PyObject* r = PyString_FromStringAndSize(self->val->string, self->val->length);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_TYPE:
+        {
+        PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_TSREF:
+        {
+        PyObject* r = PyString_FromString(self->val->tsid);
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_TUPLE:
+        {
+        PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_FUNCTION:
+        {
+        PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_POINTER:
+        {
+        PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    }
+    return -1;
+}
+
 PyNumberMethods linda_ValueNum = {
         (binaryfunc)linda_Value_add,  /* binaryfunc nb_add; */
         (binaryfunc)linda_Value_sub,  /* binaryfunc nb_subtract; */
@@ -692,7 +782,7 @@ PyTypeObject linda_ValueType = {
     &linda_ValueNum,           /*tp_as_number*/
     &linda_ValueSeq,           /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
+    (hashfunc)linda_ValueHash, /*tp_hash */
     0,                         /*tp_call*/
     (reprfunc)linda_Value_str, /*tp_str*/
     0,                         /*tp_getattro*/

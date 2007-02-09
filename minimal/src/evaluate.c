@@ -51,6 +51,7 @@ MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     switch(tree->type) {
     case ST_BLANK:
+    case ST_NIL();
         return Minimal_nil();
     case ST_IDENTIFIER:
         {
@@ -131,8 +132,11 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         }
         return r;
         }
-    default:
-        fprintf(stderr, "Error: Unknown tree node type in Minimal_evaluate (%i)\n", tree->type);
-        return NULL;
+    case ST_TYPE_FUNCTION:
+    case ST_PARAMETER_LIST:
+    case ST_ARGUMENT_LIST:
+    case ST_TYPE_FUNCTION:
+    case ST_TYPE_FUNCTION:
+    case ST_TYPE_FUNCTION:
     }
 }

@@ -66,6 +66,15 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
 }
 
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createIfExpr(int size) {
+    Minimal_SyntaxTree tree;
+    tree.type = ST_IFEXPR;
+    tree._if = NULL;
+    tree._then = NULL;
+    tree._else = NULL;
+    return tree;
+}
+
 void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree* tuple, Minimal_SyntaxTree* tree) {
     if(tuple->size == 0) {
         tuple->tuple = (Minimal_SyntaxTree**)malloc(sizeof(void*));
@@ -185,11 +194,14 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->ptr = (char*)malloc(strlen(tree->ptr)+1);
         strcpy(ntree->ptr, tree->ptr);
         return ntree;
-    default:
-        fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_copy (%i)\n", tree->type);
-        free(ntree);
-        return NULL;
+    case ST_IFEXPR:
+        ntree->type = ST_IFEXPR;
+        ntree->_if = Minimal_SyntaxTree_copy(tree->_if);
+        ntree->_then = Minimal_SyntaxTree_copy(tree->_then);
+        ntree->_then = Minimal_SyntaxTree_copy(tree->_then);
+        return ntree;
     }
+    return NULL;
 }
 
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
@@ -276,8 +288,10 @@ void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
     case ST_POINTER:
         free(tree->ptr);
         break;
-    default:
-        fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_clear (%i)\n", tree->type);
+    case ST_IFEXPR:
+        free(tree->_if);
+        free(tree->_then);
+        free(tree->_else);
         break;
     }
 }
@@ -450,10 +464,16 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
         }
     case ST_POINTER:
         return strcmp(t1->ptr, t2->ptr);
-    default:
-        fprintf(stderr, "Unknown tree node type in Minimal_SyntaxTree_cmp (%i)\n", t1->type);
-        return 0;
+    case ST_IFEXPR:
+        if(Minimal_SyntaxTree_cmp(t1->_if, t2->_if)) {
+            return Minimal_SyntaxTree_cmp(t1->_if, t2->_if);
+        } else if(Minimal_SyntaxTree_cmp(t1->_then, t2->_then)) {
+            return Minimal_SyntaxTree_cmp(t1->_then, t2->_then);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->_else, t2->_else);
+        }
     }
+    return 0;
 }
 
 void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree) {
