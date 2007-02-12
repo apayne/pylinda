@@ -682,7 +682,7 @@ static long linda_ValueHash(linda_ValueObject* self) {
         }
     case M_TYPE:
         {
-        PyObject* r = PyInt_FromLong((long)(self->val));
+        PyObject* r = PyString_FromString(self->val->type_name);
         long hash = PyObject_Hash(r);
         Py_DecRef(r);
         return hash;

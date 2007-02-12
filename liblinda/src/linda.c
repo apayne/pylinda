@@ -225,7 +225,11 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
         LindaValue v1 = Linda_tupleGet(t, i);
         LindaValue v2 = Linda_tupleGet(r, i);
 
-        Linda_setType(v2, v1->typeobj);
+        if(Linda_isType(v1)) {
+            Linda_setType(v2, v1);
+        } else {
+            Linda_setType(v2, v1->typeobj);
+        }
     }
     }
 #endif
