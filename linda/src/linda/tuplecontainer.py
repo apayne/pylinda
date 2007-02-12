@@ -109,13 +109,13 @@ def doesMatch_unregistered(e1, e2):
     elif e1.isType():
         f = compare(e1, e2.type)
         if f is not None:
-            return f(e1)
+            return f(e2)
         else:
             raise NoTupleMatch
     else:
         f = compare(e1.type, e2.type)
-        if f is not None and f(e1) == e2:
-            return e2
+        if f is not None and f(e2) == e1:
+            return e1
         else:
             raise NoTupleMatch
 

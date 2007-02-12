@@ -70,15 +70,18 @@ def compare_unregistered(t1, t2, checked=None):
             if len(t1) != len(t2):
                 func = None
             else:
+                func = True
                 for i in range(len(t1)):
                     e1, e2 = t1[i], t2[i]
                     if not compare(e1, e2, checked):
                         func = None
-                def func(value):
-                    l = []
-                    for i in range(len(t1)):
-                        l.append(checked[(t1[i],t2[i])](value[i]))
-                    return tuple(l)
+                        break
+                if func:
+                    def func(value):
+                        l = []
+                        for i in range(len(t1)):
+                            l.append(checked[(t1[i],t2[i])](value[i]))
+                        return tuple(l)
         elif t1.isSumType() and t2.isSumType():
             if len(t1) != len(t2):
                 func = None
@@ -105,7 +108,7 @@ def compare_unregistered(t1, t2, checked=None):
                         e1 = t1[value.sum_pos]
                         np = map[value.sum_pos]
                         e2 = t2[np]
-                        v = checked[(e1.type_id, e2.type_id)](value)
+                        v = checked[(e1, e2)](value)
                         v.sum_pos = np
                         return v
         elif t1.isPtrType() and t2.isPtrType():
@@ -119,62 +122,66 @@ def compare_unregistered(t1, t2, checked=None):
             res_func = compare(t1.result, t2.result, checked)
             raise SystemError
         else:
-            print "different types", t1, t2
-            print t1.isNil(), t1.isId(), t1.isProductType(), t1.isSumType(), t1.isPtrType(), t1.isFunctionType()
-            print t2.isNil(), t2.isId(), t2.isProductType(), t2.isSumType(), t2.isPtrType(), t2.isFunctionType()
             func = None
     except:
         raise
     else:
-        checked[(t1.type_id, t2.type_id)] = func
+        checked[(t1, t2)] = func
         return func
 
 def compare_registered(t1, t2, checked=None):
     assert t1.isType()
     assert t2.isType()
 
-    if checked is None:
-        checked = [(t1, t2)]
-    elif (t1, t2) in checked:
-        return True
-    else:
-        checked.append((t1, t2))
+    func = None
 
-    if t1.type_id == t2.type_id:
-        return True
+    if checked is None:
+        checked = {(t1, t2): func}
+    elif (t1, t2) in checked:
+        return lambda x: x
+    else:
+        checked[(t1, t2)] = func
 
     try:
         if t1.isNil() and t2.isNil():
-            return True
+            func = True
         elif t1.isId() and t2.isId():
             if t1.id in builtin or t2.id in builtin:
-                return t1.id == t2.id
+                if t1.id == t2.id:
+                    func = identity
+                else:
+                    func = None
             else:
-                return compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
-                return False
-            for i in range(len(t1)):
-                e1, e2 = t1[i], t2[i]
-                if not compare(e1, e2, checked):
-                    return False
-            return True
+                func = None
+            else:
+                l = []
+                for i in range(len(t1)):
+                    e1, e2 = t1[i], t2[i]
+                    x = compare(e1, e2, checked)
+                    if x is None:
+                        func = None
+                        break
+                    l.append(x)
+                if len(l) == len(t1):
+                    def func(x):
+                        v = []
+                        for i in range(len(t1)):
+                            v.append(l[i](x[i]))
+                        return tuple(v)
         elif t1.isSumType() and t2.isSumType():
-            if len(t1) != len(t2):
-                return False
-            for i in range(len(t1)):
-                e1, e2 = t1[i], t2[i]
-                if not compare(e1, e2, checked):
-                    return False
-            return True
+            raise NotImplementedError
         elif t1.isPtrType() and t2.isPtrType():
-            return compare(t1.ptrtype, t2.ptrtype, checked)
+            func = compare(t1.ptrtype, t2.ptrtype, checked)
         elif t1.isFunctionType() and t2.isFunctionType():
-            return compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
+            func = compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
         else:
-            return False
+            func = None
     finally:
-        checked.pop()
+        checked[(t1, t2)] = func
+        return func
 
 if not _linda_server.use_types:
     compare = compare_notypes
