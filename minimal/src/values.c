@@ -322,10 +322,13 @@ MinimalValue Minimal_function(char* code) {
     MinimalLayer layer;
     Minimal_SyntaxTree* tree = Minimal_parseCode(code);
     Minimal_SyntaxTree* tree2;
+    MinimalLayer l;
     if(tree == NULL) {
         return NULL;
     }
-    Minimal_Layer_addTree(Minimal_defaultLayer, tree);
+    l = Minimal_getCurrentLayer();
+    Minimal_Layer_addTree(l, tree);
+    Minimal_delReference(l);
 
     tree2 = tree;
     while(tree2->type != ST_TYPE_SPEC && tree2->type != ST_FUNCTION_DEF) {
@@ -490,11 +493,12 @@ char* Minimal_getTupleSpace(MinimalValue v) {
 }
 
 void Minimal_setType(MinimalValue value, MinimalValue type) {
-    if(value->typeobj != NULL) {
-        Minimal_delReference(value->typeobj);
-    }
+    MinimalValue tmp = value->typeobj;
     Minimal_addReference(type);
     value->typeobj = type;
+    if(tmp != NULL) {
+        Minimal_delReference(tmp);
+    }
 }
 
 MinimalValue Minimal_getType(MinimalValue value) {
@@ -527,6 +531,41 @@ void Minimal_setTypeMap(MinimalValue v, MinimalLayer types) {
             Minimal_delReference(tmp);
         }
     }
+}
+
+unsigned char Minimal_isTrue(MinimalValue value) {
+    switch(value->type) {
+    case M_NIL:
+        return 0;
+    case M_BOOLEAN:
+        return value->boolean;
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+        return value->integer != 0;
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+        return value->uinteger != 0;
+    case M_FLOAT:
+        return value->singlefloat != 0.0;
+    case M_DOUBLE:
+        return value->doublefloat != 0.0;
+    case M_STRING:
+        return value->length != 0;
+    case M_TYPE:
+    case M_TSREF:
+        return 1;
+    case M_TUPLE:
+        return value->size != 0;
+    case M_FUNCTION:
+        return 1;
+    case M_POINTER:
+        return value->ptr != NULL;
+    }
+    return 0;
 }
 
 char* Minimal_Value_string(MinimalValue v) {

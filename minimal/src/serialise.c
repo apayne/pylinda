@@ -96,7 +96,7 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
         break;
     case M_TYPE:
         if(Minimal_addTypeToTypeList(list, v)) {
-            Minimal_getTypeList2(v->type_spec, v->typeobj->typemap, list);
+            Minimal_getTypeList2(v->type_spec, v->typemap, list);
         }
         break;
     case M_TUPLE:
@@ -487,18 +487,22 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         }
     case ST_PRODUCT_TYPE:
         {
+        int i;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"product_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[0], typemap);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[1], typemap);
+        for(i = 0; i < type_spec->length; i++) {
+            Minimal_serialiseTypeSpec(doc, node, type_spec->branches[i], typemap);
+        }
         return;
         }
     case ST_SUM_TYPE:
         {
+        int i;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"sum_type", NULL);
         xmlAddChild(parent, node);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[0], typemap);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->branches[1], typemap);
+        for(i = 0; i < type_spec->length; i++) {
+            Minimal_serialiseTypeSpec(doc, node, type_spec->branches[i], typemap);
+        }
         return;
         }
     case ST_POINTER:

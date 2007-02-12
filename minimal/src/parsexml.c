@@ -270,12 +270,15 @@ MinimalValue Minimal_parseXMLValue(const char* code) {
 
 MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
     MinimalLayer types;
+    MinimalLayer old_layer;
     MinimalValue value;
     ValueMemo memo;
     memo.found = NULL;
     memo.waiting = NULL;
 
+    old_layer = Minimal_getCurrentLayer();
     types = Minimal_createLayer();
+    Minimal_setCurrentLayer(types);
 
     value = Minimal_xmlToValue2(node, &memo, types);
 
@@ -287,6 +290,9 @@ MinimalValue Minimal_xmlToValue(xmlNodePtr node) {
     if(memo.waiting != NULL) {
         free(memo.waiting);
     }
+
+    Minimal_setCurrentLayer(old_layer);
+    Minimal_delReference(old_layer);
 
     return value;
 }
@@ -351,8 +357,8 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
 
 MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer types) {
     MinimalValue value = NULL;
-	xmlChar* tid;
-	xmlChar* cid;
+    xmlChar* tid;
+    xmlChar* cid;
     if(strcmp((char*)(node->name), "minimal") == 0) {
         xmlNode* cur_node = node->children;
         while(cur_node) {
@@ -398,7 +404,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         value = Minimal_xmlSeriesToValue(node->children, memo, types);
     } else if(strcmp((char*)(node->name), "type") == 0) {
         Minimal_SyntaxTree* tree = NULL;
-		xmlChar* name;
+        xmlChar* name;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
@@ -413,7 +419,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         Minimal_setTypeMap(value, types);
     } else if(strcmp((char*)(node->name), "typeobj") == 0) {
         Minimal_SyntaxTree* tree = NULL;
-		xmlChar* tid;
+        xmlChar* tid;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && tree == NULL) {
@@ -425,6 +431,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         if(tid != NULL) {
             int i = atoi((char*)tid);
             value = Minimal_typeFromId(i);
+            Minimal_setTypeMap(value, types);
             free(tid);
         } else {
             xmlChar* name = xmlGetProp(node, (xmlChar*)"name");

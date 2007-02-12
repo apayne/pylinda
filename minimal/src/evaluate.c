@@ -51,7 +51,7 @@ MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
 MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
     switch(tree->type) {
     case ST_BLANK:
-    case ST_NIL();
+    case ST_NIL:
         return Minimal_nil();
     case ST_IDENTIFIER:
         {
@@ -118,6 +118,11 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
             r = Minimal_Value_mul(op1, op2);
         } else if(strcmp(tree->_operator, "/") == 0) {
             r = Minimal_Value_div(op1, op2);
+        } else if(strcmp(tree->_operator, ">") == 0) {
+            r = Minimal_bool(Minimal_Value_ge(op1, op2));
+        } else {
+            fprintf(stderr, "Error: unrecognised operator %s.\n", tree->_operator);
+            exit(1);
         }
         Minimal_delReference(op1);
         Minimal_delReference(op2);
@@ -132,11 +137,25 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree* tree, MinimalLayer layer) {
         }
         return r;
         }
+    case ST_IFEXPR:
+        {
+        MinimalValue r;
+        MinimalValue t = Minimal_evaluate(tree->_if, layer);
+        if(Minimal_isTrue(t)) {
+            r = Minimal_evaluate(tree->_then, layer);
+        } else {
+            r = Minimal_evaluate(tree->_else, layer);
+        }
+        Minimal_delReference(t);
+        return r;
+        }
     case ST_TYPE_FUNCTION:
     case ST_PARAMETER_LIST:
     case ST_ARGUMENT_LIST:
-    case ST_TYPE_FUNCTION:
-    case ST_TYPE_FUNCTION:
-    case ST_TYPE_FUNCTION:
+    case ST_PRODUCT_TYPE:
+    case ST_SUM_TYPE:
+    case ST_POINTER:
+        return NULL;
     }
+    return NULL;
 }

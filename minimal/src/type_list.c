@@ -23,7 +23,7 @@
 #include "minimal_internal.h"
 
 unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type) {
-	Minimal_TypeList newlist;
+    Minimal_TypeList newlist;
     int i;
     for(i = 0; (*list)[i] != NULL; i++) {
         if((*list)[i] == type) {
@@ -59,7 +59,8 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         {
         if(!Minimal_isBuiltIn(type->string)) {
             MinimalValue v = Minimal_getName(typemap, type->string);
-            if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2: Unable to get type %s.\n", type->string); break; }
+            if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s from %p.\n", __LINE__, type->string, typemap); break; }
+
             if(Minimal_addTypeToTypeList(list, v)) {
                 Minimal_getTypeList2(v->type_spec, typemap, list);
             }
@@ -74,8 +75,7 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
     case ST_PRODUCT_TYPE:
         {
         int i;
-        Minimal_getTypeList2(type->branches[0], typemap, list);
-        for(i = 1; i < type->length; i++) {
+        for(i = 0; i < type->length; i++) {
             Minimal_getTypeList2(type->branches[i], typemap, list);
         }
         break;
@@ -83,8 +83,7 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
     case ST_SUM_TYPE:
         {
         int i;
-        Minimal_getTypeList2(type->branches[0], typemap, list);
-        for(i = 1; i < type->length; i++) {
+        for(i = 0; i < type->length; i++) {
             Minimal_getTypeList2(type->branches[i], typemap, list);
         }
         break;
@@ -93,6 +92,7 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         {
         if(!Minimal_isBuiltIn(type->ptr)) {
             MinimalValue v = Minimal_getName(typemap, type->ptr);
+            if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s.\n", __LINE__, type->string); break; }
             if(Minimal_addTypeToTypeList(list, v)) {
                 Minimal_getTypeList2(v->type_spec, typemap, list);
             }

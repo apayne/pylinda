@@ -31,7 +31,7 @@ void yyerror(char* s) {
 }
 %}
 
-%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_IF YY_THEN YY_ELSE YY_ENDIF
+%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_IF YY_THEN YY_ELSE YY_ENDIF YY_TESTOP
 
 %% /* Grammar rules and actions follow */
 
@@ -150,6 +150,24 @@ typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
                         }
                         Minimal_SyntaxTree_clear(&$2);
                         }
+        | typespec YY_OPERATOR value {
+                        if($3.type != ST_INTEGER) {
+                            fprintf(stderr, "Error: Type multiplication must involve an integer.\n");
+                            $$.type = ST_BLANK;
+                        } else if(strcmp($2.string, "*") == 0) {
+                            int i;
+                            $$.type = ST_PRODUCT_TYPE;
+                            $$.length = $3.integer;
+                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * $3.integer);
+                            for(i = 0; i < $3.integer; i++) {
+                                $$.branches[i] = Minimal_SyntaxTree_copy(&$1);
+                            }
+                            Minimal_SyntaxTree_clear(&$1);
+                        } else {
+                            fprintf(stderr, "Error: Type operator '%s' is not for a value as the second operator.\n", $2.string);
+                            $$.type = ST_BLANK;
+                        }
+                        }
         | YY_OPENB typespec YY_CLOSEB {
                         $$ = $2;
                         }
@@ -187,6 +205,7 @@ expr: value { $$ = $1; }
     | function_call { $$ = $1; }
     | tuple { $$ = $1; }
     | if_expr { $$ = $1; }
+    | test_expr { $$ = $1; }
 ;
 
 value: YY_ID { if(strcmp($1.string, "Nil") == 0) {
@@ -260,5 +279,15 @@ if_expr: YY_IF expr YY_THEN expr YY_ELSE expr YY_ENDIF {
         $$._then = Minimal_SyntaxTree_copy(&$4); Minimal_SyntaxTree_clear(&$4);
         $$._else = Minimal_SyntaxTree_copy(&$6); Minimal_SyntaxTree_clear(&$6);
         }
+;
+
+test_expr: expr YY_TESTOP expr { $$.type = ST_OPERATOR;
+                              $$._operator = (char*)malloc(strlen($2.string)+1); strcpy($$.func_name, $2.string);
+                              Minimal_SyntaxTree_clear(&$2);
+                              $$.op1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+                              $$.op2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                            }
+;
+
 
 %%

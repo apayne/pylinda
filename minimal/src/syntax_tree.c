@@ -165,19 +165,27 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         ntree->op2 = Minimal_SyntaxTree_copy(tree->op2);
         return ntree;
     case ST_PRODUCT_TYPE:
+        {
+        int i;
         ntree->type = ST_PRODUCT_TYPE;
-        ntree->length = 2;
+        ntree->length = tree->length;
         ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*ntree->length);
-        ntree->branches[0] = Minimal_SyntaxTree_copy(tree->branches[0]);
-        ntree->branches[1] = Minimal_SyntaxTree_copy(tree->branches[1]);
+        for(i = 0; i < ntree->length; i++) {
+            ntree->branches[i] = Minimal_SyntaxTree_copy(tree->branches[i]);
+        }
         return ntree;
+        }
     case ST_SUM_TYPE:
+        {
+        int i;
         ntree->type = ST_SUM_TYPE;
-        ntree->length = 2;
+        ntree->length = tree->length;
         ntree->branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*)*ntree->length);
-        ntree->branches[0] = Minimal_SyntaxTree_copy(tree->branches[0]);
-        ntree->branches[1] = Minimal_SyntaxTree_copy(tree->branches[1]);
+        for(i = 0; i < ntree->length; i++) {
+            ntree->branches[i] = Minimal_SyntaxTree_copy(tree->branches[i]);
+        }
         return ntree;
+        }
     case ST_TUPLE:
         {
         int i;

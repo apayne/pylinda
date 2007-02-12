@@ -45,6 +45,7 @@ IF         "if"
 THEN       "then"
 ELSE       "else"
 ENDIF      "endif"
+TEST_OP    [><]|"=="|">="|"<="
 
 %%
 
@@ -79,6 +80,7 @@ ENDIF      "endif"
 {EQUAL} { return YY_EQ; }
 {OPENB} { return YY_OPENB; }
 {CLOSEB} { return YY_CLOSEB; }
+{TEST_OP} { yylval = Minimal_SyntaxTree_createOperator(yytext); return YY_TESTOP; }
 
 {WHITESPACE} { }
 {CDEFINE} { }

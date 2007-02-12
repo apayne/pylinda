@@ -94,6 +94,8 @@ MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2);
 MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
+unsigned char Minimal_Value_ge(MinimalValue op1, MinimalValue op2);
+unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2);
 
 void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);
 void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);

@@ -192,6 +192,8 @@ EXPORT MinimalValue Minimal_getType(MinimalValue value);
 EXPORT void Minimal_setSumPos(MinimalValue value, int sum_pos);
 EXPORT int Minimal_getSumPos(MinimalValue value);
 
+EXPORT unsigned char Minimal_isTrue(MinimalValue value);
+
 struct Minimal_SyntaxTree_t {
     enum {
         ST_BLANK,
