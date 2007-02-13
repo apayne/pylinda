@@ -22,7 +22,7 @@ def start_test(db):
     start_time = time.time()
 
 def test_running(db):
-    files = os.listdir(root + "test/uploads")
+    files = [x for x in os.listdir(root + "test/uploads") if not x.startswith(".")]
     print "Test still running after %i seconds (%s)" % (int(time.time() - start_time), files)
     if len(files) > int(sys.argv[1]):
         print "Error, too many files uploaded", files
