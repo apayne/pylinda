@@ -66,7 +66,7 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
             }
             if(list[k].ptr == NULL) {
                 struct CyclicGarbage* newlist = malloc(sizeof(struct CyclicGarbage)*(k+2));
-                memcpy(newlist, list, sizeof(struct CyclicGarbage)*k);
+                memcpy(newlist, list, sizeof(struct CyclicGarbage)*(k+1));
                 newlist[k].ptr = newrefs[j];
                 newlist[k].type_id = Minimal_getTypeId(newrefs[j]);
                 newlist[k].count = 1;
@@ -75,6 +75,7 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
                 free(list); list = newlist;
 
                 if(list[k].refcount == -1) {
+                    printf("refs for %p has count -1\n", list[k].ptr);
                     free(list);
                     return;
                 }

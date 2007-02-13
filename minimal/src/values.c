@@ -859,10 +859,12 @@ MinimalValue Minimal_copy(MinimalValue v) {
         Minimal_addReference(nv->layer);
         break;
     case M_POINTER:
-        Minimal_delReference(v->ptr);
+        Minimal_addReference(v->ptr);
+        nv->ptr = v->ptr;
         break;
     default:
         fprintf(stderr, "Unknown value type in Minimal_copy (%i)\n", v->type);
+        Minimal_delReference(nv);
         return NULL;
     }
     return nv;

@@ -546,7 +546,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         Minimal_SyntaxTree* type = NULL;
         Minimal_SyntaxTree* params = NULL;
         Minimal_SyntaxTree* code = NULL;
-		xmlChar* name;
+        xmlChar* name;
         xmlNode* cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {

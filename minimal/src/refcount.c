@@ -40,8 +40,8 @@ int Minimal_refCountListUsed = 0;
 struct MinimalRefCount** Minimal_refCountList = NULL;
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line) {
-	int index;
-	struct MinimalRefCount* newchain;
+    int index;
+    struct MinimalRefCount* newchain;
 
     if(Minimal_refCountListSize == 0) {
         int i;
@@ -95,8 +95,8 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 }
 
 void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
-	struct MinimalRefCount* list;
-	int i;
+    struct MinimalRefCount* list;
+    int i;
 
     if(ptr == NULL) {
         fprintf(stderr, "Error: Minimal_addReference on NULL\n");
@@ -123,7 +123,7 @@ int Minimal_getReferenceCount(MinimalObject ptr) {
         }
         list = list->next;
     }
-    return -1;
+    return -2;
 }
 
 void Minimal_setReferenceCount(MinimalObject ptr, long i) {
@@ -160,7 +160,9 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
         if(list->ptr == ptr) {
             if(list->count > 0) {
                 list->count--;
-                if(list->count == 0) {
+                if(list->count < 0) {
+                    fprintf(stderr, "Error: delReference to pointer (%p) with negative ref count (%s:%i).\n", ptr, file, line);
+                } else if(list->count == 0) {
                     Minimal_delObject(list->type_id, ptr);
                     if(list->prev == NULL) {
                         Minimal_refCountList[hash(ptr)] = list->next;
