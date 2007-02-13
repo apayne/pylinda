@@ -56,28 +56,40 @@ static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
 #ifdef TYPES
 static PyObject* linda_Type(PyObject* self, PyObject* args) {
     char* typespec;
+    PyObject* o;
+    LindaValue l;
 
     if(!PyArg_ParseTuple(args, "s", &typespec)) {
         return NULL;
     }
 
-    return Value2PyO(Linda_type(typespec));
+    l = Linda_type(typespec);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
 }
 #endif
 
 static PyObject* linda_Function(PyObject* self, PyObject* args) {
     char* code;
+    PyObject* o;
+    LindaValue l;
 
     if(!PyArg_ParseTuple(args, "s", &code)) {
         return NULL;
     }
 
-    return Value2PyO(Linda_function(code));
+    l = Linda_function(code);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
 }
 
 static PyObject* linda_Ptr(PyObject* self, PyObject* args) {
     PyObject* obj;
     LindaValue v;
+    PyObject* o;
+    LindaValue l;
 
     if(!PyArg_ParseTuple(args, "O", &obj)) {
         return NULL;
@@ -85,7 +97,10 @@ static PyObject* linda_Ptr(PyObject* self, PyObject* args) {
 
     v = PyO2Value(obj);
 
-    return Value2PyO(Linda_ptr(v));
+    l = Linda_ptr(v);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
 }
 
 static PyMethodDef LindaMethods[] = {

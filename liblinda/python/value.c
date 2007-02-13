@@ -384,7 +384,8 @@ static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
         Py_INCREF(Py_None);
         return Py_None;
     } else {
-        return Value2PyO(v);
+        PyObject* o = Value2PyO(v);
+        return o;
     }
 }
 
@@ -413,25 +414,33 @@ static PyObject* linda_Value_getstring(linda_ValueObject *self, void *closure) {
 }
 
 static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
+    PyObject* o;
     LindaValue val;
 
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getArg - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
-    val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[0]));
+    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[0]);
+    Linda_delReference((void*)(val->typemap));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
-    return Value2PyO(val);
+    o = Value2PyO(val);
+    Linda_delReference(val);
+    return o;
 }
 
 static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
+    PyObject* o;
     LindaValue val;
 
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getResult - Not a type."); return NULL; }
     if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
-    val = Minimal_typeSpec(self->val->type_name, Minimal_SyntaxTree_copy(self->val->type_spec->branches[1]));
+    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[1]);
+    Linda_delReference((void*)(val->typemap));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
-    return Value2PyO(val);
+    o = Value2PyO(val);
+    Linda_delReference(val);
+    return o;
 }
 
 #ifdef TYPES
@@ -511,20 +520,22 @@ static Py_ssize_t linda_Value_len(linda_ValueObject *self) {
 }
 
 static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
+    PyObject* o;
     if(Linda_isType(self->val)) {
-        Minimal_SyntaxTree* tree = Minimal_SyntaxTree_copy(self->val->type_spec->branches[index]);
-        LindaValue val = Minimal_typeSpec(self->val->type_name, tree);
-        Minimal_SyntaxTree_free(tree);
+        LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[index]);
+        Linda_delReference((void*)(val->typemap));
         Linda_addReference((void*)(self->val->typemap));
         val->typemap = self->val->typemap;
-        return Value2PyO(val);
+        o = Value2PyO(val);
+        /* Linda_delReference(val); */
+        return o;
     } else if(Linda_isTuple(self->val)) {
         if(index < 0 || index >= linda_Value_len(self)) {
             PyErr_SetString(PyExc_IndexError, "Index out of range for tuple.");
             return NULL;
         } else {
             return Value2PyO(Linda_tupleGet(self->val, index));
-        } 
+        }
     } else if(Linda_isString(self->val)) {
         if(index < 0 || index >= strlen(self->val->string)) {
             PyErr_SetString(PyExc_IndexError, "Index out of range for string.");
@@ -533,7 +544,7 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
             return Py_BuildValue("c", self->val->string[index]);
         }
     } else {
-        PyErr_SetString(PyExc_TypeError, "Getting item from a type with is a single element.");
+        PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("Getting item from a type with is a single element %i.", self->val->type));
         return NULL;
     }
 }
@@ -617,12 +628,16 @@ static PyObject* linda_Value_nbint(linda_ValueObject* self) {
 
 static int linda_Value_coerce(PyObject** self, PyObject** other) {
     if(PyInt_Check(*self)) {
-        *other = Value2PyO(Linda_long(PyInt_AsLong(*other)));
+        LindaValue l = Linda_long(PyInt_AsLong(*other));
+        *other = Value2PyO(l);
+        Linda_delReference(l)
         Py_INCREF(*self);
         return 0;
     } else if(PyInt_Check(*other)) {
-        *other = Value2PyO(Linda_long(PyInt_AsLong(*other)));
-        Py_INCREF(*self);
+        LindaValue l = Linda_long(PyInt_AsLong(*other));
+        *self = Value2PyO(l);
+        Linda_delReference(l)
+        Py_INCREF(*other);
         return 0;
     } else {
         return 1;
@@ -829,7 +844,9 @@ LindaValue PyO2Value(PyObject* obj) {
 }
 
 PyObject* Value2PyO(LindaValue obj) {
-    PyObject* o = PyObject_CallFunction((PyObject*)&linda_ValueType, "i", 0);
+    PyObject* o;
+    Py_IncRef(Py_None);
+    o = PyObject_CallFunction((PyObject*)&linda_ValueType, "O", Py_None);
     if(o == NULL) {
         PyErr_SetString(PyExc_SystemError, "Failed to create Python Object from Value."); 
         return NULL;
