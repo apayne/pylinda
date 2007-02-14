@@ -5,11 +5,14 @@
 echo "This is the master."
 
 cd /home/pylinda
+rm -rf minimal
+rm -rf liblinda
+rm -rf linda
 svn up
 cd minimal
 scons
 cd ../liblinda
-scons debug=0 types=1 register=0
+scons debug=0 types=1 register=1
 
 cd /root/tests
 

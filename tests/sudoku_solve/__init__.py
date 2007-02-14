@@ -42,7 +42,7 @@ def end_test(db):
     except OSError:
         pass
 
-    files = os.listdir(root + "test/uploads")
+    files = [x for x in os.listdir(root + "test/uploads") if not x.startswith(".")]
     if len(files) > 1:
         print "Error, too many files uploaded", files
         return

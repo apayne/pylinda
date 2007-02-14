@@ -33,7 +33,7 @@ def test_running(db):
         return False
 
 def end_test(db):
-    files = os.listdir(root + "test/uploads")
+    files = [x for x in os.listdir(root + "test/uploads") if not x.startswith(".")]
     if len(files) > int(sys.argv[1]):
         print "Error, too many files uploaded", files
         return
