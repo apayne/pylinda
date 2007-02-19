@@ -470,6 +470,15 @@ static PyObject* linda_Value_gettypeid(linda_ValueObject* self, void* closure) {
     return PyInt_FromLong(self->val->type_id);
 }
 
+static PyObject* linda_Value_getidtypeid(linda_ValueObject* self, void* closure) {
+    if(!Linda_isType(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getTypeID - Not a type.");
+        return NULL;
+    }
+
+    return PyInt_FromLong(self->val->type_spec->type_id);
+}
+
 static int linda_Value_settypeid(linda_ValueObject* self, PyObject* value, void* closure) {
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "setTypeID - Not a type."); return -1; }
 
@@ -501,6 +510,7 @@ static PyGetSetDef value_getseters[] = {
 #ifdef TYPES
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
+    {"id_type_id", (getter)linda_Value_getidtypeid, (setter)linda_Value_settypeid, "", NULL},
     {"sum_pos", (getter)linda_Value_getsumpos, (setter)linda_Value_setsumpos, "", NULL},
 #endif
     {NULL}  /* Sentinel */
