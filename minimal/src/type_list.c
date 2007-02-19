@@ -46,7 +46,9 @@ Minimal_TypeList Minimal_getTypeList(MinimalValue type) {
 
     Minimal_addTypeToTypeList(&list, type);
 
-    Minimal_getTypeList2(type->type_spec, type->typemap, &list);
+    if(type->type_spec != NULL) {
+        Minimal_getTypeList2(type->type_spec, type->typemap, &list);
+    }
 
     return list;
 }

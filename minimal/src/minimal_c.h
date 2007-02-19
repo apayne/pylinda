@@ -214,6 +214,7 @@ struct Minimal_SyntaxTree_t {
         ST_POINTER,
         ST_IFEXPR
     } type;
+    int type_id;
     union {
         int integer;
         double floating;

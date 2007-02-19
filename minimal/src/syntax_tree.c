@@ -94,6 +94,7 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     Minimal_SyntaxTree* ntree = NULL;
     if(tree == NULL) { return NULL; }
     ntree = (Minimal_SyntaxTree*)malloc(sizeof(struct Minimal_SyntaxTree_t));
+    ntree->type_id = tree->type_id;
     switch(tree->type) {
     case ST_BLANK:
         ntree->type = ST_BLANK;
