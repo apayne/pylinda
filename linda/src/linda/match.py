@@ -55,79 +55,78 @@ def compare_unregistered(t1, t2, checked=None):
         checked[(t1, t2)] = func
 
     try:
-        try:
-            if t1.isNil() and t2.isNil():
-                func = identity
-            elif t1.isId() and t2.isId():
-                if t1.id in builtin or t2.id in builtin:
-                    if t1.id == t2.id:
-                        func = identity
-                    else:
-                        func = None
-                else:
-                    try:
-                        func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
-                    except IndexError:
-                        raise IndexError, "%s in %s, or %s in %s" % (t1.id, t1.typemap.keys(), t2.id, t2.typemap.keys())
-            elif t1.isProductType() and t2.isProductType():
-                if len(t1) != len(t2):
-                    func = None
-                else:
-                    func = True
-                    for i in range(len(t1)):
-                        e1, e2 = t1[i], t2[i]
-                        if not compare(e1, e2, checked):
-                            func = None
-                            break
-                    if func:
-                        def func(value):
-                            l = []
-                            for i in range(len(t1)):
-                                l.append(checked[(t1[i],t2[i])](value[i]))
-                            return tuple(l)
-            elif t1.isSumType() and t2.isSumType():
-                if len(t1) != len(t2):
-                    func = None
-                else:
-                    map = [None for _ in range(len(t1))]
-                    for i in range(len(t1)):
-                        for j in range(len(t2)):
-                            print "sum_type", map, i, j, len(t1), len(t2)
-                            if j in map:
-                                print "continue"
-                                continue
-                            print "compare"
-                            f = compare(t1[i], t2[j], checked)
-                            if f is not None:
-                                print "got func"
-                                map[i] = j
-                        print "done j"
-                        if map[i] is None:
-                            func = None
-                            break
-                    print "done i"
-                    if None not in map:
-                        def func(value):
-                            e1 = t1[value.sum_pos]
-                            np = map[value.sum_pos]
-                            e2 = t2[np]
-                            v = checked[(e1, e2)](value)
-                            v.sum_pos = np
-                            return v
-            elif t1.isPtrType() and t2.isPtrType():
-                f = compare(t1.ptrtype, t2.ptrtype, checked)
-                if f is None:
-                    func = None
-                else:
+        if t1.isNil() and t2.isNil():
+            func = identity
+        elif t1.isId() and t2.isId():
+            if t1.id in builtin or t2.id in builtin:
+                if t1.id == t2.id:
                     func = identity
-            elif t1.isFunctionType() and t2.isFunctionType():
-                arg_func = compare(t1.arg, t2.arg, checked)
-                res_func = compare(t1.result, t2.result, checked)
-                raise SystemError
+                else:
+                    func = None
             else:
+                try:
+                    func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                except IndexError:
+                    raise IndexError, "%s in %s, or %s in %s" % (t1.id, t1.typemap.keys(), t2.id, t2.typemap.keys())
+        elif t1.isProductType() and t2.isProductType():
+            if len(t1) != len(t2):
                 func = None
-        except:
-            print traceback.print_exc()
+            else:
+                func = True
+                for i in range(len(t1)):
+                    e1, e2 = t1[i], t2[i]
+                    if not compare(e1, e2, checked):
+                        func = None
+                        break
+                if func:
+                    def func(value):
+                        l = []
+                        for i in range(len(t1)):
+                            l.append(checked[(t1[i],t2[i])](value[i]))
+                        return tuple(l)
+        elif t1.isSumType() and t2.isSumType():
+            if len(t1) != len(t2):
+                func = None
+            else:
+                map = [None for _ in range(len(t1))]
+                for i in range(len(t1)):
+                    for j in range(len(t2)):
+                        print "sum_type", map, i, j, len(t1), len(t2)
+                        if j in map:
+                            print "continue"
+                            continue
+                        print "compare"
+                        f = compare(t1[i], t2[j], checked)
+                        if f is not None:
+                            print "got func"
+                            map[i] = j
+                    print "done j"
+                    if map[i] is None:
+                        func = None
+                        break
+                print "done i"
+                if None not in map:
+                    def func(value):
+                        e1 = t1[value.sum_pos]
+                        np = map[value.sum_pos]
+                        e2 = t2[np]
+                        v = checked[(e1, e2)](value)
+                        v.sum_pos = np
+                        return v
+        elif t1.isPtrType() and t2.isPtrType():
+            f = compare(t1.ptrtype, t2.ptrtype, checked)
+            if f is None:
+                func = None
+            else:
+                func = identity
+        elif t1.isFunctionType() and t2.isFunctionType():
+            arg_func = compare(t1.arg, t2.arg, checked)
+            res_func = compare(t1.result, t2.result, checked)
+            raise SystemError
+        else:
+            func = None
+    except:
+        print traceback.print_exc()
     else:
         checked[(t1, t2)] = func
         return func
@@ -146,46 +145,45 @@ def compare_registered(t1, t2, checked=None):
         checked[(t1, t2)] = func
 
     try:
-        try:
-            if t1.isNil() and t2.isNil():
-                func = True
-            elif t1.isId() and t2.isId():
-                if t1.id in builtin or t2.id in builtin:
-                    if t1.id == t2.id:
-                        func = identity
-                    else:
-                        func = None
+        if t1.isNil() and t2.isNil():
+            func = True
+        elif t1.isId() and t2.isId():
+            if t1.id in builtin or t2.id in builtin:
+                if t1.id == t2.id:
+                    func = identity
                 else:
-                    func = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
-            elif t1.isProductType() and t2.isProductType():
-                if len(t1) != len(t2):
                     func = None
-                else:
-                    l = []
-                    for i in range(len(t1)):
-                        e1, e2 = t1[i], t2[i]
-                        x = compare(e1, e2, checked)
-                        if x is None:
-                            func = None
-                            break
-                        l.append(x)
-                    if len(l) == len(t1):
-                        def func(x):
-                            v = []
-                            for i in range(len(t1)):
-                                v.append(l[i](x[i]))
-                            return tuple(v)
-            elif t1.isSumType() and t2.isSumType():
-                raise NotImplementedError
-            elif t1.isPtrType() and t2.isPtrType():
-                func = compare(t1.ptrtype, t2.ptrtype, checked)
-            elif t1.isFunctionType() and t2.isFunctionType():
-                func = compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
             else:
+                func = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
+        elif t1.isProductType() and t2.isProductType():
+            if len(t1) != len(t2):
                 func = None
-        except:
-            print traceback.print_exc()
-    finally:
+            else:
+                l = []
+                for i in range(len(t1)):
+                    e1, e2 = t1[i], t2[i]
+                    x = compare(e1, e2, checked)
+                    if x is None:
+                        func = None
+                        break
+                    l.append(x)
+                if len(l) == len(t1):
+                    def func(x):
+                        v = []
+                        for i in range(len(t1)):
+                            v.append(l[i](x[i]))
+                        return tuple(v)
+        elif t1.isSumType() and t2.isSumType():
+            raise NotImplementedError
+        elif t1.isPtrType() and t2.isPtrType():
+            func = compare(t1.ptrtype, t2.ptrtype, checked)
+        elif t1.isFunctionType() and t2.isFunctionType():
+            func = compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
+        else:
+            func = None
+    except:
+        print traceback.print_exc()
+    else:
         checked[(t1, t2)] = func
         return func
 
