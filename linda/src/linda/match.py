@@ -16,6 +16,8 @@
 #    along with PyLinda; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import traceback
+
 import _linda_server
 
 builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
@@ -124,7 +126,7 @@ def compare_unregistered(t1, t2, checked=None):
         else:
             func = None
     except:
-        raise
+        print traceback.print_exc()
     else:
         checked[(t1, t2)] = func
         return func
@@ -152,7 +154,7 @@ def compare_registered(t1, t2, checked=None):
                 else:
                     func = None
             else:
-                func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                func = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
                 func = None
@@ -179,6 +181,8 @@ def compare_registered(t1, t2, checked=None):
             func = compare(t1.arg, t2.arg, checked) and compare(t1.result, t2.result, checked)
         else:
             func = None
+    except:
+        print traceback.print_exc()
     finally:
         checked[(t1, t2)] = func
         return func
@@ -189,3 +193,5 @@ elif _linda_server.register_types:
     compare = compare_registered
 else:
     compare = compare_unregistered
+
+from type_cache import lookupType

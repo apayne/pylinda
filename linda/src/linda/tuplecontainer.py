@@ -71,12 +71,9 @@ def doesMatch_registered(e1, e2):
     elif e1.isType():
         if e1.type_id == e2.type.type_id:
             return e2
-        try:
-            iso = lookupIso(e1, e2.type)
-        except KeyError:
-            iso = compare(type_cache.lookupType(e1.type_id), type_cache.lookupType(e2.type.type_id))
-            saveIso(e1, e2.type, iso)
+        iso = lookupIso(e1, e2.type)
         if iso is None:
+            print "failed to match", e1, e2.type, e2
             raise NoTupleMatch
         return iso(e2)
     else:
@@ -85,11 +82,7 @@ def doesMatch_registered(e1, e2):
                 return e2
             else:
                 raise NoTupleMatch
-        try:
-            iso = lookupIso(e1.type, e2.type)
-        except KeyError:
-            iso = compare(type_cache.lookupType(e1.type.type_id), type_cache.lookupType(e2.type.type_id))
-            saveIso(e1.type, e2.type, iso)
+        iso = lookupIso(e1.type, e2.type)
         if iso is None:
             raise NoTupleMatch
         e2 = iso(e2)

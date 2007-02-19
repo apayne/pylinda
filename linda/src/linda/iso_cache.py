@@ -46,7 +46,11 @@ def lookupIso(t1, t2):
         t1 = t1.type_id
     if isinstance(t2, _linda_server.Value):
         t2 = t2.type_id
-    v = __cache[(t1, t2)]
+    try:
+        v = __cache[(t1, t2)]
+    except KeyError:
+        v = compare(type_cache.lookupType(t1), type_cache.lookupType(t2))
+        saveIso(t1, t2, v)
     return v
 
 def clearIsos(t):
@@ -59,3 +63,6 @@ def clearIsos(t):
                 del __cache[(t1, t2)]
     finally:
         cache_lock.release()
+
+from match import compare
+import type_cache
