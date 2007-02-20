@@ -17,6 +17,7 @@ scons debug=0 types=1 register=1
 cd /root/tests
 
 wget %(test_dir)s/in-py
+wget %(test_dir)s/in-py2
 
 curl http://scoobies.dyndns.org:2223/pylinda/ready.py
 
@@ -31,6 +32,8 @@ for ((i=0;i<=50;i+=3)); do
     sleep 10
 
     python in-py $i >> %(this_addr)s.txt
+#    python in-py $i $i
+#    python in-py2 $i >> %(this_addr)s.txt
 
     cat %(this_addr)s.txt
 

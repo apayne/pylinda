@@ -13,6 +13,9 @@ tup = (val, )
 for i in range(10000):
     linda.uts._out(tup)
 
+if len(sys.argv) > 2:
+    sys.exit(0)
+
 tup = (t, )
 
 start = time.time()

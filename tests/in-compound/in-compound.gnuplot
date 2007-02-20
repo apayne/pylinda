@@ -20,4 +20,5 @@ set xlabel "Tuple Size (Elements)"
 
 plot "in-compound.txt" using 1:2 title "Traditional" with lines, \
      "in-compound.txt" using 1:3 title "Registered (Compound)" with lines, \
-     "in-compound.txt" using 1:4 title "Unregistered (Compound)" with lines
+     "in-compound.txt" using 1:4 title "Registered 2 (Compound)" with lines, \
+     "in-compound.txt" using 1:5 title "Unregistered (Compound)" with lines

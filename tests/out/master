@@ -5,11 +5,14 @@
 echo "This is the master."
 
 cd /home/pylinda
+rm -rf minimal
+rm -rf liblinda
+rm -rf linda
 svn up
 cd minimal
 scons
 cd ../liblinda
-scons debug=0 types=1 register=0
+scons debug=0 types=1 register=1
 
 cd /root/tests
 
@@ -21,7 +24,7 @@ rm -f %(this_addr)s.txt
 
 touch %(this_addr)s.txt
 
-for ((i=11;i<=50;i+=1)); do
+for ((i=0;i<=50;i+=3)); do
     linda_server -D &
     echo $! > linda_server.pid
 
