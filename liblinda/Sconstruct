@@ -29,6 +29,8 @@ cppenv = Environment(CCFLAGS=ccflags + cppflags, CPPPATH=["#src/", "#cpp/", "#"]
 
 if debug:
     env.Append(CCFLAGS=" -DDEBUG")
+else:
+    env.Append(CCFLAGS=" -O")
 
 if types:
     env.Append(CCFLAGS=" -DTYPES")
