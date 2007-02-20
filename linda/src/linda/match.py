@@ -25,8 +25,7 @@ builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32
 if _linda_server.use_types and _linda_server.register_types:
     from type_cache import lookupType
 
-def identity(value):
-    return value
+identity = lambda value: value
 
 def compare_notypes(t1, t2):
     assert isinstance(t1, _linda_server.Value) and t1.isType()
@@ -140,7 +139,7 @@ def compare_registered(t1, t2, checked=None):
     if checked is None:
         checked = {(t1, t2): func}
     elif (t1, t2) in checked:
-        return lambda x: x
+        return lambda x: checked[(t1, t2)](x)
     else:
         checked[(t1, t2)] = func
 
@@ -150,7 +149,9 @@ def compare_registered(t1, t2, checked=None):
         elif t1.isId() and t2.isId():
             if t1.id in builtin or t2.id in builtin:
                 if t1.id == t2.id:
-                    func = identity
+                    def func(x):
+                        x.type_id = t1.type_id
+                        return x
                 else:
                     func = None
             else:
@@ -161,6 +162,7 @@ def compare_registered(t1, t2, checked=None):
             else:
                 l = []
                 for i in range(len(t1)):
+                    print i
                     e1, e2 = t1[i], t2[i]
                     x = compare(e1, e2, checked)
                     if x is None:
@@ -169,10 +171,9 @@ def compare_registered(t1, t2, checked=None):
                     l.append(x)
                 if len(l) == len(t1):
                     def func(x):
-                        v = []
-                        for i in range(len(t1)):
-                            v.append(l[i](x[i]))
-                        return tuple(v)
+                        v = _linda_server.Value(tuple([l[i](x[i]) for i in range(len(t1))]))
+                        v.type_id = t1.type_id
+                        return v
         elif t1.isSumType() and t2.isSumType():
             raise NotImplementedError
         elif t1.isPtrType() and t2.isPtrType():
