@@ -6,7 +6,7 @@ if platform.system() == "Windows":
     env.Append(ENV=os.environ)
     readline = []
 else:
-    env = Environment(CCFLAGS="-g -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
+    env = Environment(CCFLAGS="-g -O -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
     readline = ["readline", "termcap"]
     if int(ARGUMENTS.get("needbc", "1")):
         readline += ["bc"]

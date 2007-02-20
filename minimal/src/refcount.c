@@ -228,24 +228,20 @@ void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr) {
     }
 }
 
-MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr) {
-    MinimalObject* list;
-
+void Minimal_getReferences(struct CyclicGarbageList* list, MinimalTypeId type_id, MinimalObject ptr) {
     switch(type_id) {
     case MINIMAL_VALUE:
-        return Minimal_Value_getReferences((MinimalValue)ptr);
+        return Minimal_Value_getReferences(list, (MinimalValue)ptr);
         break;
     case MINIMAL_LAYER:
-        return Minimal_Layer_getReferences((MinimalLayer)ptr);
+        return Minimal_Layer_getReferences(list, (MinimalLayer)ptr);
         break;
     case MINIMAL_MAP:
-        return Minimal_SyntaxMap_getReferences((Minimal_NameValueMap*)ptr);
+        return Minimal_SyntaxMap_getReferences(list, (Minimal_NameValueMap*)ptr);
         break;
     default:
         fprintf(stderr, "Error: Getting references for object with unrecognised type_id (%i).\n", type_id);
-        list = malloc(sizeof(void*));
-        list[0] = NULL;
-        return list;
+        return;
     }
 }
 

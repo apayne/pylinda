@@ -82,10 +82,6 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 
 void Minimal_performCyclicCollection(MinimalObject ptr);
 
-MinimalObject* Minimal_getReferences(MinimalTypeId type_id, MinimalObject ptr);
-MinimalObject* Minimal_Value_getReferences(MinimalValue ptr);
-MinimalObject* Minimal_Layer_getReferences(MinimalLayer layer);
-MinimalObject* Minimal_SyntaxMap_getReferences(Minimal_NameValueMap* ptr);
 void Minimal_setReferenceCount(MinimalObject ptr, long count);
 void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr);
 MinimalTypeId Minimal_getTypeId(MinimalObject ptr);
@@ -123,5 +119,26 @@ unsigned char Minimal_isBuiltIn(char* type_name);
 extern void (*Minimal_override_type_func)(MinimalValue t);
 
 void Minimal_removeFromRefHashTable(MinimalObject ptr);
+
+struct CyclicGarbage {
+    MinimalObject ptr;
+    MinimalTypeId type_id;
+    int count;
+    int refcount;
+};
+
+struct CyclicGarbageList {
+    int size;
+    int used;
+    struct CyclicGarbage* list;
+};
+
+void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalValue ptr);
+
+void Minimal_getReferences(struct CyclicGarbageList* list, MinimalTypeId type_id, MinimalObject ptr);
+
+void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue ptr);
+void Minimal_Layer_getReferences(struct CyclicGarbageList* list, MinimalLayer layer);
+void Minimal_SyntaxMap_getReferences(struct CyclicGarbageList* list, Minimal_NameValueMap* ptr);
 
 #endif

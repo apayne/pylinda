@@ -131,54 +131,14 @@ void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map) {
     }
 }
 
-MinimalObject* Minimal_SyntaxMap_getReferences(Minimal_NameValueMap* map) {
-    MinimalObject* list;
-    MinimalObject* leftlist = NULL;
-    MinimalObject* rightlist = NULL;
-    int leftlen;
-    int rightlen;
-    int selflen;
-    int i;
-    int j;
+void Minimal_SyntaxMap_getReferences(struct CyclicGarbageList* list, Minimal_NameValueMap* map) {
     if(map->left != NULL) {
-        leftlist = Minimal_SyntaxMap_getReferences(map->left);
-        leftlen = 0;
-        while(leftlist[leftlen] != NULL) {
-            leftlen++;
-        }
-    } else {
-        leftlen = 0;
+        Minimal_SyntaxMap_getReferences(list, map->left);
     }
     if(map->right != NULL) {
-        rightlist = Minimal_SyntaxMap_getReferences(map->right);
-        rightlen = 0;
-        while(rightlist[rightlen] != NULL) {
-            rightlen++;
-        }
-    } else {
-        rightlen = 0;
+        Minimal_SyntaxMap_getReferences(list, map->right);
     }
     if(map->name != NULL) {
-        selflen = 1;
-    } else {
-        selflen = 0;
+        Minimal_addToCyclicGarbageList(list, map->value);
     }
-    list = malloc(sizeof(void*)*(leftlen + rightlen + selflen + 1));
-    j = 0;
-    for(i = 0; i < leftlen; i++) {
-        list[j] = leftlist[i];
-        j++;
-    }
-    for(i = 0; i < rightlen; i++) {
-        list[j] = rightlist[i];
-        j++;
-    }
-    if(selflen == 1) {
-        list[j] = map->value;
-        j++;
-    }
-    list[j] = NULL;
-    if(leftlen > 0) { free(leftlist); }
-    if(rightlen > 0) { free(rightlist); }
-    return list;
 }

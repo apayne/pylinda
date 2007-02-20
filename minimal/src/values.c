@@ -569,7 +569,7 @@ unsigned char Minimal_isTrue(MinimalValue value) {
 }
 
 char* Minimal_Value_string(MinimalValue v) {
-    char* r;
+    char* r = NULL;
     if(v == NULL) {
         r = (char*)malloc(strlen("(null)")+1);
         strcpy(r, "(null)");
@@ -690,8 +690,12 @@ char* Minimal_Value_string(MinimalValue v) {
     }
 }
 
-MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
-    if(v == NULL) { return NULL; }
+void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v) {
+    if(v == NULL) { return; }
+
+    if(v->typeobj != NULL) {
+        Minimal_addToCyclicGarbageList(list, v->typeobj);
+    }
 
     switch(v->type) {
     case M_NIL:
@@ -708,77 +712,24 @@ MinimalObject* Minimal_Value_getReferences(MinimalValue v) {
     case M_DOUBLE:
     case M_STRING:
     case M_TSREF:
-        if(v->typeobj != NULL) {
-            MinimalObject* list = malloc(sizeof(void*)*2);
-            list[0] = v->typeobj;
-            list[1] = NULL;
-            return list;
-        } else {
-            MinimalObject* list = malloc(sizeof(void*));
-            list[0] = NULL;
-            return list;
-        }
+        break;
     case M_FUNCTION:
-        if(v->typeobj != NULL) {
-            MinimalObject* list = malloc(sizeof(void*)*3);
-            list[0] = v->layer;
-            list[1] = v->typeobj;
-            list[2] = NULL;
-            return list;
-        } else {
-            MinimalObject* list = malloc(sizeof(void*)*2);
-            list[0] = v->layer;
-            list[1] = NULL;
-            return list;
-        }
+        Minimal_addToCyclicGarbageList(list, (MinimalValue)v->layer);
+        break;
     case M_TYPE:
-        if(v->typeobj != NULL) {
-            MinimalObject* list = malloc(sizeof(void*)*3);
-            list[0] = v->typemap;
-            list[1] = v->typeobj;
-            list[2] = NULL;
-            return list;
-        } else {
-            MinimalObject* list = malloc(sizeof(void*)*2);
-            list[0] = v->typemap;
-            list[1] = NULL;
-            return list;
-        }
+        Minimal_addToCyclicGarbageList(list, (MinimalValue)v->typemap);
+        break;
     case M_TUPLE:
-        if(v->typeobj != NULL) {
-            int i;
-            MinimalObject* list = malloc(sizeof(void*)*(3+v->size));
-            list[0] = v->typeobj;
-            for(i = 1; i <= v->size; i++) {
-                list[i] = v->values[i-1];
-            }
-            list[i] = NULL;
-            return list;
-        } else {
-            int i;
-            MinimalObject* list = malloc(sizeof(void*)*(2+v->size));
-            for(i = 0; i < v->size; i++) {
-                list[i] = v->values[i];
-            }
-            list[i] = NULL;
-            return list;
+        {
+        int i;
+        for(i = 0; i < v->size; i++) {
+            Minimal_addToCyclicGarbageList(list, v->values[i]);
+        }
+        break;
         }
     case M_POINTER:
-        if(v->typeobj != NULL) {
-            MinimalObject* list = malloc(sizeof(void*)*3);
-            list[0] = v->ptr;
-            list[1] = v->typeobj;
-            list[2] = NULL;
-            return list;
-        } else {
-            MinimalObject* list = malloc(sizeof(void*)*2);
-            list[0] = v->ptr;
-            list[1] = NULL;
-            return list;
-        }
-    default:
-        fprintf(stderr, "Unknown value type in Minimal_Value_getReferences (%i)\n", v->type);
-        return NULL;
+        Minimal_addToCyclicGarbageList(list, v->ptr);
+        break;
     }
 }
 

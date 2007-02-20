@@ -122,7 +122,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         tree->length = i;
         return tree;
     } else if(strcmp((char*)(node->name), "type_function") == 0) {
-        int i;
+        int i = 0;
         xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;

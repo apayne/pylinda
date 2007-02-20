@@ -120,18 +120,10 @@ void Minimal_Layer_free(MinimalLayer layer) {
     free(layer);
 }
 
-MinimalObject* Minimal_Layer_getReferences(MinimalLayer layer) {
-    MinimalObject* list;
-    int i = 0;
-    MinimalObject* tree = Minimal_SyntaxMap_getReferences(&(layer->map));
+void Minimal_Layer_getReferences(struct CyclicGarbageList* list, MinimalLayer layer) {
+    Minimal_SyntaxMap_getReferences(list, &(layer->map));
 
-    if(layer->parent == NULL) { return tree; }
+    if(layer->parent == NULL) { return; }
 
-    while(tree[i] != NULL) { i++; }
-    list = malloc(sizeof(void*) * (i+1));
-    memcpy(list, tree, sizeof(void*) * i);
-    list[i] = layer->parent;
-    list[i+1] = NULL;
-    free(tree);
-    return list;
+    Minimal_addToCyclicGarbageList(list, (MinimalValue)layer->parent);
 }
