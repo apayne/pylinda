@@ -372,6 +372,10 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         case L_DELETED_PARTITION:
             bm->m->ref.tid = s;
             break;
+        case L_REGISTER_TYPE:
+        case L_UPDATE_TYPE:
+            bm->m->typestruct.pid = s;
+            break;
         default:
             fprintf(stderr, "Discarding string due to invalid message type.\n");
         }

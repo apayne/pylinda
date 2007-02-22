@@ -124,6 +124,7 @@ struct Message_t {
         struct {
             int type_id;
             LindaValue typeobj;
+            char* pid;
         } typestruct;
      };
 };

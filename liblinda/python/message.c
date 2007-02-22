@@ -115,10 +115,10 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "REGISTER_THREAD", m->ts);
             break;
         case L_REGISTER_TYPE:
-            t = Py_BuildValue("(OsO)", msgid, "REGISTER_TYPE", Value2PyO(m->typestruct.typeobj));
+            t = Py_BuildValue("(OsOs)", msgid, "REGISTER_TYPE", Value2PyO(m->typestruct.typeobj), m->typestruct.pid);
             break;
         case L_UPDATE_TYPE:
-            t = Py_BuildValue("(OsiO)", msgid, "UPDATE_TYPE", m->typestruct.type_id, Value2PyO(m->typestruct.typeobj));
+            t = Py_BuildValue("(OsiOs)", msgid, "UPDATE_TYPE", m->typestruct.type_id, Value2PyO(m->typestruct.typeobj), m->typestruct.pid);
             break;
         case L_GET_NODE_ID:
             t = Py_BuildValue("(Os)", msgid, "GET_NODE_ID");

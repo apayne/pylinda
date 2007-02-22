@@ -262,6 +262,9 @@ char* Message_getString(Message* msg) {
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
         Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
+        v = Linda_string(Linda_process_id);
+        Minimal_serialiseXML(doc, root, v, 0);
+        Linda_delReference(v);
         break;
         }
     case L_UPDATE_TYPE:
@@ -274,6 +277,9 @@ char* Message_getString(Message* msg) {
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
         Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
+        v = Linda_string(Linda_process_id);
+        Minimal_serialiseXML(doc, root, v, 0);
+        Linda_delReference(v);
         break;
         }
 #endif
@@ -586,6 +592,7 @@ Message* Message_register_type(LindaValue type) {
     m->type = L_REGISTER_TYPE;
     Linda_addReference(type);
     m->typestruct.typeobj = type;
+    m->typestruct.pid = NULL;
     return m;
 }
 
@@ -595,6 +602,7 @@ Message* Message_update_type(int type_id, LindaValue type) {
     m->typestruct.type_id = type_id;
     Linda_addReference(type);
     m->typestruct.typeobj = type;
+    m->typestruct.pid = NULL;
     return m;
 }
 
@@ -744,10 +752,11 @@ void Message_free(Message* msg) {
         free(msg->string);
         break;
     case L_REGISTER_TYPE:
-        Linda_delReference(msg->typestruct.typeobj);
-        break;
     case L_UPDATE_TYPE:
         Linda_delReference(msg->typestruct.typeobj);
+        if(msg->typestruct.pid != NULL) {
+            free(msg->typestruct.pid);
+        }
         break;
     case L_MY_NAME_IS:
         free(msg->string);
