@@ -159,7 +159,6 @@ def compare_registered(t1, t2, checked=None):
             else:
                 l = []
                 for i in range(len(t1)):
-                    print i
                     e1, e2 = t1[i], t2[i]
                     x = compare(e1, e2, checked)
                     if x is None:

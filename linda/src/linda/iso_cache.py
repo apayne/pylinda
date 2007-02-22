@@ -58,7 +58,7 @@ def clearIsos(t):
         t = t.type_id
     cache_lock.acquire()
     try:
-        for t1, t2 in __cache:
+        for t1, t2 in __cache.keys():
             if t1 == t or t2 == t:
                 del __cache[(t1, t2)]
     finally:
