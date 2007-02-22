@@ -41,7 +41,7 @@ import _linda_server
 import utils as utils
 
 if _linda_server.use_types and _linda_server.register_types:
-    from type_cache import registerType, updateType, emptyTypeCache
+    from type_cache import registerType, updateType, emptyTypeCache, unregisterTypesFromProcess
     from iso_cache import emptyIsoCache
 
 process_id = utils.Counter()
@@ -155,14 +155,14 @@ class LindaConnection:
         stats.inc_stat("process_con_total")
 
     def register_type(self, req, msgid, message, data):
-        type = data[0]
+        type, pid = data[0], data[1]
 
-        typeid = registerType(type)
+        typeid = registerType(type, pid)
 
         req.send(msgid, ("RESULT_INT", typeid))
 
     def update_type(self, req, msgid, message, data):
-        type_id, type = int(data[0]), data[1]
+        type_id, type, pid = int(data[0]), data[1], data[2]
 
         type.type_id = type_id
         updateType(type_id, type)
@@ -525,6 +525,9 @@ def removeProcess(pid):
             del blocked_threads[tid]
 
     del pthreads[pid]
+
+    if _linda_server.use_types and _linda_server.register_types:
+        unregisterTypesFromProcess(pid)
 
     # remove any references the process may have had to our tuplespaces
     for ts in local_ts:

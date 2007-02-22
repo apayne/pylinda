@@ -22,9 +22,6 @@ import _linda_server
 
 builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32", "uint64", "ieeesingle", "ieeedouble", "string"]
 
-if _linda_server.use_types and _linda_server.register_types:
-    from type_cache import lookupType
-
 identity = lambda value: value
 
 def compare_notypes(t1, t2):
@@ -195,4 +192,5 @@ elif _linda_server.register_types:
 else:
     compare = compare_unregistered
 
-from type_cache import lookupType
+if _linda_server.use_types and _linda_server.register_types:
+    from type_cache import lookupType

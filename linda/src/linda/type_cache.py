@@ -25,18 +25,13 @@ cache_lock = Semaphore()
 __cache = {}
 getTypeId = Counter(start=1)
 
-def registerType(type):
+def registerType(type, pid):
     assert type.isType()
 
     cache_lock.acquire()
     try:
-        #for tid in __cache:
-        #    t = __cache[tid]
-        #    if t == type:
-        #        return tid
-
         id = getTypeId()
-        __cache[id] = type
+        __cache[id] = [type, pid, getTypeReferences(type), {}]
         return id
     finally:
         cache_lock.release()
@@ -46,7 +41,8 @@ def updateType(type_id, type):
 
     cache_lock.acquire()
     try:
-        __cache[type_id] = type
+        __cache[type_id][0] = type
+        __cache[type_id][2] = getTypeReferences(type)
     finally:
         cache_lock.release()
 
@@ -54,5 +50,42 @@ def emptyTypeCache():
     __cache = None
 
 def lookupType(id):
-    v = __cache[id]
-    return v
+    return __cache[id][0]
+
+def getTypeReferences(type):
+    return []
+
+def unregisterTypesFromProcess(pid):
+    garbage = []
+    cache_lock.acquire()
+    try:
+        for tid in __cache.keys():
+            if pid == __cache[tid][1]:
+                clearIsos(__cache[tid][0])
+                del __cache[tid]
+    finally:
+        cache_lock.release()
+
+    for tid in garbage:
+        doTypeGarbageCollection(tid)
+
+#def doTypeGarbageCollection(tid):
+    #cache_lock.acquire()
+    #try:
+        #if len(__cache[tid][1]) != 0:
+            #return
+
+        #memo = [tid]
+        #pending = typeReferencedBy(tid)
+
+    #finally:
+        #cache_lock.release()
+
+#def typeReferencedBy(tid):
+    #l = []
+    #for t in __cache.keys():
+        #if tid in __cache[t][2]:
+            #l.append(t)
+    #return l
+
+from iso_cache import clearIsos
