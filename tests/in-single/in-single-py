@@ -1,0 +1,22 @@
+import sys
+import time
+import os
+import linda
+
+linda.connect()
+
+
+if sys.argv[2] == "1":
+    tup = (1, ) * int(sys.argv[1])
+elif sys.argv[2] == "2":
+    t = linda.Type("t :: int * %i;" % (int(sys.argv[1]), ))
+    tup = (linda.Value((1, ) * int(sys.argv[1]), t), )
+
+total = 0
+for i in range(1000):
+    linda.uts._out(tup)
+
+    fp = os.popen("python in-single-py2 %i %s" % (int(sys.argv[1]), sys.argv[2]), "r")
+    total = total + float(fp.read())
+
+print "%s\t%f" % (sys.argv[1], total)

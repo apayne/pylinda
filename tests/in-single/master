@@ -12,11 +12,12 @@ svn up
 cd minimal
 scons
 cd ../liblinda
-scons debug=0 types=1 register=0
+scons debug=0 types=1 register=1
 
 cd /root/tests
 
-wget %(test_dir)s/out-py
+wget %(test_dir)s/in-single-py
+wget %(test_dir)s/in-single-py2
 
 curl http://scoobies.dyndns.org:2223/pylinda/ready.py
 
@@ -30,7 +31,7 @@ for ((i=0;i<=50;i+=3)); do
 
     sleep 10
 
-    python out-py $i >> %(this_addr)s.txt
+    python in-single-py $i 2 >> %(this_addr)s.txt
 
     cat %(this_addr)s.txt
 
