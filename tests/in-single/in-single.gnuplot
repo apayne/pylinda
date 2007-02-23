@@ -20,4 +20,5 @@ set xlabel "Tuple Size (Elements)"
 
 plot "in-single.txt" using 1:2 title "Traditional" with lines, \
      "in-single.txt" using 1:3 title "Registered" with lines, \
-     "in-single.txt" using 1:4 title "Unregistered" with lines
+     "in-single.txt" using 1:4 title "Registered (Full)" with lines, \
+     "in-single.txt" using 1:5 title "Unregistered" with lines

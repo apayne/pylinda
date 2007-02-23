@@ -4,12 +4,12 @@ import time
 
 linda.connect()
 
+start = time.time()
 if sys.argv[2] == "1":
     tup = (int, ) * int(sys.argv[1])
 elif sys.argv[2] == "2":
     t = linda.Type("t :: int * %i;" % (int(sys.argv[1]), ))
     tup = (t, )
 
-start = time.time()
 linda.uts._in(tup)
 print "%f" % (time.time()-start, )
