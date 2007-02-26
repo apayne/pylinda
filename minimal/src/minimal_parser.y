@@ -49,7 +49,7 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
-								struct Minimal_SyntaxTree_t** b;
+                                struct Minimal_SyntaxTree_t** b;
                                 $$ = $1;
                                 b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
@@ -74,7 +74,7 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
                                 struct Minimal_SyntaxTree_t** b;
-								$$ = $1;
+                                $$ = $1;
                                 b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
                                 b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
@@ -98,7 +98,7 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
                                 $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
                             } else {
                                 struct Minimal_SyntaxTree_t** b;
-								$$ = $1;
+                                $$ = $1;
                                 b = malloc(sizeof(void*) * $$.length + 1);
                                 memcpy(b, $$.branches, sizeof(void*) * $$.length);
                                 b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
@@ -157,6 +157,15 @@ typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
                         } else if(strcmp($2.string, "*") == 0) {
                             int i;
                             $$.type = ST_PRODUCT_TYPE;
+                            $$.length = $3.integer;
+                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * $3.integer);
+                            for(i = 0; i < $3.integer; i++) {
+                                $$.branches[i] = Minimal_SyntaxTree_copy(&$1);
+                            }
+                            Minimal_SyntaxTree_clear(&$1);
+                        } else if(strcmp($2.string, "+") == 0) {
+                            int i;
+                            $$.type = ST_SUM_TYPE;
                             $$.length = $3.integer;
                             $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * $3.integer);
                             for(i = 0; i < $3.integer; i++) {
