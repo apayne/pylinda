@@ -91,10 +91,10 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "CREATE_TUPLESPACE", m->string);
             break;
         case L_ADD_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "ADD_REFERENCE", m->ref.ts, m->ref.tid);
             break;
         case L_DELETE_REFERENCE:
-            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "DELETE_REFERENCE", m->ref.ts, m->ref.tid);
             break;
         case L_MONITOR:
             t = Py_BuildValue("(Os)", msgid, "MONITOR");
@@ -127,13 +127,13 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "MY_NAME_IS", m->string);
             break;
         case L_REGISTER_PARTITION:
-            t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", m->ref.ts, m->ref.tid);
             break;
         case L_GET_PARTITIONS:
-            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", Minimal_getTupleSpace(m->ts));
+            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", m->ts);
             break;
         case L_DELETED_PARTITION:
-            t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", Minimal_getTupleSpace(m->ref.ts), m->ref.tid);
+            t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", m->ref.ts, m->ref.tid);
             break;
         case L_GET_REQUESTS:
             t = Py_BuildValue("(Oss)", msgid, "GET_REQUESTS", Minimal_getTupleSpace(m->ts));

@@ -273,17 +273,16 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             break;
         case L_ADD_REFERENCE:
         case L_DELETE_REFERENCE:
-            bm->m->ref.ts = Minimal_tupleSpace(val);
+        case L_REGISTER_PARTITION:
+        case L_DELETED_PARTITION:
+            bm->m->ref.ts = malloc(strlen(val) + 1);
+            strcpy(bm->m->ref.ts, val);
             break;
         case L_INSPECT:
         case L_REGISTER_THREAD:
         case L_GET_PARTITIONS:
         case L_GET_REQUESTS:
             bm->m->ts = Minimal_tupleSpace(val);
-            break;
-        case L_REGISTER_PARTITION:
-        case L_DELETED_PARTITION:
-            bm->m->ref.ts = Minimal_tupleSpace(val);
             break;
         case L_TUPLE_REQUEST:
         case L_CANCEL_REQUEST:

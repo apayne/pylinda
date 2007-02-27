@@ -114,7 +114,7 @@ struct Message_t {
              MinimalValue t;
          } collect;
          struct {
-            LindaValue ts;
+            char* ts;
             char* tid;
          } ref;
          struct {

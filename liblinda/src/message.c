@@ -209,7 +209,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"add_reference");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -221,7 +221,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"delete_reference");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -298,7 +298,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_partition");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -310,7 +310,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_partitions");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         break;
         }
     case L_DELETED_PARTITION:
@@ -319,7 +319,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"deleted_partition");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -331,7 +331,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_requests");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ref.ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         break;
         }
     case L_GET_NEIGHBOURS:
@@ -486,8 +486,10 @@ Message* Message_rdp(LindaValue ts, LindaValue t) {
 Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_COLLECT;
-    m->collect.ts1 = Linda_copy(ts1);
-    m->collect.ts2 = Linda_copy(ts2);
+    Linda_addReference(ts1);
+    Linda_addReference(ts2);
+    m->collect.ts1 = ts1;
+    m->collect.ts2 = ts2;
     m->collect.t = Linda_copy(t);
     return m;
 }
@@ -495,8 +497,10 @@ Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
 Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_COPY_COLLECT;
-    m->collect.ts1 = Linda_copy(ts1);
-    m->collect.ts2 = Linda_copy(ts2);
+    Linda_addReference(ts1);
+    Linda_addReference(ts2);
+    m->collect.ts1 = ts1;
+    m->collect.ts2 = ts2;
     m->collect.t = Linda_copy(t);
     return m;
 }
@@ -520,8 +524,8 @@ Message* Message_addReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_ADD_REFERENCE;
-    Linda_addReference(ts);
-    m->ref.ts = ts;
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
@@ -530,8 +534,8 @@ Message* Message_addReference(LindaValue ts) {
 Message* Message_addReference2(LindaValue ts, char* id) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_ADD_REFERENCE;
-    Linda_addReference(ts);
-    m->ref.ts = ts;
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     m->ref.tid = (char*)malloc(strlen(id) + 1);
     strcpy(m->ref.tid, id);
     return m;
@@ -541,8 +545,8 @@ Message* Message_deleteReference(LindaValue ts) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_DELETE_REFERENCE;
-    Linda_addReference(ts);
-    m->ref.ts = ts;
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     m->ref.tid = (char*)malloc(strlen(tdata->thread_id) + 1);
     strcpy(m->ref.tid, tdata->thread_id);
     return m;
@@ -623,7 +627,8 @@ Message* Message_get_node_id() {
 Message* Message_register_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_REGISTER_PARTITION;
-    m->ref.ts = Linda_copy(ts);
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;
@@ -632,14 +637,16 @@ Message* Message_register_partition(LindaValue ts, char* ref) {
 Message* Message_get_partitions(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_GET_PARTITIONS;
-    m->ref.ts = Linda_copy(ts);
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     return m;
 }
 
 Message* Message_deleted_partition(LindaValue ts, char* ref) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_DELETED_PARTITION;
-    m->ref.ts = Linda_copy(ts);
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     m->ref.tid = (char*)malloc(strlen(ref)+1);
     strcpy(m->ref.tid, ref);
     return m;
@@ -648,7 +655,8 @@ Message* Message_deleted_partition(LindaValue ts, char* ref) {
 Message* Message_get_requests(LindaValue ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_GET_REQUESTS;
-    m->ref.ts = Linda_copy(ts);
+    m->ref.ts = malloc(strlen(Minimal_getTupleSpace(ts)) + 1);
+    strcpy(m->ref.ts, Minimal_getTupleSpace(ts));
     return m;
 }
 
@@ -735,11 +743,8 @@ void Message_free(Message* msg) {
         free(msg->string);
         break;
     case L_ADD_REFERENCE:
-        Linda_delReference(msg->ref.ts);
-        free(msg->ref.tid);
-        break;
     case L_DELETE_REFERENCE:
-        Linda_delReference(msg->ref.ts);
+        free(msg->ref.ts);
         free(msg->ref.tid);
         break;
     case L_MONITOR:
@@ -765,12 +770,12 @@ void Message_free(Message* msg) {
         break;
     case L_REGISTER_PARTITION:
     case L_DELETED_PARTITION:
-        Linda_delReference(msg->ref.ts);
+        free(msg->ref.ts);
         free(msg->ref.tid);
         break;
     case L_GET_PARTITIONS:
     case L_GET_REQUESTS:
-        Linda_delReference(msg->ref.ts);
+        free(msg->ref.ts);
         break;
     case L_INSPECT:
         Linda_delReference(msg->ts);

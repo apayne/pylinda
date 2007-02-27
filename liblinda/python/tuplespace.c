@@ -247,9 +247,14 @@ static PyObject* linda_TupleSpace_collect(linda_TupleSpaceObject* self, PyObject
         return NULL;
     }
 
+    Py_INCREF(self);
+    Py_INCREF(ts);
+
     Py_BEGIN_ALLOW_THREADS
     r = Linda_collect(self->ts, ((linda_TupleSpaceObject*)ts)->ts, t);
     Py_END_ALLOW_THREADS
+    Py_DECREF(ts);
+    Py_DECREF(self);
     Linda_delReference(t);
 
     if(r < 0) {
