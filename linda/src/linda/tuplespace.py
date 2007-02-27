@@ -252,8 +252,8 @@ class TupleSpace:
                     tups.append(m.next())
             except StopIteration: # Stop when we get a StopIteration exception
                 for t in tups: # Delete the tuples we've found
-                    self.ts.delete(t)
-                return tups # return the list of tuples
+                    self.ts.delete(t[0])
+                return [t[1] for t in tups] # return the list of tuples
         finally:
             self.lock.release()
 
@@ -269,7 +269,7 @@ class TupleSpace:
                 while True: # Keep iterating and adding tuples to the list
                     tups.append(m.next())
             except StopIteration: # Stop when we get a StopIteration exception
-                return tups # return the list of tuples
+                return [t[1] for t in tups] # return the list of tuples
         finally:
             self.lock.release()
 
