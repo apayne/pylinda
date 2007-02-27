@@ -5,15 +5,18 @@
 echo "This is the master."
 
 cd /home/pylinda
+rm -rf minimal
+rm -rf liblinda
+rm -rf linda
 svn up
 cd minimal
 scons
 cd ../liblinda
-scons debug=0 types=0 # register=0
+scons debug=0 types=1 register=1
 
 cd /root/tests
 
-wget %(test_dir)s/collect-py
+wget %(test_dir)s/many-types-py
 
 curl http://scoobies.dyndns.org:2223/pylinda/ready.py
 
@@ -27,7 +30,7 @@ for ((i=0;i<=50;i+=3)); do
 
     sleep 10
 
-    python collect-py $i >> %(this_addr)s.txt
+    python many-types-py $i >> %(this_addr)s.txt
 
     cat %(this_addr)s.txt
 
