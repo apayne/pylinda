@@ -1,11 +1,11 @@
 set terminal png
-set output "in.png"
+set output "collect.png"
 
 #set terminal latex
-#set output "in.tex"
+#set output "collect.tex"
 
 #set term postscript eps enhanced
-#set output "in.eps"
+#set output "collect.eps"
 
 set size 1, 1
 set xrange[0:50]
@@ -18,6 +18,6 @@ set xlabel "Tuple Size (Elements)"
 
 #set title "Time Taken To In 10,000 tuples"
 
-plot "in.txt" using 1:2 title "Traditional" with lines, \
-     "in.txt" using 1:3 title "Registered" with lines, \
-     "in.txt" using 1:4 title "Unregistered" with lines
+plot "collect.txt" using 1:2 title "Traditional" with lines, \
+     "collect.txt" using 1:3 title "Registered" with lines, \
+     "collect.txt" using 1:4 title "Unregistered" with lines

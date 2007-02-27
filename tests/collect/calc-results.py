@@ -33,7 +33,7 @@ if len(regf) > 0:
 if len(unregf) > 0:
     unreg = [x/len(unregf) for x in unreg]
 
-fp = open("in.txt", "w")
-for i in range(51):
+fp = open("collect.txt", "w")
+for i in range(0, 51, 3):
     fp.write("%i\t%f\t%f\t%f\n" % (int(i), trad[i], reg[i], unreg[i]))
 fp.close()
