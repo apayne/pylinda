@@ -363,6 +363,17 @@ static PyObject* linda_Value_isFunctionType(linda_ValueObject* self) {
     }
 }
 
+static PyObject* linda_Value_deepcopy(linda_ValueObject* self, PyObject* args) {
+    PyObject* r;
+    LindaValue v = Linda_copy(self->val);
+    LindaValue type = Linda_copy(self->val->typeobj);
+    Linda_setType(v, type);
+    Linda_delReference(type);
+    r = Value2PyO(v);
+    Linda_delReference(v);
+    return r;
+}
+
 static PyMethodDef value_methods[] = {
     {"setSumPos", (PyCFunction)linda_Value_setSumPos, METH_VARARGS, ""},
     {"isType", (PyCFunction)linda_Value_isType, METH_NOARGS, ""},
@@ -375,6 +386,7 @@ static PyMethodDef value_methods[] = {
     {"isFunctionType", (PyCFunction)linda_Value_isFunctionType, METH_NOARGS, ""},
     {"isString", (PyCFunction)linda_Value_isString, METH_NOARGS, ""},
     {"isTuple", (PyCFunction)linda_Value_isTuple, METH_NOARGS, ""},
+    {"__deepcopy__", (PyCFunction)linda_Value_deepcopy, METH_VARARGS, ""},
     {NULL}  /* Sentinel */
 };
 

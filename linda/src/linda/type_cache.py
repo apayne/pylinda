@@ -31,7 +31,7 @@ def registerType(type, pid):
     cache_lock.acquire()
     try:
         id = getTypeId()
-        __cache[id] = [type, pid, getTypeReferences(type), {}]
+        __cache[id] = [type, pid, __getTypeReferences(type), {}]
         return id
     finally:
         cache_lock.release()
@@ -42,7 +42,7 @@ def updateType(type_id, type):
     cache_lock.acquire()
     try:
         __cache[type_id][0] = type
-        __cache[type_id][2] = getTypeReferences(type)
+        __cache[type_id][2] = __getTypeReferences(type)
     finally:
         cache_lock.release()
 
@@ -52,8 +52,42 @@ def emptyTypeCache():
 def lookupType(id):
     return __cache[id][0]
 
-def getTypeReferences(type):
-    return []
+def getTypeReferences(id):
+    return __cache[id][2]
+
+def __getTypeReferences(type, refs=None):
+    if refs is None:
+        refs = []
+    if type.isNil():
+        return refs
+    elif type.isId():
+        if type.id in builtin:
+            return refs
+        elif type.id_type_id == 0:
+            return refs
+        elif type.id_type_id in refs:
+            return refs
+        else:
+            refs.append(type.id_type_id)
+            return getTypeReferences(lookupType(type.id_type_id))
+    elif type.isProductType():
+        for i in range(len(type)):
+            refs = getTypeReferences(type[i], refs)
+        return refs
+    elif type.isSumType():
+        for i in range(len(type)):
+            refs = getTypeReferences(type[i], refs)
+        return refs
+    elif type.isPtrType():
+        return getTypeReferences(type.ptrtype, refs)
+    elif type.isFunctionType():
+        return getTypeReferences(type.arg, getTypeReferences(type.result, refs))
+
+def getServerIds(type_id, nid):
+    return __cache[type_id][3][nid]
+
+def setServerIds(type_id, nid, tid)
+    __cache[type_id][3][nid] = tid
 
 def unregisterTypesFromProcess(pid):
     garbage = []
@@ -89,3 +123,4 @@ def unregisterTypesFromProcess(pid):
     #return l
 
 from iso_cache import clearIsos
+from match import builtin
