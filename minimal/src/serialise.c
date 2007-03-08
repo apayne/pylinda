@@ -447,17 +447,21 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         MinimalValue v = Minimal_getName(typemap, type_spec->string);
         if(v != NULL) {
             if(v->type_id != 0) {
-                char* id;
+                char* id = NULL;
                 int len;
+                MinimalValue type;
                 xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
                 xmlAddChild(parent, node);
                 xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
-                id = NULL;
-                len = snprintf(id, 0, "%li", v->type_id);
-                id = malloc(len + 1);
-                snprintf(id, len + 1, "%li", v->type_id);
-                xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)id);
-                free(id);
+                type = Minimal_getName(typemap, type_spec->string);
+                if(type != NULL) {
+                    len = snprintf(id, 0, "%li", type->type_id);
+                    id = malloc(len + 1);
+                    snprintf(id, len + 1, "%li", type->type_id);
+                    xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)id);
+                    free(id);
+                    Minimal_delReference(type);
+                }
                 Minimal_delReference(v);
                 return;
             } else {

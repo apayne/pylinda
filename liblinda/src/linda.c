@@ -376,20 +376,20 @@ void Linda_registerType(LindaValue t) {
         Minimal_TypeList types = Minimal_getTypeList(t);
         for(i = 0; types[i] != NULL; i++) {
             Message* m;
-            if(t->type_id != 0) { continue; }
+            if(types[i]->type_id != 0) { continue; }
             m = Message_register_type(types[i]);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             m = Message_recv(tdata->sd);
             if(m == NULL) { free(types); return; }
-            t->type_id = m->i;
+            types[i]->type_id = m->i;
             Message_free(m);
         }
         for(i = 0; types[i] != NULL; i++) {
             Message* m;
             int type_id = types[i]->type_id;
             types[i]->type_id = 0; /* Force type spec to be produced by hiding the type_id. */
-            m = Message_update_type(type_id, types[i]);
+            m = Message_update_type(type_id, types[i], -1);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             types[i]->type_id = type_id;

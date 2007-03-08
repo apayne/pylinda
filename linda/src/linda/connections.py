@@ -264,10 +264,20 @@ def connectToMain(node):
         server.server.process_request(s, addr)
         return True
 
-def broadcast_message(*args):
+def broadcast_message(*args, **kwargs):
     memo = [server.node_id]
     r = []
     todo = neighbours.keys()
+
+    if kwargs.has_key("callback"):
+        if _linda_server.use_types and _linda_server.register_types:
+            callback = kwargs["callback"]
+        else:
+            callback = lambda server, args: args
+    else:
+        if _linda_server.use_types and _linda_server.register_types:
+            assert False
+        callback = lambda server, args: args
 
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
@@ -276,7 +286,7 @@ def broadcast_message(*args):
         else:
             memo.append(str(node))
 
-        m = sendMessageToNode(node, None, *args)
+        m = sendMessageToNode(node, None, *callback(node, args))
         if m is not None and m[0] != dont_know:
             r.append(m)
 
@@ -287,9 +297,20 @@ def broadcast_message(*args):
             todo.extend([str(x) for x in n[1]])
     return r
 
-def broadcast_firstreplyonly(*args):
+def broadcast_firstreplyonly(*args, **kwargs):
     memo = [server.node_id]
     todo = neighbours.keys()
+
+    if kwargs.has_key("callback"):
+        if _linda_server.use_types and _linda_server.register_types:
+            callback = kwargs["callback"]
+        else:
+            callback = lambda server, args: args
+    else:
+        if _linda_server.use_types and _linda_server.register_types:
+            assert False
+        callback = lambda server, args: args
+
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
         if str(node) in memo:
@@ -297,7 +318,7 @@ def broadcast_firstreplyonly(*args):
         else:
             memo.append(str(node))
 
-        m = sendMessageToNode(node, None, *args)
+        m = sendMessageToNode(node, None, *callback(node, args))
 
         if m is not None and m[0] != dont_know:
             return m
@@ -308,13 +329,24 @@ def broadcast_firstreplyonly(*args):
 
     return dont_know
 
-def broadcast_tonodes(nodes, firstreplyonly, *args):
+def broadcast_tonodes(nodes, firstreplyonly, *args, **kwargs):
     todo = nodes[:]
     r = []
+
+    if kwargs.has_key("callback"):
+        if _linda_server.use_types and _linda_server.register_types:
+            callback = kwargs["callback"]
+        else:
+            callback = lambda server, args: args
+    else:
+        if _linda_server.use_types and _linda_server.register_types:
+            assert False
+        callback = lambda server, args: args
+
     for n in todo:
         n = str(n)
         assert utils.isNodeId(n)
-        m = sendMessageToNode(n, None, *args)
+        m = sendMessageToNode(n, None, *callback(n, args))
 
         if m is None or m[0] == dont_know:
             pass

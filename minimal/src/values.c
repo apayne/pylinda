@@ -775,8 +775,12 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->length = v->length;
         break;
     case M_TYPE:
-        nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
-        strcpy(nv->type_name, v->type_name);
+        if(v->type_name != NULL) {
+            nv->type_name = (char*)malloc(strlen(v->type_name) + 1);
+            strcpy(nv->type_name, v->type_name);
+        } else {
+            nv->type_name = NULL;
+        }
         nv->type_spec = Minimal_SyntaxTree_copy(v->type_spec);
         if(v->typemap != NULL) {
             Minimal_addReference(v->typemap);

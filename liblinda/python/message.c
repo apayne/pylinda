@@ -130,7 +130,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Osss)", msgid, "REGISTER_PARTITION", m->ref.ts, m->ref.tid);
             break;
         case L_GET_PARTITIONS:
-            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", m->ts);
+            t = Py_BuildValue("(Oss)", msgid, "GET_PARTITIONS", Minimal_getTupleSpace(m->ts));
             break;
         case L_DELETED_PARTITION:
             t = Py_BuildValue("(Osss)", msgid, "DELETED_PARTITION", m->ref.ts, m->ref.tid);
@@ -366,6 +366,40 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             Message_send(sd, msgid, m);
             Message_free(m);
             Linda_delReference(t);
+        } else {
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
+            return NULL;
+        }
+    } else if(strcmp(action, "REGISTER_TYPE") == 0) {
+        if(PyTuple_Size(tuple) == (offset+2)) {
+            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+1));
+            m = Message_register_type(t);
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Linda_delReference(t);
+        } else {
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
+            return NULL;
+        }
+    } else if(strcmp(action, "UPDATE_TYPE") == 0) {
+        if(PyTuple_Size(tuple) == (offset+3)) {
+            LindaValue id = PyO2Value(PyTuple_GetItem(tuple, offset+1));
+            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+2));
+            m = Message_update_type(Linda_getInt(id), t, -1);
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Linda_delReference(id);
+            Linda_delReference(t);
+        } else if(PyTuple_Size(tuple) == (offset+4)) {
+            LindaValue id = PyO2Value(PyTuple_GetItem(tuple, offset+1));
+            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+2));
+            LindaValue p = PyO2Value(PyTuple_GetItem(tuple, offset+3));
+            m = Message_update_type(Linda_getInt(id), t, Linda_getInt(p));
+            Message_send(sd, msgid, m);
+            Message_free(m);
+            Linda_delReference(id);
+            Linda_delReference(t);
+            Linda_delReference(p);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;

@@ -125,6 +125,7 @@ struct Message_t {
             int type_id;
             LindaValue typeobj;
             char* pid;
+            int reverse_id;
         } typestruct;
      };
 };
@@ -166,7 +167,7 @@ EXPORT Message* Message_register_process();
 EXPORT Message* Message_register_thread();
 #ifdef REGISTER_TYPES
 EXPORT Message* Message_register_type(LindaValue v);
-EXPORT Message* Message_update_type(int type_id, LindaValue v);
+EXPORT Message* Message_update_type(int type_id, LindaValue v, int reverse_id);
 #endif
 
 EXPORT Message* Message_my_name_is(char* name);

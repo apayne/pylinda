@@ -271,12 +271,15 @@ char* Message_getString(Message* msg) {
         {
         xmlNodePtr e;
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"update_type");
-        v = Linda_int(msg->i);
+        v = Linda_int(msg->typestruct.type_id);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
         Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
+        v = Linda_int(msg->typestruct.reverse_id);
+        Minimal_serialiseXML(doc, root, v, 0);
+        Linda_delReference(v);
         v = Linda_string(Linda_process_id);
         Minimal_serialiseXML(doc, root, v, 0);
         Linda_delReference(v);
@@ -600,12 +603,13 @@ Message* Message_register_type(LindaValue type) {
     return m;
 }
 
-Message* Message_update_type(int type_id, LindaValue type) {
+Message* Message_update_type(int type_id, LindaValue type, int reverse_id) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_UPDATE_TYPE;
     m->typestruct.type_id = type_id;
     Linda_addReference(type);
     m->typestruct.typeobj = type;
+    m->typestruct.reverse_id = reverse_id;
     m->typestruct.pid = NULL;
     return m;
 }

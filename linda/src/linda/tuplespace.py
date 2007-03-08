@@ -30,6 +30,7 @@ import threading
 from connections import broadcast_message, broadcast_firstreplyonly, broadcast_tonodes, sendMessageToNode
 from tuplecontainer import TupleContainer, doesMatch, NoTupleMatch
 from messages import *
+import interserver_types
 
 class MatchedTuple(Exception):
     pass
@@ -60,13 +61,13 @@ class TupleSpace:
 
     def register(self):
         try:
-            broadcast_message(register_partition, self._id, server.node_id)
+            broadcast_message(register_partition, self._id, server.node_id, callback=lambda node, args: args)
 
-            ps = broadcast_firstreplyonly(get_partitions, self._id)
+            ps = broadcast_firstreplyonly(get_partitions, self._id, callback=lambda node, args: args)
             if ps != dont_know:
                 self.partitions.extend([str(p) for p in ps[1] if str(p) != server.node_id])
 
-            r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
+            r = broadcast_tonodes(self.partitions, True, get_requests, self._id, callback=lambda node, args: args)
             if r != dont_know:
                 r = r[1]
                 for i in range(len(r)):
@@ -76,12 +77,12 @@ class TupleSpace:
             self.lock.release(msg=("end start", self._id))
 
     def __del__(self):
-        broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id)
+        broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id, callback=lambda node, args: args)
         if self.ts.count() > 0 and len(self.partitions) > 0:
             node = self.partitions[0]
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.changeOwner(x, self._id, self._id, node), tups)
-            sendMessageToNode(node, None, multiple_in, self._id, tuple(tups))
+            sendMessageToNode(node, None, multiple_in, self._id, tuple([interserver_types.convertTupleForServer(node, t) for f in tups]))
         else:
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.delReference(x, self._id), tups)
@@ -193,7 +194,7 @@ class TupleSpace:
                 real, matched = self.ts.matchOneTuple(pattern)
             except StopIteration:
                 def add_tuples():
-                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))]:
                         for t in server:
                             self._out(tuple(t))
                     # check if we have created a deadlock

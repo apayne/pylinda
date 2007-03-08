@@ -214,6 +214,8 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             bm->m->type = L_REGISTER_TYPE;
         } else if(strcmp(text, "update_type") == 0) {
             bm->m->type = L_UPDATE_TYPE;
+            bm->m->typestruct.type_id = -1;
+            bm->m->typestruct.reverse_id = -1;
         } else if(strcmp(text, "my_name_is") == 0) {
             bm->m->type = L_MY_NAME_IS;
         } else if(strcmp(text, "get_node_id") == 0) {
@@ -345,7 +347,11 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             bm->m->i = Linda_getInt(i);
             break;
         case L_UPDATE_TYPE:
-            bm->m->typestruct.type_id = Linda_getInt(i);
+            if(bm->m->typestruct.type_id == -1) {
+                bm->m->typestruct.type_id = Linda_getInt(i);
+            } else {
+                bm->m->typestruct.reverse_id = Linda_getInt(i);
+            }
             break;
         default:
             fprintf(stderr, "Discarding int due to invalid message type.\n");

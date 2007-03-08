@@ -153,12 +153,15 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         if(typeid != NULL) {
             tree->type_id = atoi((char*)typeid);
             free(typeid);
+        } else {
+            tree->type_id = 0;
         }
         return tree;
     } else if(strcmp((char*)(node->name), "integer") == 0) {
         xmlChar* val = xmlGetProp(node, (xmlChar*)"val");
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_INTEGER;
+        tree->type_id = 0;
         tree->integer = atoi((char*)val);
         free(val);
         return tree;
@@ -167,6 +170,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         xmlNode* cur_node;
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_TYPE_SPEC;
+        tree->type_id = 0;
 
         name = xmlGetProp(node, (xmlChar*)"name");
         tree->type_name = (char*)malloc(strlen((char*)name)+1);
@@ -185,6 +189,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         tree->type = ST_POINTER;
+        tree->type_id = 0;
         tree->ptr = (char*)malloc(strlen((char*)name)+1);
         strcpy(tree->ptr, (char*)name);
         free(name);
@@ -194,6 +199,7 @@ Minimal_SyntaxTree* Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         Minimal_SyntaxTree* tree = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
         Minimal_SyntaxTree* tree2 = tree;
         tree->type = ST_PARAMETER_LIST;
+        tree->type_id = 0;
 
         tree->var_name = NULL;
         tree->next_var = NULL;

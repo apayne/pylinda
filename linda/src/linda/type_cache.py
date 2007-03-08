@@ -57,7 +57,7 @@ def getTypeReferences(id):
 
 def __getTypeReferences(type, refs=None):
     if refs is None:
-        refs = []
+        refs = [type.type_id]
     if type.isNil():
         return refs
     elif type.isId():
@@ -69,7 +69,7 @@ def __getTypeReferences(type, refs=None):
             return refs
         else:
             refs.append(type.id_type_id)
-            return getTypeReferences(lookupType(type.id_type_id))
+            return refs
     elif type.isProductType():
         for i in range(len(type)):
             refs = getTypeReferences(type[i], refs)
@@ -86,7 +86,7 @@ def __getTypeReferences(type, refs=None):
 def getServerIds(type_id, nid):
     return __cache[type_id][3][nid]
 
-def setServerIds(type_id, nid, tid)
+def setServerIds(type_id, nid, tid):
     __cache[type_id][3][nid] = tid
 
 def unregisterTypesFromProcess(pid):

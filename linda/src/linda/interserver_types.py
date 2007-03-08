@@ -28,15 +28,20 @@ def convertTupleForServer_registered(server, tup):
         except KeyError:
             types = getTypeReferences(t.type_id)
             for type in types:
+                type = lookupType(type)
                 tid = type.type_id
                 type.type_id = 0
-                new_tid = sendMessageToNode(server, None, "register_type", tid)
+                print "register", type
+                new_tid = sendMessageToNode(server, None, "REGISTER_TYPE", type)[1]
+                print "got", new_tid
                 type.type_id = tid
                 setServerIds(tid, server, new_tid)
-            for t in types:
+            for type in types:
+                type = lookupType(type)
                 tid = type.type_id
                 type.type_id = 0
-                new_tid = sendMessageToNode(server, None, "update_type", tid)
+                print getServerIds(tid, server)
+                new_tid = sendMessageToNode(server, None, "UPDATE_TYPE", getServerIds(tid, server), type, tid)
                 type.type_id = tid
             t.type_id = getServerIds(t.type_id, server)
     return tup
@@ -48,7 +53,7 @@ if not _linda_server.use_types:
     convertTupleForServer = convertTupleForServer_none
 elif _linda_server.register_types:
     convertTupleForServer = convertTupleForServer_registered
-    from type_cache import getServerIds, getTypeReferences, setServerIds
+    from type_cache import getServerIds, getTypeReferences, setServerIds, lookupType
     from connections import sendMessageToNode
 else:
     convertTupleForServer = convertTupleForServer_none
