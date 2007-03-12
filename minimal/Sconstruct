@@ -4,11 +4,24 @@ import platform
 if platform.system() == "Windows":
     env = Environment(CCFLAGS="/D_CRT_SECURE_NO_DEPRECATE /EHsc /DWIN32 /DNO_READLINE", CPPPATH=["#src/", "#bindings/cpp", r"c:\Program Files\GnuWin32\include"], LIBPATH="#.", YACC="bison", LEX="flex", LEXFLAGS="-headerfile=yy.lex.h")
     env.Append(ENV=os.environ)
-    readline = []
 else:
     env = Environment(CCFLAGS="-g -O -Wall -Werror", CPPPATH=["#src/", "#bindings/cpp", "/usr/include/libxml2"], LIBPATH="#.")
+
+conf = env.Configure()
+
+#if conf.CheckLib("readline") and conf.CheckLib("termcap"):
+#    needbc = 0
+#else:
+#    needbc = 1
+needbc = 0
+
+conf.Finish()
+
+if platform.system() == "Windows":
+    readline = []
+else:
     readline = ["readline", "termcap"]
-    if int(ARGUMENTS.get("needbc", "1")):
+    if needbc==1:
         readline += ["bc"]
 
 Export("env")
