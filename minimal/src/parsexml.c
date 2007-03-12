@@ -407,7 +407,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
                 Minimal_setTypeMap(type, types);
                 Minimal_addName(&(types->map), type->type_name, type);
             } else if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "element") == 0) {
-                Minimal_tupleAdd(value, Minimal_xmlSeriesToValue(cur_node->children, memo, types));
+                Minimal_tupleAdd(value, Minimal_xmlToValue2(cur_node, memo, types));
             }
             cur_node = cur_node->next;
         }

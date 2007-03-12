@@ -41,7 +41,7 @@ class TupleSpaceContainer:
     def __init__(self):
         self.ts = {}
 
-        self.semaphore = threading.Semaphore()
+        self.semaphore = threading.RLock()
 
     ## \brief Returns the number of tuplespaces contained within this container object
     ## \internal

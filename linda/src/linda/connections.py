@@ -33,13 +33,13 @@ neighbours = {}
 
 connections = {}
 
-thread_lock = threading.Lock()
+thread_lock = threading.RLock()
 
 return_locks = {}
 message_store = {}
-ms_lock = threading.Lock()
+ms_lock = threading.Semaphore()
 
-socket_lock = threading.Lock()
+socket_lock = threading.RLock()
 sockets = []
 close = False
 def socket_watcher():
@@ -73,8 +73,7 @@ def socket_watcher():
             if m is None:
                 if s.type == "MONITOR":
                     print "Server shutting down."
-                    server.cleanShutdown()
-                    return # Don't do anything else, just quit.
+                    thread_pool.giveJob(target=server.cleanShutdown, args=())
                 elif s.type == "SERVER":
                     server.removeServer(s.name)
                     connect_lock.acquire()
@@ -218,7 +217,7 @@ def sendMessageToNode(node, msgid, *args):
         else:
             raise
 
-connect_lock = threading.Semaphore()
+connect_lock = threading.RLock()
 def connectTo(node):
     connect_lock.acquire()
     try:
@@ -231,7 +230,7 @@ def connectToMain(node):
     """\internal
     \brief Find the address of, and connect to a new server.
     """
-    details = broadcast_firstreplyonly(get_connect_details, node)
+    details = broadcast_firstreplyonly(get_connect_details, node, callback=lambda nid, args: args)
     if details == "DONT_KNOW":
         sys.stderr.write("Failed to get connection details for %s.\n" % (node, ))
         return False

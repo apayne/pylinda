@@ -45,7 +45,7 @@ public:
     EXPORT Value(int i);
     EXPORT Value(bool b);
 
-    EXPORT std::string serialise(bool include_type);
+    EXPORT std::string serialise(bool include_type, bool include_type_spec);
 
     EXPORT void setType(Value& type);
     EXPORT void setSumPos(int pos);

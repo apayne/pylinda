@@ -117,7 +117,7 @@ class TupleSpace:
                         req.send(None, ("RESULT_TUPLE", matched_tup))
                         req.lock.release()
 
-                        broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern)
+                        broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))
 
                     threading.Thread(target=do_return_tuple).start()
 
@@ -137,7 +137,7 @@ class TupleSpace:
                 else:
                     def do_return_tuple():
                         utils.changeOwner(matched, self._id, self._id, node)
-                        sendMessageToNode(node, None, multiple_in, self._id, (matched, )) # return the tuple to the server
+                        sendMessageToNode(node, None, multiple_in, self._id, (interserver_types.convertTupleForServer(node, matched), )) # return the tuple to the server
 
                     threading.Thread(target=do_return_tuple).start()
 
@@ -164,7 +164,7 @@ class TupleSpace:
                 real, matched = self.ts.matchOneTuple(pattern)
             except NoTupleMatched:
                 def add_tuples():
-                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))]:
                         for t in server:
                             self._out(tuple(t))
                     # check that we have created a deadlock
@@ -195,8 +195,8 @@ class TupleSpace:
             except StopIteration:
                 def add_tuples():
                     for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))]:
-                        for t in server:
-                            self._out(tuple(t))
+                        for t in range(len(server)):
+                            self._out(tuple(server[t]))
                     # check if we have created a deadlock
                     if self.isDeadLocked():
                         # if we have then unblock a random process

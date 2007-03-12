@@ -181,10 +181,16 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
     } else if(self->val->type == M_FUNCTION) {
         return strcmp(self->val->func_name, other->val->func_name);
     } else if(self->val->type == M_TYPE) {
-        if(strcmp(self->val->type_name, other->val->type_name)) {
+        if(self->val->type_name != NULL && other->val->type_name != NULL && strcmp(self->val->type_name, other->val->type_name)) {
             return strcmp(self->val->type_name, other->val->type_name);
-        } else {
+        } else if(self->val->type_spec != NULL && other->val->type_spec != NULL) {
             return Minimal_SyntaxTree_cmp(self->val->type_spec, other->val->type_spec);
+        } else if(self->val->type_id > other->val->type_id) {
+            return 1;
+        } else if(self->val->type_id < other->val->type_id) {
+            return -1;
+        } else {
+            return 0;
         }
     } else {
         PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("PyLibLinda: Unknown type (%i) in comparison.\n", self->val->type));
@@ -491,6 +497,18 @@ static PyObject* linda_Value_getidtypeid(linda_ValueObject* self, void* closure)
     return PyInt_FromLong(self->val->type_spec->type_id);
 }
 
+static int linda_Value_setidtypeid(linda_ValueObject* self, PyObject* value, void* closure) {
+    if(!PyInt_Check(value)) { PyErr_SetString(PyExc_TypeError, "setTypeID - Setting to not an integer."); return -1; }
+    if(!Linda_isType(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "setTypeID - Not a type.");
+        return -1;
+    }
+
+    self->val->type_spec->type_id = PyInt_AsLong(value);
+
+    return 0;
+}
+
 static int linda_Value_settypeid(linda_ValueObject* self, PyObject* value, void* closure) {
     if(!PyInt_Check(value)) { PyErr_SetString(PyExc_TypeError, "setTypeID - Setting to not an integer."); return -1; }
 
@@ -527,7 +545,7 @@ static PyGetSetDef value_getseters[] = {
 #ifdef TYPES
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
-    {"id_type_id", (getter)linda_Value_getidtypeid, (setter)linda_Value_settypeid, "", NULL},
+    {"id_type_id", (getter)linda_Value_getidtypeid, (setter)linda_Value_setidtypeid, "", NULL},
     {"sum_pos", (getter)linda_Value_getsumpos, (setter)linda_Value_setsumpos, "", NULL},
 #endif
     {NULL}  /* Sentinel */

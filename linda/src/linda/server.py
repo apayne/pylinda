@@ -43,6 +43,7 @@ import utils as utils
 if _linda_server.use_types and _linda_server.register_types:
     from type_cache import registerType, updateType, emptyTypeCache, unregisterTypesFromProcess
     from iso_cache import emptyIsoCache
+    import interserver_types
 
 process_id = utils.Counter()
 ts_ids = utils.Counter()
@@ -162,10 +163,10 @@ class LindaConnection:
         req.send(msgid, ("RESULT_INT", typeid))
 
     def update_type(self, req, msgid, message, data):
-        type_id, type, pid = int(data[0]), data[1], data[2]
+        type_id, type, pid, reverse_id = int(data[0]), data[1], data[2], int(data[3])
 
         type.type_id = type_id
-        updateType(type_id, type)
+        updateType(type_id, type, reverse_id)
 
         req.send(msgid, ("DONE", ))
 
@@ -349,7 +350,7 @@ class LindaConnection:
         else:
             r = []
         # we ignore the original representation and only pass on the converted format.
-        req.send(msgid, ("RESULT_TUPLE", tuple([x[1] for x in r])))
+        req.send(msgid, ("RESULT_TUPLE", tuple([interserver_types.convertTupleForServer(msgid[1], x[1]) for x in r])))
 
     def cancel_request(self, req, msgid, message, data):
         ts, template = str(data[0]), data[1]
@@ -538,7 +539,7 @@ def removeServer(nid):
 
 def cleanShutdown():
     # Stop accepting new connections
-    _linda_server.server_disconnect();
+    _linda_server.server_disconnect()
     # Disappear from zeroconf network
     if options.mdns and not options.disable_mdns:
         import mdns

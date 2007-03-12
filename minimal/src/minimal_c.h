@@ -94,7 +94,7 @@ struct MinimalValue_t {
             char* type_name;
             Minimal_SyntaxTree* type_spec;
             MinimalLayer typemap;
-            unsigned long type_id; 
+            unsigned long type_id;
         };
         char* tsid;
         struct {
@@ -302,8 +302,8 @@ EXPORT MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer);
 
 IMPORT extern MinimalLayer Minimal_defaultLayer;
 
-EXPORT char* Minimal_serialise(MinimalValue f, unsigned char include_type);
-EXPORT xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, unsigned char include_type);
+EXPORT char* Minimal_serialise(MinimalValue f, unsigned char include_type, unsigned char include_type_spec);
+EXPORT xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, unsigned char include_type, unsigned char include_type_spec);
 
 EXPORT Minimal_SyntaxTree* Minimal_parseXMLCode(const char* code);
 EXPORT MinimalValue Minimal_xmlToValue(xmlNodePtr node);

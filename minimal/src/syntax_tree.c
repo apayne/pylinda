@@ -27,6 +27,7 @@
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id) {
     Minimal_SyntaxTree tree;
     tree.type = ST_IDENTIFIER;
+    tree.type_id = 0;
     tree.string = (char*)malloc(strlen(id)+1);
     strcpy(tree.string, id);
     return tree;
@@ -35,6 +36,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
     Minimal_SyntaxTree tree;
     tree.type = ST_INTEGER;
+    tree.type_id = 0;
     tree.integer = i;
     return tree;
 }
@@ -42,6 +44,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
     Minimal_SyntaxTree tree;
     tree.type = ST_OPERATOR;
+    tree.type_id = 0;
     tree.string = (char*)malloc(strlen(op)+1);
     strcpy(tree._operator, op);
     tree.op1 = NULL;
@@ -52,6 +55,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
     Minimal_SyntaxTree tree;
     tree.type = ST_TUPLE;
+    tree.type_id = 0;
     if(size == 0) {
         tree.tuple = NULL;
     } else {
@@ -69,6 +73,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createIfExpr(int size) {
     Minimal_SyntaxTree tree;
     tree.type = ST_IFEXPR;
+    tree.type_id = 0;
     tree._if = NULL;
     tree._then = NULL;
     tree._else = NULL;

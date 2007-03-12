@@ -50,8 +50,8 @@ void Value::set(int pos, Value obj) {
     Minimal_tupleSet(this->value, pos, obj.value);
 }
 
-std::string Value::serialise(bool include_type) {
-    char* cs = Minimal_serialise(this->value, include_type);
+std::string Value::serialise(bool include_type, bool include_type_spec) {
+    char* cs = Minimal_serialise(this->value, include_type, include_type_spec);
     std::string s = cs;
     free(cs);
     return s;

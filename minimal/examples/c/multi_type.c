@@ -26,10 +26,10 @@
 
 int main(int argc, char* argv[]) {
     char* buf;
-	MinimalValue atype;
-	MinimalValue btype;
-	MinimalValue val;
-	MinimalValue val2;
+    MinimalValue atype;
+    MinimalValue btype;
+    MinimalValue val;
+    MinimalValue val2;
 
     Minimal_init();
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     Minimal_tupleSet(val, 1, Minimal_ptr(val2));
     Minimal_setType(val, atype);
 
-    buf = Minimal_serialise(val, 1);
+    buf = Minimal_serialise(val, 1, 1);
     printf("%s\n", buf);
     free(buf);
 

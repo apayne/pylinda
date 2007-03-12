@@ -440,7 +440,7 @@ void Minimal_tupleSet(MinimalValue tuple, int size, MinimalValue value) {
 }
 
 MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos) {
-    if(pos < 0 || pos > tuple->size) {
+    if(pos < 0 || pos >= tuple->size) {
         return NULL;
     } else {
         return tuple->values[pos];

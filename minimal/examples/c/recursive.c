@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     Minimal_setType(recvalue, rectype);
     Minimal_tupleSet(recvalue, 0, Minimal_int(1));
     Minimal_tupleSet(recvalue, 1, Minimal_ptr(recvalue));
-    buf = Minimal_serialise(recvalue, 1);
+    buf = Minimal_serialise(recvalue, 1, 1);
     printf("%s\n", buf);
     free(buf);
     Minimal_delReference(recvalue);

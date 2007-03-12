@@ -93,7 +93,7 @@ MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2);
 unsigned char Minimal_Value_ge(MinimalValue op1, MinimalValue op2);
 unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2);
 
-void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);
+void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type, unsigned char include_type_spec);
 void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type);
 
 void Minimal_setTypeMap(MinimalValue v, MinimalLayer types);

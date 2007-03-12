@@ -35,20 +35,20 @@ int main(int argc, char* argv[]) {
 
     Minimal::Value intvalue = 1;
     intvalue.setType(inttype);
-    buf = intvalue.serialise(true);
+    buf = intvalue.serialise(true, true);
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::Value pairvalue = Minimal::Tuple(2);
     pairvalue.set(0, 1);
     pairvalue.set(1, 2);
     pairvalue.setType(pairtype);
-    buf = pairvalue.serialise(true);
+    buf = pairvalue.serialise(true, true);
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::Value sumvalue = 1;
     sumvalue.setType(sumtype);
     sumvalue.setSumPos(0);
-    buf = sumvalue.serialise(true);
+    buf = sumvalue.serialise(true, true);
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::Value intlistvalue = Minimal::Tuple(2);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     intlistvalue.set(1, Minimal::Nil);
     intlistvalue[1].setSumPos(0);
     intlistvalue.setType(intlisttype);
-    buf = intlistvalue.serialise(true);
+    buf = intlistvalue.serialise(true, true);
     std::cout << buf << std::endl << "---" << std::endl;
 
     Minimal::finalise();

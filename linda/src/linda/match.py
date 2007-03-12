@@ -61,7 +61,7 @@ def compare_unregistered(t1, t2, checked=None):
                     func = None
             else:
                 try:
-                    func = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
+                    convfunc = compare(t1.typemap[t1.id], t2.typemap[t2.id], checked)
                 except IndexError:
                     raise IndexError, "%s in %s, or %s in %s" % (t1.id, t1.typemap.keys(), t2.id, t2.typemap.keys())
         elif t1.isProductType() and t2.isProductType():
@@ -152,7 +152,11 @@ def compare_registered(t1, t2, checked=None):
                 else:
                     func = None
             else:
-                func = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
+                convfunc = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
+                def func(value):
+                    v = convfunc(value)
+                    v.type_id = t1.type_id
+                    return v
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
                 func = None

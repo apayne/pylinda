@@ -22,29 +22,55 @@ import _linda_server
 
 def convertTupleForServer_registered(server, tup):
     tup = copy.deepcopy(tup)
-    for t in tup:
-        try:
-            t.type_id = getServerIds(t.type_id, server)
-        except KeyError:
-            types = getTypeReferences(t.type_id)
-            for type in types:
-                type = lookupType(type)
-                tid = type.type_id
-                type.type_id = 0
-                print "register", type
-                new_tid = sendMessageToNode(server, None, "REGISTER_TYPE", type)[1]
-                print "got", new_tid
-                type.type_id = tid
-                setServerIds(tid, server, new_tid)
-            for type in types:
-                type = lookupType(type)
-                tid = type.type_id
-                type.type_id = 0
-                print getServerIds(tid, server)
-                new_tid = sendMessageToNode(server, None, "UPDATE_TYPE", getServerIds(tid, server), type, tid)
-                type.type_id = tid
-            t.type_id = getServerIds(t.type_id, server)
-    return tup
+    return tuple([convertValueTypes(server, v) for v in tup])
+
+def convertValueTypes(nid, value):
+    if value.type.type_id != 0:
+        value.type.type_id = getServerIds(value.type.type_id, nid)
+
+    if value.isType():
+        convertType(nid, value)
+    #elif value.isNil():
+    #    pass
+    #elif value.isInt():
+    #    pass
+    elif value.isLong():
+        pass
+    elif value.isTuple():
+        for i in range(len(value)):
+            convertValueTypes(nid, value[i])
+    elif value.isPtr():
+        convertValueTypes(nid, value.ptr)
+    else:
+        raise SystemError
+    return value
+
+def convertType(nid, type):
+    if type.type_id != 0:
+        type.type_id = getServerIds(type.type_id, nid)
+
+    if type.isNil():
+        pass
+    elif type.isId():
+        if type.id in builtin:
+            pass
+        elif type.id_type_id == 0:
+            pass
+        else:
+            type.id_type_id = getServerIds(type.id_type_id, nid)
+    elif type.isProductType():
+        for i in range(len(type)):
+            convertType(nid, type[i])
+    elif type.isSumType():
+        for i in range(len(type)):
+            convertType(nid, type[i])
+    elif type.isPtrType():
+        convertType(nid, type.ptrtype)
+    elif type.isFunctionType():
+        convertType(nid, type.arg)
+        convertType(nid, type.result)
+
+    return type
 
 def convertTupleForServer_none(server, tup):
     return tup
@@ -54,6 +80,6 @@ if not _linda_server.use_types:
 elif _linda_server.register_types:
     convertTupleForServer = convertTupleForServer_registered
     from type_cache import getServerIds, getTypeReferences, setServerIds, lookupType
-    from connections import sendMessageToNode
+    from match import builtin
 else:
     convertTupleForServer = convertTupleForServer_none

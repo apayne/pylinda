@@ -77,18 +77,18 @@ char* Message_getString(Message* msg) {
     case L_RESULT_STRING:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_string");
         v = Linda_string(msg->string);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
     case L_RESULT_INT:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_int");
         v = Linda_int(msg->i);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
     case L_RESULT_TUPLE:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_tuple");
-        Minimal_serialiseXML(doc, root, msg->tuple, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->tuple, INCLUDE_TYPES, 0);
         break;
     case L_UNBLOCK:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"unblock");
@@ -100,7 +100,7 @@ char* Message_getString(Message* msg) {
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->out.ts));
-        Minimal_serialiseXML(doc, root, msg->out.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->out.t, INCLUDE_TYPES, 0);
         break;
         }
     case L_IN:
@@ -112,7 +112,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
-        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES, 0);
 
         tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -128,7 +128,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
-        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES, 0);
 
         tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -144,7 +144,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->in.ts));
 
-        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->in.t, INCLUDE_TYPES, 0);
 
         tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -160,7 +160,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->rd.ts));
 
-        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->rd.t, INCLUDE_TYPES, 0);
 
         tid = xmlNewDocNode(doc, NULL, (xmlChar*)"tid", NULL);
         xmlAddChild(root, tid);
@@ -178,7 +178,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
-        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES, 0);
         break;
         }
     case L_COPY_COLLECT:
@@ -192,14 +192,14 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->collect.ts2));
 
-        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, root, msg->collect.t, INCLUDE_TYPES, 0);
         break;
         }
     case L_CREATE_TUPLESPACE:
         {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"create_tuplespace");
         v = Linda_string(msg->string);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -211,7 +211,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -223,7 +223,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -251,7 +251,7 @@ char* Message_getString(Message* msg) {
     case L_REGISTER_THREAD:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_thread");
         v = Linda_string(Linda_process_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
 #ifdef REGISTER_TYPES
@@ -261,9 +261,9 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"register_type");
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
-        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES, 0);
         v = Linda_string(Linda_process_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -272,16 +272,16 @@ char* Message_getString(Message* msg) {
         xmlNodePtr e;
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"update_type");
         v = Linda_int(msg->typestruct.type_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
-        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES, 1);
         v = Linda_int(msg->typestruct.reverse_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         v = Linda_string(Linda_process_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -292,7 +292,7 @@ char* Message_getString(Message* msg) {
     case L_MY_NAME_IS:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"my_name_is");
         v = Linda_string(Linda_process_id);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
     case L_REGISTER_PARTITION:
@@ -303,7 +303,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -324,7 +324,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ref.ts);
         v = Linda_string(msg->ref.tid);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
@@ -343,7 +343,7 @@ char* Message_getString(Message* msg) {
     case L_GET_CONNECTION_DETAILS:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_connection_details");
         v = Linda_string(msg->string);
-        Minimal_serialiseXML(doc, root, v, 0);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
     case L_TUPLE_REQUEST:
@@ -354,7 +354,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
-        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0, 0);
         break;
         }
     case L_CANCEL_REQUEST:
@@ -365,7 +365,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
-        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0, 0);
         break;
         }
     case L_MULTIPLE_IN:
@@ -376,7 +376,7 @@ char* Message_getString(Message* msg) {
         xmlAddChild(root, ts);
         xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->tuple_request.ts));
 
-        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0);
+        Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0, 0);
         }
         break;
     default:

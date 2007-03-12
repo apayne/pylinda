@@ -18,11 +18,11 @@
 
 from utils import Counter
 
-from threading import Semaphore
+from threading import RLock
 
 import _linda_server
 
-cache_lock = Semaphore()
+cache_lock = RLock()
 
 __cache = {}
 
