@@ -43,13 +43,13 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         }
         i++;
     }
-    if(scanned[i] != NULL) {
+     if((*scanned)[i] != NULL) {
         if(&realscanned == scanned) {
             free(realscanned);
         }
         return;
     }
-    newscanned = malloc(sizeof(void*)*(i+1));
+    newscanned = malloc(sizeof(void*)*(i+2));
     memcpy(newscanned, *scanned, sizeof(void*)*i);
     newscanned[i] = Linda_getPtr(t);
     newscanned[i+1] = NULL;
@@ -61,8 +61,16 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         switch(v->type) {
         case M_NIL:
         case M_BOOLEAN:
+        case M_BYTE:
+        case M_SHORT:
         case M_INTEGER:
+        case M_LONG:
+        case M_UBYTE:
+        case M_USHORT:
+        case M_UINTEGER:
+        case M_ULONG:
         case M_FLOAT:
+        case M_DOUBLE:
         case M_STRING:
         case M_TYPE:
         case M_FUNCTION:
@@ -81,8 +89,6 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         case M_POINTER:
             Linda_scanTuple2(Linda_getPtr(v), ref, scanned);
             break;
-        default:
-            fprintf(stderr, "Unknown value (%i) found when scanning tuple.\n", v->type);
         }
     }
 

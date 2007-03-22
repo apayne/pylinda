@@ -46,6 +46,8 @@ int Linda_udd = 0;
 int Linda_port = 2102;
 int Linda_active_connections;
 
+char* Linda_version = "0.7a";
+
 unsigned char Linda_is_server = 1;
 
 char* Linda_process_id = NULL;
@@ -83,7 +85,14 @@ void Linda_init() {
     Linda_floatType = Linda_type("floattype :: float;");
     Linda_stringType = Linda_type("stringtype :: string;");
     Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
+
+    Minimal_use_types = 1;
+#else
+    Minimal_use_types = 0;
 #endif
+
+    Minimal_setLindaTSAddRefFunc(Linda_fakeAddTSReference);
+    Minimal_setLindaTSDelRefFunc(Linda_fakeDelTSReference);
 
     Linda_uts = Minimal_tupleSpace("UTS");
 }

@@ -66,3 +66,9 @@ void Linda_delTSReference(LindaValue ts) {
     m = Message_recv(tdata->sd);
     Message_free(m);
 }
+
+void Linda_fakeAddTSReference(LindaValue ts) {
+}
+
+void Linda_fakeDelTSReference(LindaValue ts) {
+}

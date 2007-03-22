@@ -53,6 +53,7 @@ struct Message_t {
         L_RESULT_STRING,
         L_RESULT_INT,
         L_RESULT_TUPLE,
+        L_RESULT_TYPE,
         L_UNBLOCK,
         L_OUT,
         L_IN,
@@ -74,6 +75,7 @@ struct Message_t {
         L_REGISTER_THREAD,
         L_REGISTER_TYPE,
         L_UPDATE_TYPE,
+        L_REQUEST_TYPE,
 /* Server Messages */
         L_MY_NAME_IS,
         L_GET_NODE_ID,
@@ -122,10 +124,9 @@ struct Message_t {
             MinimalValue t;
          } tuple_request;
         struct {
-            int type_id;
+            char* type_id;
             LindaValue typeobj;
             char* pid;
-            int reverse_id;
         } typestruct;
      };
 };
@@ -140,6 +141,7 @@ EXPORT Message* Message_parse(char* text, int len, unsigned char final);
 EXPORT Message* Message_result_string(char* text);
 EXPORT Message* Message_result_int(int i);
 EXPORT Message* Message_result_tuple(LindaValue t);
+EXPORT Message* Message_result_type(LindaValue t);
 
 EXPORT Message* Message_done();
 EXPORT Message* Message_dont_know();
@@ -160,15 +162,18 @@ EXPORT Message* Message_deleteReference(LindaValue ts);
 
 EXPORT Message* Message_monitor();
 EXPORT Message* Message_list_ts();
-EXPORT Message* Message_inspect(LindaValue ts);
+EXPORT Message* Message_inspect(char* ts);
 EXPORT Message* Message_get_routes();
 
 EXPORT Message* Message_register_process();
 EXPORT Message* Message_register_thread();
 #ifdef REGISTER_TYPES
 EXPORT Message* Message_register_type(LindaValue v);
-EXPORT Message* Message_update_type(int type_id, LindaValue v, int reverse_id);
+EXPORT Message* Message_update_type(char* type_id, LindaValue v);
+EXPORT Message* Message_request_type(char* type_id);
+EXPORT Message* Message_result_type(LindaValue v);
 #endif
+EXPORT Message* Message_request_type(char* type_id);
 
 EXPORT Message* Message_my_name_is(char* name);
 EXPORT Message* Message_get_node_id();
@@ -207,6 +212,8 @@ extern int Linda_active_connections;
 
 EXPORT void Linda_addTSReference(LindaValue ts);
 EXPORT void Linda_delTSReference(LindaValue ts);
+EXPORT void Linda_fakeAddTSReference(LindaValue ts);
+EXPORT void Linda_fakeDelTSReference(LindaValue ts);
 
 #ifdef __cplusplus
 }

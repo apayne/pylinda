@@ -118,7 +118,13 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(OsOs)", msgid, "REGISTER_TYPE", Value2PyO(m->typestruct.typeobj), m->typestruct.pid);
             break;
         case L_UPDATE_TYPE:
-            t = Py_BuildValue("(OsiOsi)", msgid, "UPDATE_TYPE", m->typestruct.type_id, Value2PyO(m->typestruct.typeobj), m->typestruct.pid, m->typestruct.reverse_id);
+            t = Py_BuildValue("(OssOs)", msgid, "UPDATE_TYPE", m->typestruct.type_id, Value2PyO(m->typestruct.typeobj), m->typestruct.pid);
+            break;
+        case L_REQUEST_TYPE:
+            t = Py_BuildValue("(Oss)", msgid, "REQUEST_TYPE", m->typestruct.type_id);
+            break;
+        case L_RESULT_TYPE:
+            t = Py_BuildValue("(OsO)", msgid, "REQUEST_TYPE", m->typestruct.typeobj);
             break;
         case L_GET_NODE_ID:
             t = Py_BuildValue("(Os)", msgid, "GET_NODE_ID");
@@ -279,12 +285,21 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
+    } else if(strcmp(action, "RESULT_TYPE") == 0) {
+        if(PyTuple_Size(tuple) == (offset+2)) {
+            m = Message_result_type(PyO2Value(PyTuple_GetItem(tuple, offset+1)));
+            Message_send(sd, msgid, m);
+            Message_free(m);
+        } else {
+            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
+            return NULL;
+        }
     PYTHON_TO_MSG_NONE("CREATE_TUPLESPACE", createTuplespace)
     PYTHON_TO_MSG_TS("ADD_REFERENCE", addReference)
     PYTHON_TO_MSG_TS("DELETE_REFERENCE", deleteReference)
     PYTHON_TO_MSG_NONE("MONITOR", monitor)
     PYTHON_TO_MSG_NONE("LIST_TS", list_ts)
-    PYTHON_TO_MSG_TS("INSPECT", inspect)
+    PYTHON_TO_MSG_STRING("INSPECT", inspect)
     PYTHON_TO_MSG_NONE("GET_ROUTES", get_routes)
     PYTHON_TO_MSG_STRING("MY_NAME_IS", my_name_is)
     PYTHON_TO_MSG_NONE("GET_NODE_ID", get_node_id)
@@ -370,36 +385,11 @@ PyObject* LindaPython_send(PyObject *self, PyObject* args) {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;
         }
-    } else if(strcmp(action, "REGISTER_TYPE") == 0) {
-        if(PyTuple_Size(tuple) == (offset+2)) {
-            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+1));
-            m = Message_register_type(t);
+    } else if(strcmp(action, "REQUEST_TYPE") == 0) {
+        if(PyTuple_Size(tuple) == (offset+2) && PyString_Check(PyTuple_GetItem(tuple, offset+1))) {
+            m = Message_request_type(PyString_AsString(PyTuple_GetItem(tuple, offset+1)));
             Message_send(sd, msgid, m);
             Message_free(m);
-            Linda_delReference(t);
-        } else {
-            PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
-            return NULL;
-        }
-    } else if(strcmp(action, "UPDATE_TYPE") == 0) {
-        if(PyTuple_Size(tuple) == (offset+3)) {
-            LindaValue id = PyO2Value(PyTuple_GetItem(tuple, offset+1));
-            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+2));
-            m = Message_update_type(Linda_getInt(id), t, -1);
-            Message_send(sd, msgid, m);
-            Message_free(m);
-            Linda_delReference(id);
-            Linda_delReference(t);
-        } else if(PyTuple_Size(tuple) == (offset+4)) {
-            LindaValue id = PyO2Value(PyTuple_GetItem(tuple, offset+1));
-            LindaValue t = PyO2Value(PyTuple_GetItem(tuple, offset+2));
-            LindaValue p = PyO2Value(PyTuple_GetItem(tuple, offset+3));
-            m = Message_update_type(Linda_getInt(id), t, Linda_getInt(p));
-            Message_send(sd, msgid, m);
-            Message_free(m);
-            Linda_delReference(id);
-            Linda_delReference(t);
-            Linda_delReference(p);
         } else {
             PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("%s has wrong number of arguments.\n", action));
             return NULL;

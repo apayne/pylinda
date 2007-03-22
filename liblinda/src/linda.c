@@ -215,7 +215,8 @@ LindaValue Linda_in(LindaValue ts, LindaValue t) {
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { Linda_delReference(t); return NULL; }
-    r = Linda_copy(m->tuple);
+    Linda_addReference(m->tuple);
+    r = m->tuple;
     Message_free(m);
 
 #ifdef TYPES
@@ -248,7 +249,8 @@ LindaValue Linda_rd(LindaValue ts, LindaValue t) {
     Message_free(m);
     m = Message_recv(tdata->sd);
     if(m == NULL) { Linda_delReference(t); return NULL; }
-    r = Linda_copy(m->tuple);
+    Linda_addReference(m->tuple);
+    r = m->tuple;
     Message_free(m);
 
 #ifdef TYPES
@@ -282,7 +284,8 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
         Linda_delReference(t);
         return NULL;
     } else {
-        r = Linda_copy(m->tuple);
+        Linda_addReference(m->tuple);
+        r = m->tuple;
         Message_free(m);
 
 #ifdef TYPES
@@ -317,7 +320,8 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
         Linda_delReference(t);
         return NULL;
     } else {
-        r = Linda_copy(m->tuple);
+        Linda_addReference(m->tuple);
+        r = m->tuple;
         Message_free(m);
 
 #ifdef TYPES
@@ -376,23 +380,21 @@ void Linda_registerType(LindaValue t) {
         Minimal_TypeList types = Minimal_getTypeList(t);
         for(i = 0; types[i] != NULL; i++) {
             Message* m;
-            if(types[i]->type_id != 0) { continue; }
+            if(types[i]->type_id != NULL) { continue; }
             m = Message_register_type(types[i]);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
             m = Message_recv(tdata->sd);
             if(m == NULL) { free(types); return; }
-            types[i]->type_id = m->i;
+            types[i]->type_id = malloc(strlen(m->string) + 1);
+            strcpy(types[i]->type_id, m->string);
             Message_free(m);
         }
         for(i = 0; types[i] != NULL; i++) {
             Message* m;
-            int type_id = types[i]->type_id;
-            types[i]->type_id = 0; /* Force type spec to be produced by hiding the type_id. */
-            m = Message_update_type(type_id, types[i], -1);
+            m = Message_update_type(types[i]->type_id, types[i]);
             Message_send(tdata->sd, NULL, m);
             Message_free(m);
-            types[i]->type_id = type_id;
             m = Message_recv(tdata->sd);
             if(m == NULL) { free(types); return; }
             Message_free(m);

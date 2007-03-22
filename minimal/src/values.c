@@ -301,14 +301,15 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_sp
     return v;
 }
 
-MinimalValue Minimal_typeFromId(int i) {
+MinimalValue Minimal_typeFromId(char* tid) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = M_TYPE;
     v->type_name = NULL;
     v->type_spec = NULL;
     v->typeobj = NULL;
     v->typemap = NULL;
-    v->type_id = i;
+    v->type_id = malloc(strlen(tid) + 1);
+    strcpy(v->type_id, tid);
     v->sum_pos = -1;
     if(Minimal_typeType != NULL) {
         Minimal_setType(v, Minimal_typeType);
@@ -640,9 +641,9 @@ char* Minimal_Value_string(MinimalValue v) {
             sprintf(r, "<Type %s>", v->type_name);
             return r;
         } else {
-            int size = snprintf(r, 0, "<Type id=%li>", v->type_id);
+            int size = snprintf(r, 0, "<Type id=%s>", v->type_id);
             r = (char*)malloc(size + 1);
-            sprintf(r, "<Type id=%li>", v->type_id);
+            sprintf(r, "<Type id=%s>", v->type_id);
             return r;
         }
         }
@@ -786,7 +787,12 @@ MinimalValue Minimal_copy(MinimalValue v) {
             Minimal_addReference(v->typemap);
         }
         nv->typemap = v->typemap;
-        nv->type_id = v->type_id;
+        if(v->type_id == NULL) {
+            nv->type_id = NULL;
+        } else {
+            nv->type_id = malloc(strlen(v->type_id) + 1);
+            strcpy(nv->type_id, v->type_id);
+        }
         break;
     case M_TSREF:
         Minimal_linda_ts_addref_func(v);
@@ -856,6 +862,9 @@ void Minimal_Value_free(MinimalValue v) {
         Minimal_SyntaxTree_free(v->type_spec);
         if(v->typemap != NULL) {
             Minimal_delReference(v->typemap);
+        }
+        if(v->type_id != NULL) {
+            free(v->type_id);
         }
         break;
     case M_TSREF:

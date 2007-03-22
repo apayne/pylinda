@@ -61,28 +61,28 @@ class TupleSpace:
 
     def register(self):
         try:
-            broadcast_message(register_partition, self._id, server.node_id, callback=lambda node, args: args)
+            broadcast_message(register_partition, self._id, server.node_id)
 
-            ps = broadcast_firstreplyonly(get_partitions, self._id, callback=lambda node, args: args)
+            ps = broadcast_firstreplyonly(get_partitions, self._id)
             if ps != dont_know:
                 self.partitions.extend([str(p) for p in ps[1] if str(p) != server.node_id])
 
-            r = broadcast_tonodes(self.partitions, True, get_requests, self._id, callback=lambda node, args: args)
+            r = broadcast_tonodes(self.partitions, True, get_requests, self._id)
             if r != dont_know:
                 r = r[1]
                 for i in range(len(r)):
-                    nid, template = r[i][0], r[i][1]
+                    nid, template = r[i][0], interserver_types.getTypesFromServer(nid, r[i][1])
                     self.requests.append((str(nid), tuple(template)))
         finally:
             self.lock.release(msg=("end start", self._id))
 
     def __del__(self):
-        broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id, callback=lambda node, args: args)
+        broadcast_tonodes(self.partitions, False, deleted_partition, self._id, server.node_id)
         if self.ts.count() > 0 and len(self.partitions) > 0:
             node = self.partitions[0]
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.changeOwner(x, self._id, self._id, node), tups)
-            sendMessageToNode(node, None, multiple_in, self._id, tuple([interserver_types.convertTupleForServer(node, t) for f in tups]))
+            sendMessageToNode(node, None, multiple_in, self._id, tuple(tups))
         else:
             tups = list(self.ts.matchAllTuples())
             map(lambda x: utils.delReference(x, self._id), tups)
@@ -110,14 +110,14 @@ class TupleSpace:
                     del self.blocked_list[tid]
 
                     def do_return_tuple():
-                        utils.changeOwner(matched_tup, self._id, utils.getProcessIdFromThreadId(tid))
                         req, ts = server.blocked_threads[tid]
                         del server.blocked_threads[tid]
+                        utils.changeOwner(matched_tup, self._id, utils.getProcessIdFromThreadId(tid))
                         req.lock.acquire()
                         req.send(None, ("RESULT_TUPLE", matched_tup))
                         req.lock.release()
 
-                        broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))
+                        broadcast_tonodes(self.partitions, False, cancel_request, self._id, pattern)
 
                     threading.Thread(target=do_return_tuple).start()
 
@@ -162,9 +162,9 @@ class TupleSpace:
             try:
                 # try to match a tuple
                 real, matched = self.ts.matchOneTuple(pattern)
-            except NoTupleMatched:
+            except StopIteration:
                 def add_tuples():
-                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))]:
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in server:
                             self._out(tuple(t))
                     # check that we have created a deadlock
@@ -176,8 +176,6 @@ class TupleSpace:
                 # if we didn't find a tuple then we block
                 self.blocked_list[tid] = (pattern, unblockable, False)
             else:
-                # we found a tuple so update the references and return it
-                utils.addReference(matched, utils.getProcessIdFromThreadId(tid))
                 return matched
         finally:
             self.lock.release()
@@ -194,7 +192,7 @@ class TupleSpace:
                 real, matched = self.ts.matchOneTuple(pattern)
             except StopIteration:
                 def add_tuples():
-                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern, callback=lambda node, args: (args[0], args[1], interserver_types.convertTupleForServer(node, args[2])))]:
+                    for server in [x[1] for x in broadcast_tonodes(self.partitions, False, tuple_request, self._id, pattern)]:
                         for t in range(len(server)):
                             self._out(tuple(server[t]))
                     # check if we have created a deadlock
@@ -209,9 +207,7 @@ class TupleSpace:
             except:
                 raise
             else:
-                # we found a tuple so update the references and return it
                 self.ts.delete(real) # since this is destructive delete the tuple from the tuplespace
-                utils.changeOwner(matched, self._id, utils.getProcessIdFromThreadId(tid))
                 return matched
         finally:
             self.lock.release()

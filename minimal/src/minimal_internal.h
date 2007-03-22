@@ -61,7 +61,7 @@ void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);
 void Minimal_Layer_free(MinimalLayer layer);
 void Minimal_Value_free(MinimalValue val);
 
-MinimalValue Minimal_typeFromId(int tid);
+MinimalValue Minimal_typeFromId(char* tid);
 
 static inline void Minimal_SyntaxMap_init(Minimal_NameValueMap* map) {
     map->name = NULL;

@@ -212,10 +212,10 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             bm->m->type = L_REGISTER_THREAD;
         } else if(strcmp(text, "register_type") == 0) {
             bm->m->type = L_REGISTER_TYPE;
+            bm->m->typestruct.type_id = NULL;
         } else if(strcmp(text, "update_type") == 0) {
             bm->m->type = L_UPDATE_TYPE;
-            bm->m->typestruct.type_id = -1;
-            bm->m->typestruct.reverse_id = -1;
+            bm->m->typestruct.type_id = NULL;
         } else if(strcmp(text, "my_name_is") == 0) {
             bm->m->type = L_MY_NAME_IS;
         } else if(strcmp(text, "get_node_id") == 0) {
@@ -346,13 +346,6 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
         case L_RESULT_INT:
             bm->m->i = Linda_getInt(i);
             break;
-        case L_UPDATE_TYPE:
-            if(bm->m->typestruct.type_id == -1) {
-                bm->m->typestruct.type_id = Linda_getInt(i);
-            } else {
-                bm->m->typestruct.reverse_id = Linda_getInt(i);
-            }
-            break;
         default:
             fprintf(stderr, "Discarding int due to invalid message type.\n");
         }
@@ -379,7 +372,11 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             break;
         case L_REGISTER_TYPE:
         case L_UPDATE_TYPE:
-            bm->m->typestruct.pid = s;
+            if(bm->m->typestruct.type_id == NULL) {
+                bm->m->typestruct.type_id = s;
+            } else {
+                bm->m->typestruct.pid = s;
+            }
             break;
         default:
             fprintf(stderr, "Discarding string due to invalid message type.\n");

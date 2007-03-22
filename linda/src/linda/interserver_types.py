@@ -20,16 +20,23 @@ import copy
 
 import _linda_server
 
-def convertTupleForServer_registered(server, tup):
-    tup = copy.deepcopy(tup)
-    return tuple([convertValueTypes(server, v) for v in tup])
+def getTypesFromServer_registered(server, tup):
+    l = []
+    for v in tup:
+        l += getTypesFromValue(v)
 
-def convertValueTypes(nid, value):
+    for t in l:
+        lookupForeignType(server, t)
+
+    return tup
+
+def getTypesFromValue(value):
+    l = []
     if value.type.type_id != 0:
-        value.type.type_id = getServerIds(value.type.type_id, nid)
+        l.append(value.type.type_id)
 
     if value.isType():
-        convertType(nid, value)
+        l += getTypesFromType(value)
     #elif value.isNil():
     #    pass
     #elif value.isInt():
@@ -38,16 +45,17 @@ def convertValueTypes(nid, value):
         pass
     elif value.isTuple():
         for i in range(len(value)):
-            convertValueTypes(nid, value[i])
+            l += convertValueTypes(value[i])
     elif value.isPtr():
-        convertValueTypes(nid, value.ptr)
+        l += getTypesFromValue(value.ptr)
     else:
         raise SystemError
-    return value
+    return l
 
-def convertType(nid, type):
+def getTypesFromType(type):
+    l = []
     if type.type_id != 0:
-        type.type_id = getServerIds(type.type_id, nid)
+        l.append(type.type_id)
 
     if type.isNil():
         pass
@@ -57,29 +65,29 @@ def convertType(nid, type):
         elif type.id_type_id == 0:
             pass
         else:
-            type.id_type_id = getServerIds(type.id_type_id, nid)
+            l.append(type.id_type_id)
     elif type.isProductType():
         for i in range(len(type)):
-            convertType(nid, type[i])
+            l += getTypesFromType(type[i])
     elif type.isSumType():
         for i in range(len(type)):
-            convertType(nid, type[i])
+            l += getTypesFromType(type[i])
     elif type.isPtrType():
-        convertType(nid, type.ptrtype)
+        l += getTypesFromType(type.ptrtype)
     elif type.isFunctionType():
-        convertType(nid, type.arg)
-        convertType(nid, type.result)
+        l += getTypesFromType(type.arg)
+        l += getTypesFromType(type.result)
 
-    return type
+    return l
 
-def convertTupleForServer_none(server, tup):
+def getTypesFromServer_none(server, tup):
     return tup
 
 if not _linda_server.use_types:
-    convertTupleForServer = convertTupleForServer_none
+    getTypesFromServer = getTypesFromServer_none
 elif _linda_server.register_types:
-    convertTupleForServer = convertTupleForServer_registered
-    from type_cache import getServerIds, getTypeReferences, setServerIds, lookupType
+    getTypesFromServer = getTypesFromServer_registered
+    from type_cache import getTypeReferences, lookupType, lookupForeignType
     from match import builtin
 else:
-    convertTupleForServer = convertTupleForServer_none
+    getTypesFromServer = getTypesFromServer_none

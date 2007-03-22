@@ -5,6 +5,10 @@ import time
 
 import linda
 
+class Grid:
+    def __init__(self):
+        self.grid = []
+
 def master():
     grid = loadFile(sys.argv[1])
 

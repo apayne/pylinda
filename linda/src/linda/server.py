@@ -160,13 +160,13 @@ class LindaConnection:
 
         typeid = registerType(type, pid)
 
-        req.send(msgid, ("RESULT_INT", typeid))
+        req.send(msgid, ("RESULT_STRING", typeid))
 
     def update_type(self, req, msgid, message, data):
-        type_id, type, pid, reverse_id = int(data[0]), data[1], data[2], int(data[3])
+        type_id, type, pid = data[0], data[1], data[2]
 
         type.type_id = type_id
-        updateType(type_id, type, reverse_id)
+        updateType(type_id, type)
 
         req.send(msgid, ("DONE", ))
 
@@ -238,6 +238,10 @@ class LindaConnection:
 
         if r is not None:
             del blocked_threads[tid]
+
+            # we found a tuple so update the references and return it
+            utils.addReference(r, utils.getProcessIdFromThreadId(tid))
+
             req.send(msgid, ("RESULT_TUPLE", r))
         else:
             pass # this thread is now blocked
@@ -256,6 +260,7 @@ class LindaConnection:
 
         if r is not None:
             del blocked_threads[tid]
+            utils.changeOwner(r, ts, utils.getProcessIdFromThreadId(tid))
             req.send(msgid, ("RESULT_TUPLE", r))
         else:
             pass # this thread is now blocked
@@ -346,11 +351,11 @@ class LindaConnection:
         ts, template = str(data[0]), data[1]
 
         if local_ts.has_key(ts):
-            r = local_ts[ts].tuple_request(msgid[1], template)
+            r = local_ts[ts].tuple_request(msgid[1], interserver_types.getTypesFromServer(msgid[1], template))
         else:
             r = []
         # we ignore the original representation and only pass on the converted format.
-        req.send(msgid, ("RESULT_TUPLE", tuple([interserver_types.convertTupleForServer(msgid[1], x[1]) for x in r])))
+        req.send(msgid, ("RESULT_TUPLE", tuple(r)))
 
     def cancel_request(self, req, msgid, message, data):
         ts, template = str(data[0]), data[1]
@@ -412,8 +417,8 @@ class LindaConnection:
             local_ts[ts].killlock.acquire()
         except KeyError:
             pass
-
-        threading.Thread(target=local_ts.deleteReference,args=(ts, ref)).start()
+        else:
+            threading.Thread(target=local_ts.deleteReference, args=(ts, ref)).start()
 
         req.send(msgid, (done, ))
 
@@ -539,21 +544,34 @@ def removeServer(nid):
 
 def cleanShutdown():
     # Stop accepting new connections
-    _linda_server.server_disconnect()
+    connections.socket_lock.acquire()
+    try:
+        _linda_server.server_disconnect()
+        connections.sockets = [s for s in connections.sockets if s.type != "bound"]
+    finally:
+        connections.socket_lock.release()
     # Disappear from zeroconf network
     if options.mdns and not options.disable_mdns:
         import mdns
         mdns.disconnect()
     # Close client connections
-    for t in threads.values():
-        t.close()
-    for p in processes.values():
-        p.close()
+    connections.socket_lock.acquire()
+    try:
+        for t in threads.values():
+            t.close()
+        for p in processes.values():
+            p.close()
+    finally:
+        connections.socket_lock.release()
     # garbage collect all tuplespaces
     local_ts.forceGarbage()
     connections.close = True
-    for s in connections.sockets:
-        s.close()
+    connections.socket_lock.acquire()
+    try:
+        for s in connections.sockets:
+            s.close()
+    finally:
+        connections.socket_lock.release()
 
     if _linda_server.use_types and _linda_server.register_types:
         emptyTypeCache()
@@ -561,6 +579,7 @@ def cleanShutdown():
 
     gc.collect() # Run garbage collection so libminimal doesn't produce spurious warnings.
 
+    print "exit"
     sys.exit()
 
 def unblock_thread(tid):
@@ -583,11 +602,12 @@ def main():
     options = getOptions()
 
     if not options.daemon:
-        import os
-        pid = os.fork()
-        if pid != 0:
-            from monitor import monitor
-            return monitor.Thread(options.port).run()
+        import subprocess
+        subprocess.Popen("linda_monitor", shell=True)
+        #pid = os.fork()
+        #if pid != 0:
+        #    from monitor import monitor
+        #    return monitor.Thread(options.port).run()
 
     if options.peer:
         options.peer.append("127.0.0.1") # always allow local connections.

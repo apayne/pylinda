@@ -239,7 +239,7 @@ char* Message_getString(Message* msg) {
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"inspect");
         ts = xmlNewDocNode(doc, NULL, (xmlChar*)"ts", NULL);
         xmlAddChild(root, ts);
-        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)Minimal_getTupleSpace(msg->ts));
+        xmlNewProp(ts, (xmlChar*)"id", (xmlChar*)msg->ts);
         break;
         }
     case L_GET_ROUTES:
@@ -254,7 +254,6 @@ char* Message_getString(Message* msg) {
         Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
-#ifdef REGISTER_TYPES
     case L_REGISTER_TYPE:
         {
         xmlNodePtr e;
@@ -271,21 +270,34 @@ char* Message_getString(Message* msg) {
         {
         xmlNodePtr e;
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"update_type");
-        v = Linda_int(msg->typestruct.type_id);
+        v = Linda_string(msg->typestruct.type_id);
         Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
         xmlAddChild(root, e);
         Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES, 1);
-        v = Linda_int(msg->typestruct.reverse_id);
-        Minimal_serialiseXML(doc, root, v, 0, 0);
-        Linda_delReference(v);
         v = Linda_string(Linda_process_id);
         Minimal_serialiseXML(doc, root, v, 0, 0);
         Linda_delReference(v);
         break;
         }
-#endif
+    case L_RESULT_TYPE:
+        {
+        xmlNodePtr e;
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_type");
+        e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
+        xmlAddChild(root, e);
+        Minimal_serialiseXML(doc, e, msg->typestruct.typeobj, INCLUDE_TYPES, 0);
+        break;
+        }
+    case L_REQUEST_TYPE:
+        {
+        xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"result_type");
+        v = Linda_string(msg->typestruct.type_id);
+        Minimal_serialiseXML(doc, root, v, 0, 0);
+        Linda_delReference(v);
+        break;
+        }
     case L_GET_NODE_ID:
         xmlNewTextChild(root, NULL, (xmlChar*)"action", (xmlChar*)"get_node_id");
         break;
@@ -379,8 +391,6 @@ char* Message_getString(Message* msg) {
         Minimal_serialiseXML(doc, root, msg->tuple_request.t, 0, 0);
         }
         break;
-    default:
-        fprintf(stderr, "Get String: Error, invalid message type.\n");
     }
 
     xmlDocDumpFormatMemory(doc, &buf, &size, 1);
@@ -434,11 +444,21 @@ Message* Message_result_tuple(LindaValue t) {
     return m;
 }
 
+Message* Message_result_type(LindaValue t) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = L_RESULT_TYPE;
+    Linda_addReference(t);
+    m->typestruct.typeobj = t;
+    return m;
+}
+
 Message* Message_out(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_OUT;
-    m->out.ts = Linda_copy(ts);
-    m->out.t = Linda_copy(t);
+    Linda_addReference(ts);
+    m->out.ts = ts;
+    Linda_addReference(t);
+    m->out.t = t;
     return m;
 }
 
@@ -446,8 +466,10 @@ Message* Message_in(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_IN;
-    m->in.ts = Linda_copy(ts);
-    m->in.t = Linda_copy(t);
+    Linda_addReference(ts);
+    m->in.ts = ts;
+    Linda_addReference(t);
+    m->in.t = t;
     m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->in.tid, tdata->thread_id);
     return m;
@@ -457,8 +479,10 @@ Message* Message_rd(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_RD;
-    m->rd.ts = Linda_copy(ts);
-    m->rd.t = Linda_copy(t);
+    Linda_addReference(ts);
+    m->rd.ts = ts;
+    Linda_addReference(t);
+    m->rd.t = t;
     m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->rd.tid, tdata->thread_id);
     return m;
@@ -468,8 +492,10 @@ Message* Message_inp(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_INP;
-    m->in.ts = Linda_copy(ts);
-    m->in.t = Linda_copy(t);
+    Linda_addReference(ts);
+    m->in.ts = ts;
+    Linda_addReference(t);
+    m->in.t = t;
     m->in.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->in.tid, tdata->thread_id);
     return m;
@@ -479,8 +505,10 @@ Message* Message_rdp(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_RDP;
-    m->rd.ts = Linda_copy(ts);
-    m->rd.t = Linda_copy(t);
+    Linda_addReference(ts);
+    m->rd.ts = ts;
+    Linda_addReference(t);
+    m->rd.t = t;
     m->rd.tid = (char*)malloc(strlen(tdata->thread_id)+1);
     strcpy(m->rd.tid, tdata->thread_id);
     return m;
@@ -493,7 +521,8 @@ Message* Message_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Linda_addReference(ts2);
     m->collect.ts1 = ts1;
     m->collect.ts2 = ts2;
-    m->collect.t = Linda_copy(t);
+    Linda_addReference(t);
+    m->collect.t = t;
     return m;
 }
 
@@ -504,7 +533,8 @@ Message* Message_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
     Linda_addReference(ts2);
     m->collect.ts1 = ts1;
     m->collect.ts2 = ts2;
-    m->collect.t = Linda_copy(t);
+    Linda_addReference(t);
+    m->collect.t = t;
     return m;
 }
 
@@ -567,10 +597,11 @@ Message* Message_list_ts() {
     return m;
 }
 
-Message* Message_inspect(LindaValue ts) {
+Message* Message_inspect(char* ts) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_INSPECT;
-    m->ts = Linda_copy(ts);
+    m->string = (char*)malloc(strlen(ts) + 1);
+    strcpy(m->string, ts);
     return m;
 }
 
@@ -603,14 +634,22 @@ Message* Message_register_type(LindaValue type) {
     return m;
 }
 
-Message* Message_update_type(int type_id, LindaValue type, int reverse_id) {
+Message* Message_update_type(char* type_id, LindaValue type) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_UPDATE_TYPE;
-    m->typestruct.type_id = type_id;
+    m->typestruct.type_id = malloc(strlen(type_id) + 1);
+    strcpy(m->typestruct.type_id, type_id);
     Linda_addReference(type);
     m->typestruct.typeobj = type;
-    m->typestruct.reverse_id = reverse_id;
     m->typestruct.pid = NULL;
+    return m;
+}
+
+Message* Message_request_type(char* type_id) {
+    Message* m = (Message*)malloc(sizeof(Message));
+    m->type = L_REQUEST_TYPE;
+    m->typestruct.type_id = malloc(strlen(type_id) + 1);
+    strcpy(m->typestruct.type_id, type_id);
     return m;
 }
 
@@ -681,7 +720,8 @@ Message* Message_get_connection_details(char* id) {
 Message* Message_tuple_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_TUPLE_REQUEST;
-    m->tuple_request.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->tuple_request.ts = ts;
     m->tuple_request.t = Linda_copy(t);
     return m;
 }
@@ -689,7 +729,8 @@ Message* Message_tuple_request(LindaValue ts, LindaValue t) {
 Message* Message_cancel_request(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_CANCEL_REQUEST;
-    m->tuple_request.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->tuple_request.ts = ts;
     m->tuple_request.t = Linda_copy(t);
     return m;
 }
@@ -697,7 +738,8 @@ Message* Message_cancel_request(LindaValue ts, LindaValue t) {
 Message* Message_multiple_in(LindaValue ts, LindaValue t) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_MULTIPLE_IN;
-    m->tuple_request.ts = Linda_copy(ts);
+    Linda_addReference(ts);
+    m->tuple_request.ts = ts;
     m->tuple_request.t = Linda_copy(t);
     return m;
 }
@@ -718,6 +760,9 @@ void Message_free(Message* msg) {
         break;
     case L_RESULT_TUPLE:
         Linda_delReference(msg->tuple);
+        break;
+    case L_RESULT_TYPE:
+        Linda_delReference(msg->typestruct.typeobj);
         break;
     case L_UNBLOCK:
         break;
@@ -764,8 +809,14 @@ void Message_free(Message* msg) {
     case L_UPDATE_TYPE:
         Linda_delReference(msg->typestruct.typeobj);
         if(msg->typestruct.pid != NULL) {
+            free(msg->typestruct.type_id);
+        }
+        if(msg->typestruct.pid != NULL) {
             free(msg->typestruct.pid);
         }
+        break;
+    case L_REQUEST_TYPE:
+        free(msg->typestruct.type_id);
         break;
     case L_MY_NAME_IS:
         free(msg->string);
@@ -782,7 +833,7 @@ void Message_free(Message* msg) {
         free(msg->ref.ts);
         break;
     case L_INSPECT:
-        Linda_delReference(msg->ts);
+        free(msg->string);
         break;
     case L_GET_NEIGHBOURS:
         break;
@@ -798,8 +849,6 @@ void Message_free(Message* msg) {
         Linda_delReference(msg->tuple_request.ts);
         Linda_delReference(msg->tuple_request.t);
         break;
-    default:
-        fprintf(stderr, "Invalid message free (%i).\n", msg->type);
     }
     free(msg);
     }

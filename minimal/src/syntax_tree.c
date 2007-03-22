@@ -27,7 +27,7 @@
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id) {
     Minimal_SyntaxTree tree;
     tree.type = ST_IDENTIFIER;
-    tree.type_id = 0;
+    tree.type_id = NULL;
     tree.string = (char*)malloc(strlen(id)+1);
     strcpy(tree.string, id);
     return tree;
@@ -36,7 +36,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
     Minimal_SyntaxTree tree;
     tree.type = ST_INTEGER;
-    tree.type_id = 0;
+    tree.type_id = NULL;
     tree.integer = i;
     return tree;
 }
@@ -44,7 +44,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
     Minimal_SyntaxTree tree;
     tree.type = ST_OPERATOR;
-    tree.type_id = 0;
+    tree.type_id = NULL;
     tree.string = (char*)malloc(strlen(op)+1);
     strcpy(tree._operator, op);
     tree.op1 = NULL;
@@ -55,7 +55,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(char* op) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
     Minimal_SyntaxTree tree;
     tree.type = ST_TUPLE;
-    tree.type_id = 0;
+    tree.type_id = NULL;
     if(size == 0) {
         tree.tuple = NULL;
     } else {
@@ -73,7 +73,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
 Minimal_SyntaxTree Minimal_SyntaxTree_createIfExpr(int size) {
     Minimal_SyntaxTree tree;
     tree.type = ST_IFEXPR;
-    tree.type_id = 0;
+    tree.type_id = NULL;
     tree._if = NULL;
     tree._then = NULL;
     tree._else = NULL;
@@ -99,7 +99,12 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
     Minimal_SyntaxTree* ntree = NULL;
     if(tree == NULL) { return NULL; }
     ntree = (Minimal_SyntaxTree*)malloc(sizeof(struct Minimal_SyntaxTree_t));
-    ntree->type_id = tree->type_id;
+    if(tree->type_id == NULL) {
+        ntree->type_id = NULL;
+    } else {
+        ntree->type_id = malloc(strlen(tree->type_id) + 1);
+        strcpy(ntree->type_id, tree->type_id);
+    }
     switch(tree->type) {
     case ST_BLANK:
         ntree->type = ST_BLANK;
@@ -219,6 +224,9 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
 }
 
 void Minimal_SyntaxTree_clear(Minimal_SyntaxTree* tree) {
+    if(tree->type_id != NULL) {
+        free(tree->type_id);
+    }
     switch(tree->type) {
     case ST_BLANK:
     case ST_NIL:

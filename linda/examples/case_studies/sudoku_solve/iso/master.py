@@ -5,8 +5,8 @@ import time
 
 import linda
 
-rowtype = linda.Type("row :: int * int * int * int * int * int * int * int * int;")
-gridtype = linda.Type("grid :: row * row * row * row * row * row * row * row * row;")
+rowtype = linda.Type("row :: int * 9;")
+gridtype = linda.Type("grid :: row * 9;")
 
 def master():
     grid = loadFile(sys.argv[1])

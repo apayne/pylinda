@@ -138,7 +138,11 @@ class TupleSpaceContainer:
         self.semaphore.acquire()
         try:
             for ts in self.ts.keys():
-                self.ts[ts].refs = []
+                try:
+                    self.ts[ts].refs = []
+                except KeyError:
+                    print "Warning, TupleSpace deleted too early. Possible bug."
+                    continue
                 self.semaphore.release()
                 self.garbage(self.ts[ts], True)
                 self.semaphore.acquire()

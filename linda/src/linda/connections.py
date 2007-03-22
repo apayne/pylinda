@@ -17,6 +17,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import struct
+import time
 import thread
 import threading
 import socket
@@ -42,7 +43,9 @@ ms_lock = threading.Semaphore()
 socket_lock = threading.RLock()
 sockets = []
 close = False
+shutting_down = False
 def socket_watcher():
+    global shutting_down
     _linda_server.serve(getOptions().use_domain, getOptions().port)
     for s in _linda_server.serverSockets():
         if s > 0:
@@ -51,7 +54,11 @@ def socket_watcher():
 
     Handler = server.LindaConnection()
     while True:
-        iwtd, owtd, ewtd = select.select(sockets, [], sockets, 1)
+        socket_lock.acquire()
+        try:
+            iwtd, owtd, ewtd = select.select(sockets, [], sockets, 1)
+        finally:
+            socket_lock.release()
 
         if close:
             break
@@ -62,8 +69,12 @@ def socket_watcher():
             if s.type == "bound":
                  ns = _linda_server.accept(s)
                  if ns == -1:
-                     del sockets[sockets.index(s)]
-                     sys.stderr.write("Error accepting connection on %s\n" % (s, ))
+                    socket_lock.acquire()
+                    try:
+                        del sockets[sockets.index(s)]
+                    finally:
+                        socket_lock.release()
+                    sys.stderr.write("Error accepting connection on %s\n" % (s, ))
                  else:
                     ns = Connection(ns)
                     ns.type = "CLIENT"
@@ -72,8 +83,12 @@ def socket_watcher():
             m = _linda_server.recv(s.fileno())
             if m is None:
                 if s.type == "MONITOR":
+                    if shutting_down:
+                        continue
                     print "Server shutting down."
+                    shutting_down = True
                     thread_pool.giveJob(target=server.cleanShutdown, args=())
+                    continue
                 elif s.type == "SERVER":
                     server.removeServer(s.name)
                     connect_lock.acquire()
@@ -230,7 +245,7 @@ def connectToMain(node):
     """\internal
     \brief Find the address of, and connect to a new server.
     """
-    details = broadcast_firstreplyonly(get_connect_details, node, callback=lambda nid, args: args)
+    details = broadcast_firstreplyonly(get_connect_details, node)
     if details == "DONT_KNOW":
         sys.stderr.write("Failed to get connection details for %s.\n" % (node, ))
         return False
@@ -263,20 +278,10 @@ def connectToMain(node):
         server.server.process_request(s, addr)
         return True
 
-def broadcast_message(*args, **kwargs):
+def broadcast_message(*args):
     memo = [server.node_id]
     r = []
     todo = neighbours.keys()
-
-    if kwargs.has_key("callback"):
-        if _linda_server.use_types and _linda_server.register_types:
-            callback = kwargs["callback"]
-        else:
-            callback = lambda server, args: args
-    else:
-        if _linda_server.use_types and _linda_server.register_types:
-            assert False
-        callback = lambda server, args: args
 
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
@@ -285,7 +290,7 @@ def broadcast_message(*args, **kwargs):
         else:
             memo.append(str(node))
 
-        m = sendMessageToNode(node, None, *callback(node, args))
+        m = sendMessageToNode(node, None, *args)
         if m is not None and m[0] != dont_know:
             r.append(m)
 
@@ -296,19 +301,9 @@ def broadcast_message(*args, **kwargs):
             todo.extend([str(x) for x in n[1]])
     return r
 
-def broadcast_firstreplyonly(*args, **kwargs):
+def broadcast_firstreplyonly(*args):
     memo = [server.node_id]
     todo = neighbours.keys()
-
-    if kwargs.has_key("callback"):
-        if _linda_server.use_types and _linda_server.register_types:
-            callback = kwargs["callback"]
-        else:
-            callback = lambda server, args: args
-    else:
-        if _linda_server.use_types and _linda_server.register_types:
-            assert False
-        callback = lambda server, args: args
 
     while len(todo) > 0:
         node, todo = todo[0], todo[1:]
@@ -317,7 +312,7 @@ def broadcast_firstreplyonly(*args, **kwargs):
         else:
             memo.append(str(node))
 
-        m = sendMessageToNode(node, None, *callback(node, args))
+        m = sendMessageToNode(node, None, *args)
 
         if m is not None and m[0] != dont_know:
             return m
@@ -328,24 +323,14 @@ def broadcast_firstreplyonly(*args, **kwargs):
 
     return dont_know
 
-def broadcast_tonodes(nodes, firstreplyonly, *args, **kwargs):
+def broadcast_tonodes(nodes, firstreplyonly, *args):
     todo = nodes[:]
     r = []
-
-    if kwargs.has_key("callback"):
-        if _linda_server.use_types and _linda_server.register_types:
-            callback = kwargs["callback"]
-        else:
-            callback = lambda server, args: args
-    else:
-        if _linda_server.use_types and _linda_server.register_types:
-            assert False
-        callback = lambda server, args: args
 
     for n in todo:
         n = str(n)
         assert utils.isNodeId(n)
-        m = sendMessageToNode(n, None, *callback(n, args))
+        m = sendMessageToNode(n, None, *args)
 
         if m is None or m[0] == dont_know:
             pass
@@ -362,4 +347,3 @@ import utils
 getMsgId = utils.Counter()
 
 import server
-from interserver_types import convertTupleForServer

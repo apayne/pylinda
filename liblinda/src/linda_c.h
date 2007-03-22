@@ -130,6 +130,7 @@ static inline char* Linda_getString(LindaValue v) { return Minimal_getString(v);
 static inline int Linda_getStringLen(LindaValue v) { return Minimal_getStringLen(v); }
 
 static inline unsigned char Linda_isTupleSpace(LindaValue v) { return Minimal_isTupleSpace(v); }
+static inline char* Linda_getTupleSpace(LindaValue v) { return Minimal_getTupleSpace(v); }
 
 static inline unsigned char Linda_isTuple(LindaValue v) { return Minimal_isTuple(v); }
 static inline LindaValue Linda_tuple(int i) { return Minimal_tuple(i); }

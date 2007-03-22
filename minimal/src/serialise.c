@@ -119,15 +119,10 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
                         Minimal_includeTypes(doc, x, f); \
                        } \
                        if(f->typeobj != NULL) { \
-                        if(f->typeobj->type_id == 0) { \
+                        if(f->typeobj->type_id == NULL) { \
                          xmlNewProp(x, (xmlChar*)"typename", (xmlChar*)f->typeobj->type_name); \
                         } else { \
-                         xmlChar* id = NULL; \
-                         int len = snprintf((char*)id, 0, "%li", f->typeobj->type_id); \
-                         id = (xmlChar*)malloc(len+1);  \
-                         snprintf((char*)id, len+1, "%li", f->typeobj->type_id); \
-                         xmlNewProp(x, (xmlChar*)"typeid", (xmlChar*)id); \
-                         free(id); \
+                         xmlNewProp(x, (xmlChar*)"typeid", (xmlChar*)f->typeobj->type_id); \
                         } \
                        } \
                        }
@@ -363,15 +358,10 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddSumPos(typenode);
         AddId(typenode);
         xmlNewProp(typenode, (xmlChar*)"name", (xmlChar*)f->type_name);
-        if(f->type_id == 0 || include_type_spec) {
+        if(f->type_id == NULL || include_type_spec) {
             Minimal_serialiseTypeSpec(doc, typenode, f->type_spec, f->typemap);
         } else {
-            xmlChar* id = NULL;
-            int len = snprintf((char*)id, 0, "%li", f->type_id);
-            id = (xmlChar*)malloc(len+1);
-            snprintf((char*)id, len+1, "%li", f->type_id);
-            xmlNewProp(typenode, (xmlChar*)"typeid", (xmlChar*)id);
-            free(id);
+            xmlNewProp(typenode, (xmlChar*)"typeid", (xmlChar*)f->type_id);
         }
         return;
         }
@@ -426,9 +416,17 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
 
         return;
         }
-    default:
+    case M_TSREF:
+        {
+        xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"tsid", (xmlChar*)f->string);
+        xmlAddChild(parent, node);
+        AddTypeName(node);
+        AddSumPos(node);
+        AddId(node);
+        }
+    /*default:
         fprintf(stderr, "Error: Unknown value id in Minimal_serializeValue (%i).\n", f->type);
-        return;
+        return;*/
     }
 }
 
@@ -444,35 +442,23 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
     case ST_IDENTIFIER:
         {
         xmlNodePtr node;
-        if(type_spec->type_id != 0) {
-            char* id = NULL;
-            int len;
+        if(type_spec->type_id != NULL) {
             xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
             xmlAddChild(parent, node);
             xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
-            len = snprintf(id, 0, "%i", type_spec->type_id);
-            id = malloc(len + 1);
-            snprintf(id, len + 1, "%i", type_spec->type_id);
-            xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)id);
-            free(id);
+            xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)type_spec->type_id);
             return;
         }
         MinimalValue v = Minimal_getName(typemap, type_spec->string);
         if(v != NULL) {
             if(v->type_id != 0) {
-                char* id = NULL;
-                int len;
                 MinimalValue type;
                 xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
                 xmlAddChild(parent, node);
                 xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
                 type = Minimal_getName(typemap, type_spec->string);
                 if(type != NULL) {
-                    len = snprintf(id, 0, "%li", type->type_id);
-                    id = malloc(len + 1);
-                    snprintf(id, len + 1, "%li", type->type_id);
-                    xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)id);
-                    free(id);
+                    xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)type->type_id);
                     Minimal_delReference(type);
                 }
                 Minimal_delReference(v);

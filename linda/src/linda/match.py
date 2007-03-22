@@ -25,8 +25,8 @@ builtin = ["bool", "int8", "int16", "int32", "int64", "uint8", "uint16", "uint32
 identity = lambda value: value
 
 def compare_notypes(t1, t2):
-    assert isinstance(t1, _linda_server.Value) and t1.isType()
-    assert isinstance(t1, _linda_server.Value) and t2.isType()
+    assert isinstance(t1, _linda_server.Value) and t1.isType(), str(t1)
+    assert isinstance(t2, _linda_server.Value) and t2.isType(), str(t2)
 
     assert t1.isId()
     assert t2.isId()

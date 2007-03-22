@@ -45,29 +45,29 @@ def makeMessageXMLSafe(msg):
 
 def addReference(tup, new, node=None):
     def do_replace(e):
-        if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
+        if isinstance(e, _linda_server.Value) and e.isTupleSpace() and e.tsid != "UTS":
             if node is None:
-                server.local_ts.addReference(e._id, new)
+                server.local_ts.addReference(e.tsid, new)
             else:
-                connections.sendMessageToNode(node, None, messages.add_reference, e._id, new)
+                connections.sendMessageToNode(node, None, messages.add_reference, e.tsid, new)
         return e
     [do_replace(x) for x in tup]
 
 def delReference(tup, cur):
     def do_replace(e):
-        if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
-            server.local_ts.deleteReference(e._id, cur)
+        if isinstance(e, _linda_server.Value) and e.isTupleSpace() and e.tsid != "UTS":
+            server.local_ts.deleteReference(e.tsid, cur)
         return e
     [do_replace(x) for x in tup]
 
 def changeOwner(tup, cur, new, node=None):
     def do_replace(e):
-        if isinstance(e, _linda_server.TSRef) and e._id != "UTS":
+        if isinstance(e, _linda_server.Value) and e.isTupleSpace() and e.tsid != "UTS":
             if node is None:
-                server.local_ts.addReference(e._id, new)
+                server.local_ts.addReference(e.tsid, new)
             else:
-                connections.sendMessageToNode(node, None, messages.add_reference, e._id, new)
-            server.local_ts.deleteReference(e._id, cur)
+                connections.sendMessageToNode(node, None, messages.add_reference, e.tsid, new)
+            server.local_ts.deleteReference(e.tsid, cur)
         return e
     [do_replace(x) for x in tup]
 
@@ -78,7 +78,9 @@ def isTupleSpaceId(id):
     This function does not check that a tuplespace exists with this id, only the id is of the correct format
     \param id The id to be checked
     """
-    return (isinstance(id, str) or (isinstance(id, _linda_server.Value) and id.isString())) and (id == "UTS" or (len(id) == 41 and id[0] == "S"))
+    if isinstance(id, _linda_server.Value) and id.isTupleSpace():
+        id = id.tsid
+    return isinstance(id, str) and (id == "UTS" or (len(id) == 41 and id[0] == "S"))
 
 def isNodeId(id):
     """\internal

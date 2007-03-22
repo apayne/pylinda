@@ -94,7 +94,7 @@ struct MinimalValue_t {
             char* type_name;
             Minimal_SyntaxTree* type_spec;
             MinimalLayer typemap;
-            unsigned long type_id;
+            char* type_id;
         };
         char* tsid;
         struct {
@@ -214,7 +214,7 @@ struct Minimal_SyntaxTree_t {
         ST_POINTER,
         ST_IFEXPR
     } type;
-    int type_id;
+    char* type_id;
     union {
         int integer;
         double floating;

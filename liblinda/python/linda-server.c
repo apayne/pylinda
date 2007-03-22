@@ -228,6 +228,8 @@ PyMODINIT_FUNC init_linda_server(void)
     PyModule_AddObject(LindaServer_module, "use_types", Py_False);
 #endif
 
+    PyModule_AddObject(LindaServer_module, "version", PyString_FromString(Linda_version));
+
     inittsref(LindaServer_module);
     initvalue(LindaServer_module);
     inittypemap(LindaServer_module);
