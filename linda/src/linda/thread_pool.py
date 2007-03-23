@@ -18,10 +18,12 @@
 
 import threading
 
+from autoregister import convertFrom
+
 def giveJob(target, args):
     t = threading.Thread(target=job, args=(target, args))
     t.setDaemon(1)
     t.start()
 
 def job(target, args):
-    target(*args)
+    target(*convertFrom(args))

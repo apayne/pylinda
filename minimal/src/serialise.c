@@ -170,6 +170,9 @@ void Minimal_includeTypes(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
         xmlNodePtr typenode = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);
         xmlAddChild(parent, typenode);
         xmlNewProp(typenode, (xmlChar*)"name", (xmlChar*)list[i]->type_name);
+        if(list[i]->typeobj != NULL) {
+            xmlNewProp(typenode, (xmlChar*)"typename", (xmlChar*)list[i]->typeobj->type_name);
+        }
         Minimal_serialiseTypeSpec(doc, typenode, list[i]->type_spec, list[i]->typemap);
     }
 
@@ -450,31 +453,30 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
             return;
         }
         MinimalValue v = Minimal_getName(typemap, type_spec->string);
-        if(v != NULL) {
-            if(v->type_id != 0) {
-                MinimalValue type;
-                xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
-                xmlAddChild(parent, node);
-                xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
-                type = Minimal_getName(typemap, type_spec->string);
-                if(type != NULL) {
-                    xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)type->type_id);
-                    Minimal_delReference(type);
-                }
-                Minimal_delReference(v);
-                return;
-            } else {
-                Minimal_delReference(v);
+        if(v != NULL && v->type_id != 0) {
+            MinimalValue type;
+            xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
+            xmlAddChild(parent, node);
+            xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
+            type = Minimal_getName(typemap, type_spec->string);
+            if(type != NULL) {
+                xmlNewProp(node, (xmlChar*)"typeid", (xmlChar*)type->type_id);
+                Minimal_delReference(type);
             }
         } else {
             node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
             xmlAddChild(parent, node);
             xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->string);
-            return;
         }
+        if(v != NULL) {
+            Minimal_delReference(v);
+        }
+        break;
         }
     case ST_TYPE_SPEC:
         {
+        int i = *((int*)NULL);
+        i++;
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
         xmlAddChild(parent, node);
         xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->type_name);

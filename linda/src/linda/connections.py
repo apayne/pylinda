@@ -28,7 +28,6 @@ import _linda_server
 from options import getOptions
 
 from messages import *
-import thread_pool
 
 neighbours = {}
 
@@ -147,7 +146,7 @@ class Connection:
         return self.sd
     def send(self, msgid, msg):
         assert isinstance(msg, tuple), type(msg)
-        msg = utils.makeMessageXMLSafe(msg)
+        msg = utils.makeMessageXMLSafe(convertTo(msg))
         if msgid:
             if str(msgid[0]) == server.node_id:
                 msgid = msgid[1], msgid[1], msgid[2]
@@ -181,7 +180,7 @@ class Connection:
                 del message_store[msgid[2]]
             finally:
                 ms_lock.release()
-            return m[1]
+            return convertTo(m[1])
     def realrecv(self):
         r = _linda_server.recv(self.sd)
         return r
@@ -347,3 +346,6 @@ import utils
 getMsgId = utils.Counter()
 
 import server
+
+from autoregister import convertTo, convertFrom
+import thread_pool
