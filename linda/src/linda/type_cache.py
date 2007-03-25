@@ -36,6 +36,7 @@ def registerType(type, pid):
             __cache[id] = [type, None, __getTypeReferences(type)]
         else:
             __cache[id] = [type, pid, __getTypeReferences(type)]
+
         return id
     finally:
         cache_lock.release()
@@ -54,7 +55,10 @@ def emptyTypeCache():
     __cache = None
 
 def lookupType(id):
-    return __cache[id][0]
+    try:
+        return __cache[id][0]
+    except KeyError:
+        raise KeyError, "Type %s not found (%s)" % (id, __cache.keys())
 
 def getTypeReferences(id):
     return __cache[id][2]

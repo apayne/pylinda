@@ -318,6 +318,10 @@ MinimalValue Minimal_typeFromId(char* tid) {
     return v;
 }
 
+unsigned char Minimal_isFunction(MinimalValue v) {
+    return v->type == M_FUNCTION;
+}
+
 MinimalValue Minimal_function(char* code) {
     MinimalValue f;
     MinimalLayer layer;

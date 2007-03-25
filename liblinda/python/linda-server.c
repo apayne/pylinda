@@ -194,6 +194,23 @@ static PyObject* LindaServerPython_setnodeid(PyObject *self, PyObject* args) {
     return Py_None;
 }
 
+#ifdef TYPES
+static PyObject* linda_TypeFromId(PyObject* self, PyObject* args) {
+    char* typeid;
+    PyObject* o;
+    LindaValue l;
+
+    if(!PyArg_ParseTuple(args, "s", &typeid)) {
+        return NULL;
+    }
+
+    l = Minimal_typeFromId(typeid);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
+}
+#endif
+
 static PyMethodDef LindaServerMethods[] = {
     {"serve",  LindaServerPython_serve, METH_VARARGS, "Create the listening sockets."},
     {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connections"},
@@ -208,6 +225,9 @@ static PyMethodDef LindaServerMethods[] = {
     {"socket_disconnect",  LindaServerPython_sddisconnect, METH_VARARGS, "Disconnect a socket."},
     {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
     {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "Set the id of this node."},
+#ifdef TYPES
+    {"TypeFromId", linda_TypeFromId, METH_VARARGS, ""},
+#endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

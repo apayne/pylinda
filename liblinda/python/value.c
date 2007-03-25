@@ -283,22 +283,38 @@ static PyObject* linda_Value_isTupleSpace(linda_ValueObject* self) {
     }
 }
 
-/* These are all type related functions */
-
-static PyObject* linda_Value_isNil(linda_ValueObject* self) {
-    if(!Linda_isType(self->val)) {
-         PyErr_SetString(PyExc_TypeError, "Value is not a type.\n");
-        return NULL;
-    }
-    if(self->val->type_spec == NULL) {
-        Py_INCREF(Py_False);
-        return Py_False;
-    } else if(self->val->type_spec->type == ST_NIL) {
+static PyObject* linda_Value_isFunction(linda_ValueObject* self) {
+    if(Linda_isFunction(self->val)) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
         Py_INCREF(Py_False);
         return Py_False;
+    }
+}
+
+/* These are all type related functions */
+
+static PyObject* linda_Value_isNil(linda_ValueObject* self) {
+    if(Linda_isType(self->val)) {
+        if(self->val->type_spec == NULL) {
+            Py_INCREF(Py_False);
+            return Py_False;
+        } else if(self->val->type_spec->type == ST_NIL) {
+            Py_INCREF(Py_True);
+            return Py_True;
+        } else {
+            Py_INCREF(Py_False);
+            return Py_False;
+        }
+    } else {
+        if(self->val->type == M_NIL) {
+            Py_INCREF(Py_True);
+            return Py_True;
+        } else {
+            Py_INCREF(Py_False);
+            return Py_False;
+        }
     }
 }
 
@@ -405,6 +421,7 @@ static PyMethodDef value_methods[] = {
     {"isType", (PyCFunction)linda_Value_isType, METH_NOARGS, ""},
     {"isNil", (PyCFunction)linda_Value_isNil, METH_NOARGS, ""},
     {"isLong", (PyCFunction)linda_Value_isLong, METH_NOARGS, ""},
+    {"isFunction", (PyCFunction)linda_Value_isFunction, METH_NOARGS, ""},
     {"isId", (PyCFunction)linda_Value_isId, METH_NOARGS, ""},
     {"isProductType", (PyCFunction)linda_Value_isProductType, METH_NOARGS, ""},
     {"isSumType", (PyCFunction)linda_Value_isSumType, METH_NOARGS, ""},
@@ -418,7 +435,16 @@ static PyMethodDef value_methods[] = {
 };
 
 static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
-#ifndef USE_TYPES
+#ifdef TYPES
+    LindaValue v = Linda_getType(self->val);
+    if(v == NULL) {
+        Py_INCREF(Py_None);
+        return Py_None;
+    } else {
+        PyObject* o = Value2PyO(v);
+        return o;
+    }
+#else
     switch(self->val->type) {
     case M_NIL:
         return Value2PyO(Linda_nilType);
@@ -454,16 +480,20 @@ static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
     }
     Py_INCREF(Py_None);
     return Py_None;
-#else
-    LindaValue v = Linda_getType(self->val);
-    if(v == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
-    } else {
-        PyObject* o = Value2PyO(v);
-        return o;
-    }
 #endif
+}
+
+static int linda_Value_settype(linda_ValueObject* self, PyObject* value, void* closure) {
+    LindaValue type;
+    if(!PyObject_IsInstance(value, (PyObject*)&linda_ValueType)) { PyErr_SetString(PyExc_TypeError, "setType - Setting to not an value."); return -1; }
+
+    type = PyO2Value(value);
+
+    if(!Linda_isType(type)) { PyErr_SetString(PyExc_TypeError, "setType - Not a type."); Linda_delReference(type); return -1; }
+
+    Linda_setType(self->val, type);
+    Linda_delReference(type);
+    return 0;
 }
 
 static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
@@ -604,6 +634,20 @@ static int linda_Value_setsumpos(linda_ValueObject* self, PyObject* value, void*
     Linda_setSumPos(self->val, PyInt_AsLong(value));
     return 0;
 }
+
+static PyObject* linda_Value_gettype_name(linda_ValueObject* self, void* closure) {
+    if(!Linda_isType(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getTypeName- Not a type.");
+        return NULL;
+    }
+
+    if(self->val->type_name != NULL) {
+        return PyString_FromString(self->val->type_name);
+    } else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+}
 #endif
 
 static PyObject* linda_Value_gettsid(linda_ValueObject *self, void *closure) {
@@ -614,12 +658,13 @@ static PyObject* linda_Value_gettsid(linda_ValueObject *self, void *closure) {
 static PyGetSetDef value_getseters[] = {
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
     {"int", (getter)linda_Value_getint, (setter)NULL, "", NULL},
-    {"type", (getter)linda_Value_gettype, (setter)NULL, "", NULL},
+    {"type", (getter)linda_Value_gettype, (setter)linda_Value_settype, "", NULL},
     {"string", (getter)linda_Value_getstring, (setter)NULL, "", NULL},
     {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
     {"tsid", (getter)linda_Value_gettsid, (setter)NULL, "", NULL},
 #ifdef TYPES
+    {"type_name", (getter)linda_Value_gettype_name, (setter)NULL, "", NULL},
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
     {"id_type_id", (getter)linda_Value_getidtypeid, (setter)linda_Value_setidtypeid, "", NULL},

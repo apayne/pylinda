@@ -38,7 +38,6 @@ unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue typ
     free(*list);
     *list = newlist;
 
-    printf("adding type %s with type %p\n", type->type_name, type->typeobj);
     if(type->typeobj != NULL) {
         if(Minimal_addTypeToTypeList(list, type->typeobj)) {
             Minimal_getTypeList2(type->typeobj->type_spec, type->typeobj->typemap, list);

@@ -164,7 +164,10 @@ EXPORT unsigned int Minimal_getStringLen(MinimalValue v);
 
 EXPORT unsigned char Minimal_isType(MinimalValue v);
 EXPORT MinimalValue Minimal_type(const char* typespec);
+EXPORT MinimalValue Minimal_typeFromId(char* tid);
 EXPORT MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree* type_spec);
+
+EXPORT unsigned char Minimal_isFunction(MinimalValue v);
 EXPORT MinimalValue Minimal_function(char* code);
 EXPORT MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree* type_spec, Minimal_SyntaxTree* parameters, Minimal_SyntaxTree* code);
 

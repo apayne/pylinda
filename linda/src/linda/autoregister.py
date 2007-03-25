@@ -23,12 +23,125 @@ import _linda_server
 def convertFrom_none(x): return x
 def convertTo_none(x): return x
 
+def typeEq(type1, type2, memo = None):
+    if memo is None:
+        memo = {}
+    else:
+        if (type1, type2) in memo:
+            return True
+    memo[(type1, type2)] = True
+
+    if type1.type_name != type2.type_name:
+        return False
+    elif type1.isNil():
+        if not type2.isNil():
+            return False
+        return True
+    elif type1.isId():
+        if not type2.isId():
+            return False
+        if type1.id in match.builtin:
+            return type1.id == type2.id
+        t = findType(type1.typemap[type1.id], memo)
+        if t.type_id == type2.id_type_id:
+            type1.id_type_id = t.type_id
+            return True
+        else:
+            return False
+    elif type1.isProductType():
+        if not type2.isProductType():
+            return False
+        if len(type1) != len(type2):
+            return False
+        else:
+            for i in range(len(type1)):
+                if not typeEq(type1[i], type2[i], memo):
+                    return False
+            return True
+    elif type1.isSumType():
+        if not type2.isSumType():
+            return False
+        if len(type1) != len(type2):
+            return False
+        else:
+            for i in range(len(type1)):
+                if not typeEq(type1[i], type2[i], memo):
+                    return False
+            return True
+    elif type1.isPtrType():
+        if not type2.isPtrType():
+            return False
+        return False
+    elif type1.isFunctionType():
+        if not type2.isFunctionType():
+            return False
+        return False
+    else:
+        raise SystemError, (type1, type2)
+
+def registerAllTypes(type, memo = None):
+    if memo is None:
+        memo = {}
+    else:
+        if type in memo:
+            return memo[type]
+    memo[type] = type_cache.registerType(type, "")
+
+    if type.isNil():
+        pass
+    elif type.isId():
+        if type.id in match.builtin:
+            pass
+        else:
+            t = registerAllTypes(type.typemap[type.id], memo)
+            type.id_type_id = t
+    elif type.isProductType():
+        for i in range(len(type)):
+            registerAllTypes(type[i], memo)
+    elif type.isSumType():
+        for i in range(len(type)):
+            registerAllTypes(type[i], memo)
+    elif type.isPtrType():
+        raise SystemError, type
+    elif type.isFunctionType():
+        raise SystemError, type
+    else:
+        raise SystemError, type
+
+    type.type_id = memo[type]
+    type_cache.updateType(type.type_id , type)
+    return type.type_id
+
+def findType(type, memo = None):
+    type_cache.cache_lock.acquire()
+    try:
+        for t in type_cache.__cache.keys():
+            if typeEq(type, type_cache.lookupType(t), memo):
+                return _linda_server.TypeFromId(t)
+    finally:
+        type_cache.cache_lock.release()
+    return _linda_server.TypeFromId(registerAllTypes(type))
+
 def convertFrom_unregistered(value):
     if isinstance(value, tuple):
         return tuple([convertFrom_unregistered(v) for v in value])
     elif isinstance(value, _linda_server.Value):
-        if False:
-            pass
+        if value.type:
+            value.type = findType(value.type)
+        if value.isNil():
+            return value
+        elif value.isLong():
+            return value
+        elif value.isString():
+            return value
+        elif value.isTuple():
+            return value
+        elif value.isTupleSpace():
+            return value
+        elif value.isFunction():
+            return value
+        elif value.isType():
+            return findType(value)
         else:
             raise SystemError, (value, type(value))
     else:
@@ -39,8 +152,22 @@ def convertTo_unregistered(value):
         value = copy.deepcopy(value)
         return tuple([convertTo_unregistered(v) for v in value])
     elif isinstance(value, _linda_server.Value):
-        if False:
-            pass
+        if value.type.type_id:
+            value.type = type_cache.lookupType(value.type.type_id)
+        if value.isNil():
+            return value
+        elif value.isLong():
+            return value
+        elif value.isString():
+            return value
+        elif value.isTuple():
+            return value
+        elif value.isTupleSpace():
+            return value
+        elif value.isFunction():
+            return value
+        elif value.isType():
+            return type_cache.lookupType(value.type.type_id)
         else:
             raise SystemError, (value, type(value))
     else:
@@ -57,3 +184,6 @@ else:
     convertTo = convertTo_unregistered
 
 from connections import Connection
+
+import type_cache
+import match

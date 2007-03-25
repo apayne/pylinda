@@ -27,7 +27,7 @@ import _linda_server
 
 from match import compare
 
-if _linda_server.use_types and _linda_server.register_types:
+if _linda_server.use_types:
     from iso_cache import saveIso, lookupIso
 
 def identity(value):
@@ -57,7 +57,7 @@ def doesMatch_notypes(e1, e2):
         else:
             raise NoTupleMatch
 
-def doesMatch_registered(e1, e2):
+def doesMatch_types(e1, e2):
     if isinstance(e1, tuple):
         if len(e1) != len(e2):
             raise NoTupleMatch
@@ -91,34 +91,11 @@ def doesMatch_registered(e1, e2):
         else:
             raise NoTupleMatch
 
-def doesMatch_unregistered(e1, e2):
-    if isinstance(e1, tuple):
-        if len(e1) != len(e2):
-            raise NoTupleMatch
-        l = []
-        for t1, t2 in zip(e1, e2):
-            l.append(doesMatch(t1, t2))
-        return tuple(l)
-    elif e1.isType():
-        f = compare(e1, e2.type)
-        if f is not None:
-            return f(e2)
-        else:
-            raise NoTupleMatch
-    else:
-        f = compare(e1.type, e2.type)
-        if f is not None and f(e2) == e1:
-            return e1
-        else:
-            raise NoTupleMatch
-
 if not _linda_server.use_types:
     doesMatch = doesMatch_notypes
-elif _linda_server.register_types:
-    import type_cache
-    doesMatch = doesMatch_registered
 else:
-    doesMatch = doesMatch_unregistered
+    import type_cache
+    doesMatch = doesMatch_types
 
 class TupleContainer:
     def __init__(self):

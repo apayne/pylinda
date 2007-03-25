@@ -146,6 +146,7 @@ static inline void Linda_addProduct(LindaValue t, LindaValue v) { Minimal_tupleA
 static inline void Linda_setProduct(LindaValue t, int i, LindaValue v) { Minimal_tupleSet(t, i, v); }
 static inline LindaValue Linda_getProduct(LindaValue t, int i) { return Minimal_tupleGet(t, i); }
 
+static inline unsigned char Linda_isFunction(LindaValue v) { return Minimal_isFunction(v); }
 static inline LindaValue Linda_function(char* code) { return Minimal_function(code); }
 
 static inline LindaValue Linda_ptr(LindaValue v) { return Minimal_ptr(v); }
