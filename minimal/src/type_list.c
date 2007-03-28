@@ -60,13 +60,13 @@ Minimal_TypeList Minimal_getTypeList(MinimalValue type) {
     return list;
 }
 
-void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minimal_TypeList* list) {
+void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeList* list) {
     switch(type->type) {
     case ST_NIL:
         break;
     case ST_IDENTIFIER:
         {
-        if(!Minimal_isBuiltIn(type->string)) {
+        if(!Minimal_isBuiltIn(type->syntax_tree->string)) {
             MinimalValue v = Minimal_getName(typemap, type->string);
             if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s from %p.\n", __LINE__, type->string, typemap); break; }
 
@@ -78,14 +78,14 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         }
         break;
     case ST_TYPE_FUNCTION:
-        Minimal_getTypeList2(type->branches[0], typemap, list);
-        Minimal_getTypeList2(type->branches[1], typemap, list);
+        Minimal_getTypeList2(type->syntax_tree->branches[0], typemap, list);
+        Minimal_getTypeList2(type->syntax_tree->branches[1], typemap, list);
         break;
     case ST_PRODUCT_TYPE:
         {
         int i;
         for(i = 0; i < type->length; i++) {
-            Minimal_getTypeList2(type->branches[i], typemap, list);
+            Minimal_getTypeList2(type->syntax_tree->branches[i], typemap, list);
         }
         break;
         }
@@ -93,14 +93,14 @@ void Minimal_getTypeList2(Minimal_SyntaxTree* type, MinimalLayer typemap, Minima
         {
         int i;
         for(i = 0; i < type->length; i++) {
-            Minimal_getTypeList2(type->branches[i], typemap, list);
+            Minimal_getTypeList2(type->syntax_tree->branches[i], typemap, list);
         }
         break;
         }
     case ST_POINTER:
         {
-        if(!Minimal_isBuiltIn(type->ptr)) {
-            MinimalValue v = Minimal_getName(typemap, type->ptr);
+        if(!Minimal_isBuiltIn(type->syntax_tree->ptr)) {
+            MinimalValue v = Minimal_getName(typemap, type->syntax_tree->ptr);
             if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s.\n", __LINE__, type->string); break; }
             if(Minimal_addTypeToTypeList(list, v)) {
                 Minimal_getTypeList2(v->type_spec, typemap, list);

@@ -23,7 +23,7 @@
 
 #include "minimal_internal.h"
 
-#define YYSTYPE Minimal_SyntaxTree
+#define YYSTYPE MinimalValue
 
 #include "minimal_parser.h"
 %}
@@ -74,13 +74,13 @@ TEST_OP    [><]|"=="|">="|"<="
 {SEMICOLON} { return  YY_SEMICOLON; }
 {COMMA} { return  YY_COMMA; }
 {OPERATOR} {
-        yylval = Minimal_SyntaxTree_createOperator(yytext);
+        yylval = Minimal_SyntaxTree_createID(yytext);
         return YY_OPERATOR;
            }
 {EQUAL} { return YY_EQ; }
 {OPENB} { return YY_OPENB; }
 {CLOSEB} { return YY_CLOSEB; }
-{TEST_OP} { yylval = Minimal_SyntaxTree_createOperator(yytext); return YY_TESTOP; }
+{TEST_OP} { yylval = Minimal_SyntaxTree_createID(yytext); return YY_TESTOP; }
 
 {WHITESPACE} { }
 {CDEFINE} { }

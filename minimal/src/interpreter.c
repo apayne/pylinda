@@ -28,7 +28,7 @@
 #include "minimal_internal.h"
 
 void Minimal_interpreter() {
-    Minimal_SyntaxTree* tree;
+    MinimalValue tree;
 
     while(1) {
         MinimalValue v;
@@ -36,7 +36,7 @@ void Minimal_interpreter() {
 #ifndef NO_READLINE
         char* line = readline("> ");
 #else
-		char* line = gets("> ");
+        char* line = gets("> ");
 #endif
         if(line == NULL) { break; }
         if(strlen(line) == 0) { free(line); continue; }
@@ -49,7 +49,7 @@ void Minimal_interpreter() {
         if(tree == NULL) { free(line); continue; }
 
         v = Minimal_evaluate(tree, Minimal_defaultLayer);
-        Minimal_SyntaxTree_free(tree);
+        Minimal_delReference(tree);
         free(line);
 
         line = Minimal_Value_string(v);

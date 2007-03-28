@@ -26,9 +26,9 @@
 #include "yy.lex.h"
 
 int yyparse();
-Minimal_SyntaxTree yy_result;
+MinimalValue yy_result;
 
-Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code) {
+MinimalValue Minimal_parseTypeSpec(const char* code) {
     int r;
     YY_BUFFER_STATE buf;
 
@@ -43,15 +43,12 @@ Minimal_SyntaxTree* Minimal_parseTypeSpec(const char* code) {
         fprintf(stderr, "Syntax error.\n");
         return NULL;
     } else {
-        Minimal_SyntaxTree* r;
-        r = Minimal_SyntaxTree_copy(&yy_result);
-        Minimal_SyntaxTree_clear(&yy_result);
         yy_delete_buffer(buf);
-        return r;
+        return yy_result;
     }
 }
 
-Minimal_SyntaxTree* Minimal_parseCode(char* code) {
+MinimalValue Minimal_parseCode(char* code) {
     int r;
     YY_BUFFER_STATE buf;
 
@@ -66,11 +63,8 @@ Minimal_SyntaxTree* Minimal_parseCode(char* code) {
         fprintf(stderr, "Syntax error.\n");
         return NULL;
     } else {
-        Minimal_SyntaxTree* r;
-        r = Minimal_SyntaxTree_copy(&yy_result);
-        Minimal_SyntaxTree_clear(&yy_result);
         yy_delete_buffer(buf);
-        return r;
+        return yy_result;
     }
 }
 

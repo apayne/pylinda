@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     Minimal_init();
 
     if(argc > 1) {
-        Minimal_SyntaxTree* tree;
+        MinimalValue tree;
         int size;
         char* code;
 
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         tree = Minimal_parseCode(code);
         if(tree != NULL) {
             Minimal_Layer_addTree(Minimal_defaultLayer, tree);
-            Minimal_SyntaxTree_free(tree);
+            Minimal_delReference(tree);
         }
 
         free(code);

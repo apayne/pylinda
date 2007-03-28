@@ -80,6 +80,7 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
     item->type_id = Minimal_getTypeId(ptr);
     item->count = 0;
     item->refcount = Minimal_getReferenceCount(ptr);
+    list->used = 1;
 
     /* Calculate the clique */
 

@@ -63,6 +63,10 @@ def compare_types(t1, t2, checked=None):
                     v = convfunc(value)
                     v.type_id = t1.type_id
                     return v
+        elif t1.isId(): # t2 is something else
+            return compare_types(lookupType(t1.id_type_id), t2)
+        elif t2.isId(): # t1 is something else
+            return compare_types(t1, lookupType(t2.id_type_id))
         elif t1.isProductType() and t2.isProductType():
             if len(t1) != len(t2):
                 func = None

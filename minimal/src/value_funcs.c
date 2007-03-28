@@ -135,6 +135,8 @@ unsigned char Minimal_Value_ge(MinimalValue op1, MinimalValue op2) {
         return (unsigned long)op1 > (unsigned long)op2;
     case M_POINTER:
         return (unsigned long)op1->ptr > (unsigned long)op2->ptr;
+    case M_SYNTAX_TREE:
+        return (unsigned long)op1->syntax_tree > (unsigned long)op2->syntax_tree;
     }
     }
     return 0;
@@ -201,6 +203,8 @@ unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2) {
         return (unsigned long)op1 == (unsigned long)op2;
     case M_POINTER:
         return (unsigned long)op1->ptr == (unsigned long)op2->ptr;
+    case M_SYNTAX_TREE:
+        return (unsigned long)op1->syntax_tree == (unsigned long)op2->syntax_tree;
     }
     }
     return 0;

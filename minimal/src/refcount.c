@@ -99,7 +99,7 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
     int i;
 
     if(ptr == NULL) {
-        fprintf(stderr, "Error: Minimal_addReference on NULL\n");
+        fprintf(stderr, "Error: Minimal_addReference on NULL. (%s:%i)\n", file, line);
         return;
     }
     list = Minimal_refCountList[hash(ptr)];
@@ -186,6 +186,7 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
         list = list->next;
     }
     fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
+    (*((int*)ptr))++;
 }
 
 void Minimal_removeFromRefHashTable(MinimalObject ptr) {
@@ -223,25 +224,26 @@ void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr) {
     case MINIMAL_MAP:
         Minimal_SyntaxMap_empty((Minimal_NameValueMap*)ptr);
         break;
-    default:
-        fprintf(stderr, "Error: Deleting object with unrecognised type_id (%i).\n", type_id);
+    case MINIMAL_SYNTAXTREE:
+        Minimal_SyntaxTree_free((Minimal_SyntaxTree*)ptr);
+        break;
     }
 }
 
 void Minimal_getReferences(struct CyclicGarbageList* list, MinimalTypeId type_id, MinimalObject ptr) {
     switch(type_id) {
     case MINIMAL_VALUE:
-        return Minimal_Value_getReferences(list, (MinimalValue)ptr);
+        Minimal_Value_getReferences(list, (MinimalValue)ptr);
         break;
     case MINIMAL_LAYER:
-        return Minimal_Layer_getReferences(list, (MinimalLayer)ptr);
+        Minimal_Layer_getReferences(list, (MinimalLayer)ptr);
         break;
     case MINIMAL_MAP:
-        return Minimal_SyntaxMap_getReferences(list, (Minimal_NameValueMap*)ptr);
+        Minimal_SyntaxMap_getReferences(list, (Minimal_NameValueMap*)ptr);
         break;
-    default:
-        fprintf(stderr, "Error: Getting references for object with unrecognised type_id (%i).\n", type_id);
-        return;
+    case MINIMAL_SYNTAXTREE:
+        Minimal_SyntaxTree_getReferences(list, (Minimal_SyntaxTree*)ptr);
+        break;
     }
 }
 

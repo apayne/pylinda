@@ -21,11 +21,11 @@
 %{
 #include "minimal_internal.h"
 
-#define YYSTYPE Minimal_SyntaxTree
+#define YYSTYPE MinimalValue
 
 #include "yy.lex.h"
 
-Minimal_SyntaxTree yy_result;
+MinimalValue yy_result;
 
 void yyerror(char* s) {
 }
@@ -35,75 +35,51 @@ void yyerror(char* s) {
 
 %% /* Grammar rules and actions follow */
 
-input: { $$.type = ST_BLANK; yy_result = $$; }
+input: { $$ = Minimal_SyntaxTree_createBlank(); yy_result = $$; }
      | input typespec_def YY_SEMICOLON {
-                        if($1.type == ST_BLANK) {
+                        if($1->syntax_tree->type == ST_BLANK) {
                             $$ = $2;
-                        } else if($2.type == ST_BLANK) {
+                            Minimal_delReference($1);
+                        } else if($2->syntax_tree->type == ST_BLANK) {
                             $$ = $1;
+                            Minimal_delReference($2);
                         } else {
-                            if($1.type != ST_SEQENTIAL_DEFS) {
-                                $$.type = ST_SEQENTIAL_DEFS;
-                                $$.length = 2;
-                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                                $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
-                                struct Minimal_SyntaxTree_t** b;
-                                $$ = $1;
-                                b = malloc(sizeof(void*) * $$.length + 1);
-                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
-                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                free($$.branches); $$.branches = b;
-                                $$.length++;
+                                $$ = Minimal_SyntaxTree_addToSequence($1, $2);
                             }
                         }
                         yy_result = $$;
                         }
      | input definition YY_SEMICOLON {
-                        if($1.type == ST_BLANK) {
+                        if($1->syntax_tree->type == ST_BLANK) {
+                            Minimal_delReference($1);
                             $$ = $2;
-                        } else if($2.type == ST_BLANK) {
+                        } else if($2->syntax_tree->type == ST_BLANK) {
+                            Minimal_delReference($2);
                             $$ = $1;
                         } else {
-                            if($1.type != ST_SEQENTIAL_DEFS) {
-                                $$.type = ST_SEQENTIAL_DEFS;
-                                $$.length = 2;
-                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                                $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
-                                struct Minimal_SyntaxTree_t** b;
-                                $$ = $1;
-                                b = malloc(sizeof(void*) * $$.length + 1);
-                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
-                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                free($$.branches); $$.branches = b;
-                                $$.length++;
+                                $$ = Minimal_SyntaxTree_addToSequence($1, $2);
                             }
                         }
                         yy_result = $$;
                         }
      | input expr YY_SEMICOLON {
-                        if($1.type == ST_BLANK) {
+                        if($1->syntax_tree->type == ST_BLANK) {
+                            Minimal_delReference($1);
                             $$ = $2;
-                        } else if($2.type == ST_BLANK) {
+                        } else if($2->syntax_tree->type == ST_BLANK) {
+                            Minimal_delReference($2);
                             $$ = $1;
                         } else {
-                            if($1.type != ST_SEQENTIAL_DEFS) {
-                                $$.type = ST_SEQENTIAL_DEFS;
-                                $$.length = 2;
-                                $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                                $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                                $$.branches[1] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
+                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                                $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
-                                struct Minimal_SyntaxTree_t** b;
-                                $$ = $1;
-                                b = malloc(sizeof(void*) * $$.length + 1);
-                                memcpy(b, $$.branches, sizeof(void*) * $$.length);
-                                b[$$.length] = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                free($$.branches); $$.branches = b;
-                                $$.length++;
+                                $$ = Minimal_SyntaxTree_addToSequence($1, $2);
                             }
                         }
                         yy_result = $$;
@@ -111,115 +87,117 @@ input: { $$.type = ST_BLANK; yy_result = $$; }
 ;
 
 typespec_def: YY_ID YY_TYPESPEC typespec {
-    $$.type_name = (char*)malloc(strlen($1.string)+1); strcpy($$.type_name, $1.string); Minimal_SyntaxTree_clear(&$1);
-    $$.type_def  = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
-    $$.type = ST_TYPE_SPEC;
+    $$ = Minimal_SyntaxTree_createTypeSpec($1, $3);
     }
 ;
 
-typespec: YY_ID { if(strcmp($1.string, "Nil") == 0) {
-                    Minimal_SyntaxTree_clear(&$1);
-                    $$.type = ST_NIL;
+typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
+                    Minimal_delReference($1);
+                    $$ = Minimal_SyntaxTree_createNil();
                   } else {
                     $$ = $1;
                   }
                 }
         | typespec YY_FUNCTION typespec {
-                        $$.type = ST_TYPE_FUNCTION;
-                        $$.length = 2;
-                        $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                        $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                        $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                        $$ = Minimal_SyntaxTree_createFunction($1, $3);
                         }
         | typespec YY_OPERATOR typespec {
-                        if(strcmp($2.string, "*") == 0) {
-                            $$.type = ST_PRODUCT_TYPE;
-                            $$.length = 2;
-                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                            $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
-                        } else if(strcmp($2.string, "+") == 0) {
-                            $$.type = ST_SUM_TYPE;
-                            $$.length = 2;
-                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * 2);
-                            $$.branches[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                            $$.branches[1] = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+                        if(strcmp($2->syntax_tree->string, "*") == 0) {
+                            if($1->syntax_tree->type == ST_PRODUCT_TYPE) {
+                                Minimal_SyntaxTree_addToProductType($1, $3);
+                                $$ = $1;
+                            } else if($2->syntax_tree->type == ST_PRODUCT_TYPE) {
+                                Minimal_SyntaxTree_prependToProductType($1, $3);
+                                $$ = $1;
+                            } else {
+                                $$ = Minimal_SyntaxTree_createProductType($1, $3);
+                            }
+                        } else if(strcmp($2->syntax_tree->string, "+") == 0) {
+                            if($1->syntax_tree->type == ST_SUM_TYPE) {
+                                Minimal_SyntaxTree_addToSumType($1, $3);
+                                $$ = $1;
+                            } else if($2->syntax_tree->type == ST_SUM_TYPE) {
+                                Minimal_SyntaxTree_prependToSumType($1, $3);
+                                $$ = $1;
+                            } else {
+                                $$ = Minimal_SyntaxTree_createSumType($1, $3);
+                            }
                         } else {
-                            fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2.string);
-                            $$.type = ST_BLANK;
+                            fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2->syntax_tree->string);
+                            $$ = Minimal_SyntaxTree_createBlank();
                         }
-                        Minimal_SyntaxTree_clear(&$2);
+                        Minimal_delReference($2);
                         }
         | typespec YY_OPERATOR value {
-                        if($3.type != ST_INTEGER) {
+                        if($3->syntax_tree->type != ST_INTEGER) {
                             fprintf(stderr, "Error: Type multiplication must involve an integer.\n");
-                            $$.type = ST_BLANK;
-                        } else if(strcmp($2.string, "*") == 0) {
+                            $$ = Minimal_SyntaxTree_createBlank();
+                            Minimal_delReference($1); Minimal_delReference($2); Minimal_delReference($3);
+                        } else if(strcmp($2->syntax_tree->string, "*") == 0) {
                             int i;
-                            $$.type = ST_PRODUCT_TYPE;
-                            $$.length = $3.integer;
-                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * $3.integer);
-                            for(i = 0; i < $3.integer; i++) {
-                                $$.branches[i] = Minimal_SyntaxTree_copy(&$1);
+                            if($3->syntax_tree->integer == 0) {
+                                Minimal_delReference($1); Minimal_delReference($3);
+                                $$ = Minimal_SyntaxTree_createProductType();
+                            } else {
+                                $$ = Minimal_SyntaxTree_createProductType();
+                                for(i = 0; i < $3->syntax_tree->integer; i++) {
+                                    Minimal_addReference($1);
+                                    Minimal_SyntaxTree_addToProductType($$, $1);
+                                }
                             }
-                            Minimal_SyntaxTree_clear(&$1);
-                        } else if(strcmp($2.string, "+") == 0) {
+                            Minimal_delReference($3);
+                        } else if(strcmp($2->syntax_tree->string, "+") == 0) {
                             int i;
-                            $$.type = ST_SUM_TYPE;
-                            $$.length = $3.integer;
-                            $$.branches = (struct Minimal_SyntaxTree_t**)malloc(sizeof(void*) * $3.integer);
-                            for(i = 0; i < $3.integer; i++) {
-                                $$.branches[i] = Minimal_SyntaxTree_copy(&$1);
+                            if($3->syntax_tree->integer == 0) {
+                                Minimal_delReference($1); Minimal_delReference($3);
+                                $$ = Minimal_SyntaxTree_createSumType();
+                            } else {
+                                $$ = Minimal_SyntaxTree_createSumType();
+                                for(i = 0; i < $3->syntax_tree->integer; i++) {
+                                    Minimal_addReference($1);
+                                    $$ = Minimal_SyntaxTree_addToSumType($$, $1);
+                                }
                             }
-                            Minimal_SyntaxTree_clear(&$1);
+                            Minimal_delReference($3);
                         } else {
-                            fprintf(stderr, "Error: Type operator '%s' is not for a value as the second operator.\n", $2.string);
-                            $$.type = ST_BLANK;
+                            fprintf(stderr, "Error: Type operator '%s' is not for a value as the second operator.\n", $2->syntax_tree->string);
+                            $$ = Minimal_SyntaxTree_createBlank();
+                            Minimal_delReference($1); Minimal_delReference($3);
                         }
+                        Minimal_delReference($2);
                         }
         | YY_OPENB typespec YY_CLOSEB {
                         $$ = $2;
                         }
         | YY_ID YY_OPENB YY_ID YY_CLOSEB {
-                        if(strcmp($1.string, "ptr") == 0) {
-                            $$.type = ST_POINTER;
-                            $$.ptr = (char*)malloc(strlen($3.string)+1); strcpy($$.type_name, $3.string); Minimal_SyntaxTree_clear(&$3);
-                            Minimal_SyntaxTree_clear(&$1);
+                        if(strcmp($1->syntax_tree->string, "ptr") == 0) {
+                            $$ = Minimal_SyntaxTree_createPointer($3);
                         } else {
-                            fprintf(stderr, "Error: %s is an invalid type function.\n", $1.string);
-                            $$.type = ST_BLANK;
-                            Minimal_SyntaxTree_clear(&$1);
+                            fprintf(stderr, "Error: %s is an invalid type function.\n", $1->syntax_tree->string);
+                            $$ = Minimal_SyntaxTree_createBlank();
                         }
+                        Minimal_delReference($1); Minimal_delReference($3);
                         }
 ;
 
-definition: YY_ID parameter_list YY_EQ expr { $$.type = ST_FUNCTION_DEF;
-                                              $$.func_name = (char*)malloc(strlen($1.string)+1); strcpy($$.func_name, $1.string);
-                                              Minimal_SyntaxTree_clear(&$1);
-                                              $$.type_spec = NULL;
-                                              $$.parameter_list = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                              $$.body = Minimal_SyntaxTree_copy(&$4); Minimal_SyntaxTree_clear(&$4);
+definition: YY_ID parameter_list YY_EQ expr {
+                                              $$ = Minimal_SyntaxTree_createFunctionDef($1, $2, $4);
                                             }
 ;
 
 
 expr: value { $$ = $1; }
     | YY_OPENB expr YY_CLOSEB { $$ = $2; }
-    | expr YY_OPERATOR expr { $$.type = ST_OPERATOR;
-                              $$._operator = (char*)malloc(strlen($2.string)+1); strcpy($$.func_name, $2.string);
-                              Minimal_SyntaxTree_clear(&$2);
-                              $$.op1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                              $$.op2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
-                            }
-    | function_call { $$ = $1; }
-    | tuple { $$ = $1; }
-    | if_expr { $$ = $1; }
-    | test_expr { $$ = $1; }
+    | expr YY_OPERATOR expr   { $$ = Minimal_SyntaxTree_createOperator($2, $1, $3); }
+    | function_call           { $$ = $1; }
+    | tuple                   { $$ = $1; }
+    | if_expr                 { $$ = $1; }
+    | test_expr               { $$ = $1; }
 ;
 
-value: YY_ID { if(strcmp($1.string, "Nil") == 0) {
-                    Minimal_SyntaxTree_clear(&$1);
-                    $$.type = ST_NIL;
+value: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
+                    Minimal_delReference(&$1);
+                    $$ = Minimal_SyntaxTree_createNil();
                   } else {
                     $$ = $1;
                   }
@@ -227,75 +205,60 @@ value: YY_ID { if(strcmp($1.string, "Nil") == 0) {
      | YY_INTEGER { $$ = $1; }
 ;
 
-parameter_list: { $$.type = ST_BLANK; }
-              | parameter_list YY_ID { if($1.type == ST_BLANK) {
-                                        $$.type = ST_PARAMETER_LIST;
-                                        $$.var_name = (char*)malloc(strlen($2.string)+1); strcpy($$.var_name, $2.string);
-                                        $$.next_var = NULL; Minimal_SyntaxTree_clear(&$2);
+parameter_list: { $$ = Minimal_SyntaxTree_createBlank(); }
+              | parameter_list YY_ID { if($1->syntax_tree->type == ST_BLANK) {
+                                        $$ = Minimal_SyntaxTree_createParameterList1($2);
+                                        Minimal_delReference($1);
                                        } else {
-                                        $$ = $1;
-                                        $$.next_var = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-                                        $$.next_var->var_name = (char*)malloc(strlen($2.string)+1); strcpy($$.next_var->var_name, $2.string);
-                                        $$.next_var->var_name = NULL; Minimal_SyntaxTree_clear(&$2);
+                                        $$ = Minimal_SyntaxTree_createParameterList2($1, $2);
                                        }
                                      }
 ;
 
 function_call: expr YY_OPENB argument_list YY_CLOSEB {
-        $$.type = ST_FUNCTION_CALL;
-        $$.function = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-        $$.arguments = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
+        $$ = Minimal_SyntaxTree_createFunctionCall($1, $3);
     }
 ;
 
-argument_list: { $$.type = ST_BLANK; }
-              | argument_list expr { if($1.type == ST_BLANK) {
-                                        $$.type = ST_ARGUMENT_LIST;
-                                        $$.argument = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                        $$.next_var = NULL;
+argument_list: { $$ = Minimal_SyntaxTree_createBlank(); }
+              | argument_list expr { if($1->syntax_tree->type == ST_BLANK) {
+                                        $$ = Minimal_SyntaxTree_createArgumentList1($2);
+                                        Minimal_delReference($1);
                                        } else {
-                                        $$ = $1;
-                                        $$.next_arg = (Minimal_SyntaxTree*)malloc(sizeof(Minimal_SyntaxTree));
-                                        $$.next_arg->argument = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-                                        $$.next_arg->next_arg = NULL;
+                                        $$ = Minimal_SyntaxTree_createArgumentList2($1, $2);
                                        }
                                      }
 ;
 
 tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
      | expr YY_COMMA tuple2 { int i;
-							  $$ = Minimal_SyntaxTree_createTuple(1);
-                              $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                              for(i=0; i<$3.size; i++) {
-                                  Minimal_SyntaxTree_addToTuple(&$$, $3.tuple[i]);
+                              $$ = Minimal_SyntaxTree_createTuple(1);
+                              Minimal_SyntaxTree_setTuple($$, 0, $1);
+                              for(i=0; i<$3->syntax_tree->size; i++) {
+                                  Minimal_addReference($3->syntax_tree->tuple[i]);
+                                  Minimal_SyntaxTree_addToTuple($$, $3->syntax_tree->tuple[i]);
                               }
-                              Minimal_SyntaxTree_clear(&$3);
+                              Minimal_delReference($3);
                             }
 ;
 
-tuple2: { $$.type = ST_BLANK; }
+tuple2: { $$ = Minimal_SyntaxTree_createBlank(); }
         expr { $$ = Minimal_SyntaxTree_createTuple(1);
-               $$.tuple[0] = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
+               Minimal_SyntaxTree_setTuple($$, 0, $1);
              }
-      | tuple2 YY_COMMA expr { Minimal_SyntaxTree_addToTuple($1.tuple[0], Minimal_SyntaxTree_copy(&$3)); Minimal_SyntaxTree_clear(&$3);
+      | tuple2 YY_COMMA expr { Minimal_SyntaxTree_addToTuple($1, $3);
                             $$ = $1;
+                            Minimal_delReference($2);
                           }
 ;
 
 if_expr: YY_IF expr YY_THEN expr YY_ELSE expr YY_ENDIF {
-        $$ = Minimal_SyntaxTree_createIfExpr();
-        $$._if = Minimal_SyntaxTree_copy(&$2); Minimal_SyntaxTree_clear(&$2);
-        $$._then = Minimal_SyntaxTree_copy(&$4); Minimal_SyntaxTree_clear(&$4);
-        $$._else = Minimal_SyntaxTree_copy(&$6); Minimal_SyntaxTree_clear(&$6);
+        $$ = Minimal_SyntaxTree_createIfExpr($2, $4, $6);
+        Minimal_delReference($1); Minimal_delReference($3); Minimal_delReference($5); Minimal_delReference($7);
         }
 ;
 
-test_expr: expr YY_TESTOP expr { $$.type = ST_OPERATOR;
-                              $$._operator = (char*)malloc(strlen($2.string)+1); strcpy($$.func_name, $2.string);
-                              Minimal_SyntaxTree_clear(&$2);
-                              $$.op1 = Minimal_SyntaxTree_copy(&$1); Minimal_SyntaxTree_clear(&$1);
-                              $$.op2 = Minimal_SyntaxTree_copy(&$3); Minimal_SyntaxTree_clear(&$3);
-                            }
+test_expr: expr YY_TESTOP expr { $$ = Minimal_SyntaxTree_createOperator($2, $1, $3); }
 ;
 
 

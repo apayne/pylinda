@@ -80,16 +80,16 @@ def __getTypeReferences(type, refs=None):
             return refs
     elif type.isProductType():
         for i in range(len(type)):
-            refs = getTypeReferences(type[i], refs)
+            refs = __getTypeReferences(type[i], refs)
         return refs
     elif type.isSumType():
         for i in range(len(type)):
-            refs = getTypeReferences(type[i], refs)
+            refs = __getTypeReferences(type[i], refs)
         return refs
     elif type.isPtrType():
-        return getTypeReferences(type.ptrtype, refs)
+        return __getTypeReferences(type.ptrtype, refs)
     elif type.isFunctionType():
-        return getTypeReferences(type.arg, getTypeReferences(type.result, refs))
+        return __getTypeReferences(type.arg, getTypeReferences(type.result, refs))
     else:
         raise SystemError
 

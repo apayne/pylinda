@@ -93,8 +93,7 @@ def registerAllTypes(type, memo = None):
         if type.id in match.builtin:
             pass
         else:
-            t = registerAllTypes(type.typemap[type.id], memo)
-            type.id_type_id = t
+            type.id_type_id = registerAllTypes(type.typemap[type.id], memo)
     elif type.isProductType():
         for i in range(len(type)):
             registerAllTypes(type[i], memo)

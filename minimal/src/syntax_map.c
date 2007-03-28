@@ -25,7 +25,10 @@
 #include "minimal_internal.h"
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
-    if(map == NULL) {
+    if(strlen(name) == 0) {
+        fprintf(stderr, "Minimal Error: empty name provided.\n"); (*((int*)NULL))++;
+        return;
+    } else if(map == NULL) {
         fprintf(stderr, "Minimal Error: addName called with NULL map parameter.\n");
         return;
     } else if(name == NULL) {
@@ -43,6 +46,7 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
         strcpy(map->name, name);
         map->value = tree;
      } else if(strcmp(map->name, name) == 0) {
+        printf("replace %s\n", name);
         Minimal_delReference(map->value);
         map->value = tree;
     } else if(strcmp(map->name, name) == -1) {
@@ -57,6 +61,8 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
             Minimal_SyntaxMap_init(map->right);
         }
         Minimal_addName(map->right, name, tree);
+    } else {
+        fprintf(stderr, "Minimal Error: Failed to add name. This should never happen.\n");
     }
 }
 
@@ -73,7 +79,8 @@ MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name) {
             v = Minimal_getName2(map->right, name);
         }
         return v;
-    } else if(strcmp(map->name, name) == 0) {
+    }
+    if(strcmp(map->name, name) == 0) {
         Minimal_addReference(map->value);
         return map->value;
     } else if(strcmp(map->name, name) < 0) {
@@ -105,11 +112,12 @@ void Minimal_SyntaxMap_free(Minimal_NameValueMap* map) {
 }
 int Minimal_SyntaxMap_size(Minimal_NameValueMap* map) {
     int count = 0;
+    if(map == NULL) { return 0; }
     if(map->left != NULL) {
         count += Minimal_SyntaxMap_size(map->left);
     }
     if(map->right != NULL) {
-        count += Minimal_SyntaxMap_size(map->left);
+        count += Minimal_SyntaxMap_size(map->right);
     }
     if(map->name != NULL) {
         count += 1;
