@@ -110,7 +110,9 @@ typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
                                 Minimal_SyntaxTree_prependToProductType($1, $3);
                                 $$ = $1;
                             } else {
-                                $$ = Minimal_SyntaxTree_createProductType($1, $3);
+                                $$ = Minimal_SyntaxTree_createProductType();
+                                Minimal_SyntaxTree_addToProductType($$, $1);
+                                Minimal_SyntaxTree_addToProductType($$, $3);
                             }
                         } else if(strcmp($2->syntax_tree->string, "+") == 0) {
                             if($1->syntax_tree->type == ST_SUM_TYPE) {
@@ -167,7 +169,7 @@ typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
                         Minimal_delReference($2);
                         }
         | YY_OPENB typespec YY_CLOSEB {
-                        $$ = $2;
+                        $$ = Minimal_SyntaxTree_createBracket($2);
                         }
         | YY_ID YY_OPENB YY_ID YY_CLOSEB {
                         if(strcmp($1->syntax_tree->string, "ptr") == 0) {

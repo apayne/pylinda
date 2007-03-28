@@ -89,6 +89,8 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
         case M_POINTER:
             Linda_scanTuple2(Linda_getPtr(v), ref, scanned);
             break;
+        case M_SYNTAX_TREE:
+            break;
         }
     }
 

@@ -91,7 +91,7 @@ def __getTypeReferences(type, refs=None):
     elif type.isFunctionType():
         return __getTypeReferences(type.arg, getTypeReferences(type.result, refs))
     else:
-        raise SystemError
+        raise SystemError, str(type)
 
 def lookupForeignType(server, tid):
     try:

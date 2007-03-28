@@ -61,14 +61,14 @@ Minimal_TypeList Minimal_getTypeList(MinimalValue type) {
 }
 
 void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeList* list) {
-    switch(type->type) {
+    switch(type->syntax_tree->type) {
     case ST_NIL:
         break;
     case ST_IDENTIFIER:
         {
         if(!Minimal_isBuiltIn(type->syntax_tree->string)) {
-            MinimalValue v = Minimal_getName(typemap, type->string);
-            if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s from %p.\n", __LINE__, type->string, typemap); break; }
+            MinimalValue v = Minimal_getName(typemap, type->syntax_tree->string);
+            if(v == NULL) { fprintf(stderr, "Minimal_getTypeList2(%i): Unable to get type %s from %p.\n", __LINE__, type->syntax_tree->string, typemap); break; }
 
             if(Minimal_addTypeToTypeList(list, v)) {
                 Minimal_getTypeList2(v->type_spec, typemap, list);
@@ -77,6 +77,11 @@ void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeL
         }
         }
         break;
+    case ST_INTEGER:
+        break;
+    case ST_TYPE_SPEC:
+        Minimal_getTypeList2(type->syntax_tree->type_def, typemap, list);
+        break;
     case ST_TYPE_FUNCTION:
         Minimal_getTypeList2(type->syntax_tree->branches[0], typemap, list);
         Minimal_getTypeList2(type->syntax_tree->branches[1], typemap, list);
@@ -84,7 +89,7 @@ void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeL
     case ST_PRODUCT_TYPE:
         {
         int i;
-        for(i = 0; i < type->length; i++) {
+        for(i = 0; i < type->syntax_tree->length; i++) {
             Minimal_getTypeList2(type->syntax_tree->branches[i], typemap, list);
         }
         break;
@@ -92,7 +97,7 @@ void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeL
     case ST_SUM_TYPE:
         {
         int i;
-        for(i = 0; i < type->length; i++) {
+        for(i = 0; i < type->syntax_tree->length; i++) {
             Minimal_getTypeList2(type->syntax_tree->branches[i], typemap, list);
         }
         break;
@@ -109,8 +114,13 @@ void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeL
         }
         }
         break;
+    case ST_BRACKET:
+        {
+        Minimal_getTypeList2(type->syntax_tree->type_def, typemap, list);
+        }
+        break;
     default:
-        fprintf(stderr, "Error: Unknown syntax tree id in Minimal_getTypeList2 (%i).\n", type->type);
+        fprintf(stderr, "Error: Unknown syntax tree id in Minimal_getTypeList2 (%i).\n", type->syntax_tree->type);
         break;
     }
 }

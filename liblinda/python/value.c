@@ -190,7 +190,7 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         if(self->val->type_name != NULL && other->val->type_name != NULL && strcmp(self->val->type_name, other->val->type_name)) {
             return strcmp(self->val->type_name, other->val->type_name);
         } else if(self->val->type_spec != NULL && other->val->type_spec != NULL) {
-            return Minimal_SyntaxTree_cmp(self->val->type_spec, other->val->type_spec);
+            return Minimal_SyntaxTree_cmp(self->val->type_spec->syntax_tree, other->val->type_spec->syntax_tree);
         } else if(self->val->type_id > other->val->type_id) {
             return 1;
         } else if(self->val->type_id < other->val->type_id) {
@@ -300,7 +300,7 @@ static PyObject* linda_Value_isNil(linda_ValueObject* self) {
         if(self->val->type_spec == NULL) {
             Py_INCREF(Py_False);
             return Py_False;
-        } else if(self->val->type_spec->type == ST_NIL) {
+        } else if(self->val->type_spec->syntax_tree->type == ST_NIL) {
             Py_INCREF(Py_True);
             return Py_True;
         } else {
@@ -323,10 +323,11 @@ static PyObject* linda_Value_isId(linda_ValueObject* self) {
         PyErr_SetString(PyExc_TypeError, "Value is not a type.\n");
         return NULL;
     }
+    printf("%p %i\n", self->val->type_spec, self->val->type_spec->syntax_tree->type);
     if(self->val->type_spec == NULL) {
         Py_INCREF(Py_False);
         return Py_False;
-    } else if(self->val->type_spec->type == ST_IDENTIFIER) {
+    } else if(self->val->type_spec->syntax_tree->type == ST_IDENTIFIER) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -343,7 +344,7 @@ static PyObject* linda_Value_isProductType(linda_ValueObject* self) {
     if(self->val->type_spec == NULL) {
         Py_INCREF(Py_False);
         return Py_False;
-    } else if(self->val->type_spec->type == ST_PRODUCT_TYPE) {
+    } else if(self->val->type_spec->syntax_tree->type == ST_PRODUCT_TYPE) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -360,7 +361,7 @@ static PyObject* linda_Value_isSumType(linda_ValueObject* self) {
     if(self->val->type_spec == NULL) {
         Py_INCREF(Py_False);
         return Py_False;
-    } else if(self->val->type_spec->type == ST_SUM_TYPE) {
+    } else if(self->val->type_spec->syntax_tree->type == ST_SUM_TYPE) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -377,7 +378,7 @@ static PyObject* linda_Value_isPtrType(linda_ValueObject* self) {
     if(self->val->type_spec == NULL) {
         Py_INCREF(Py_False);
         return Py_False;
-    } else if(self->val->type_spec->type == ST_POINTER) {
+    } else if(self->val->type_spec->syntax_tree->type == ST_POINTER) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -394,7 +395,7 @@ static PyObject* linda_Value_isFunctionType(linda_ValueObject* self) {
     if(self->val->type_spec == NULL) {
         Py_INCREF(Py_False);
         return Py_False;
-    } else if(self->val->type_spec->type == ST_TYPE_FUNCTION) {
+    } else if(self->val->type_spec->syntax_tree->type == ST_TYPE_FUNCTION) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -500,8 +501,8 @@ static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
     PyObject* string;
 
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getID - Not a type."); return NULL; }
-    if(self->val->type_spec->type != ST_IDENTIFIER) { PyErr_SetString(PyExc_TypeError, "getID - Not an identifier."); return NULL; }
-    string = PyString_FromString(self->val->type_spec->string);
+    if(self->val->type_spec->syntax_tree->type != ST_IDENTIFIER) { PyErr_SetString(PyExc_TypeError, "getID - Not an identifier."); return NULL; }
+    string = PyString_FromString(self->val->type_spec->syntax_tree->string);
     if(string == NULL) {
         PyErr_SetString(PyExc_TypeError, "Failed to get id string.");
         return NULL;
@@ -525,8 +526,9 @@ static PyObject* linda_Value_getarg(linda_ValueObject *self, void *closure) {
     LindaValue val;
 
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getArg - Not a type."); return NULL; }
-    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
-    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[0]);
+    if(self->val->type_spec->syntax_tree->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getArg - Not a function type."); return NULL; }
+    Minimal_addReference(self->val->type_spec->syntax_tree->branches[0]);
+    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->syntax_tree->branches[0]);
     Linda_delReference((void*)(val->typemap));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
@@ -540,8 +542,9 @@ static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
     LindaValue val;
 
     if(!Linda_isType(self->val)) { PyErr_SetString(PyExc_TypeError, "getResult - Not a type."); return NULL; }
-    if(self->val->type_spec->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
-    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[1]);
+    if(self->val->type_spec->syntax_tree->type != ST_TYPE_FUNCTION) { PyErr_SetString(PyExc_TypeError, "getResult - Not a function type."); return NULL; }
+    Minimal_addReference(self->val->type_spec->syntax_tree->branches[1]);
+    val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->syntax_tree->branches[1]);
     Linda_delReference((void*)(val->typemap));
     Linda_addReference((void*)(self->val->typemap));
     val->typemap = self->val->typemap;
@@ -588,11 +591,11 @@ static PyObject* linda_Value_getidtypeid(linda_ValueObject* self, void* closure)
         return NULL;
     }
 
-    if(self->val->type_spec->type_id == NULL) {
+    if(self->val->type_spec->syntax_tree->type_id == NULL) {
         Py_INCREF(Py_None);
         return Py_None;
     } else {
-        return PyString_FromString(self->val->type_spec->type_id);
+        return PyString_FromString(self->val->type_spec->syntax_tree->type_id);
     }
 }
 
@@ -603,8 +606,8 @@ static int linda_Value_setidtypeid(linda_ValueObject* self, PyObject* value, voi
         return -1;
     }
 
-    self->val->type_spec->type_id = malloc(strlen(PyString_AsString(value)) + 1);
-    strcpy(self->val->type_spec->type_id, PyString_AsString(value));
+    self->val->type_spec->syntax_tree->type_id = malloc(strlen(PyString_AsString(value)) + 1);
+    strcpy(self->val->type_spec->syntax_tree->type_id, PyString_AsString(value));
 
     return 0;
 }
@@ -691,7 +694,8 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
     switch(self->val->type) {
     case M_TYPE:
         {
-        LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[index]);
+        LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->syntax_tree->branches[index]);
+        Minimal_addReference(self->val->type_spec->syntax_tree->branches[index]);
         Linda_delReference((void*)(val->typemap));
         Linda_addReference((void*)(self->val->typemap));
         val->typemap = self->val->typemap;
@@ -905,6 +909,13 @@ static long linda_ValueHash(linda_ValueObject* self) {
         return hash;
         }
     case M_POINTER:
+        {
+        PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_SYNTAX_TREE:
         {
         PyObject* r = PyInt_FromLong((long)(self->val));
         long hash = PyObject_Hash(r);

@@ -156,6 +156,18 @@ MinimalValue Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         tree = Minimal_SyntaxTree_createTypeSpec(Minimal_SyntaxTree_createID((char*)name), type_spec);
         free(name);
         return tree;
+    } else if(strcmp((char*)(node->name), "type_spec") == 0) {
+        xmlNode* cur_node;
+        MinimalValue type_spec = NULL;
+
+        cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                type_spec = Minimal_xmlToSyntaxTree(cur_node);
+            }
+            cur_node = cur_node->next;
+        }
+        return type_spec;
     } else if(strcmp((char*)(node->name), "ptr") == 0) {
         xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
         MinimalValue tree = Minimal_SyntaxTree_createPointer(Minimal_SyntaxTree_createID((char*)name));

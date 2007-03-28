@@ -217,7 +217,8 @@ struct Minimal_SyntaxTree_t {
         ST_SUM_TYPE,
         ST_TUPLE,
         ST_POINTER,
-        ST_IFEXPR
+        ST_IFEXPR,
+        ST_BRACKET
     } type;
     char* type_id;
     union {

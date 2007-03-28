@@ -86,6 +86,17 @@ MinimalValue Minimal_SyntaxTree_createOperator(MinimalValue op, MinimalValue exp
     return tree;
 }
 
+MinimalValue Minimal_SyntaxTree_createBracket(MinimalValue b) {
+    MinimalValue tree = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    tree->type = M_SYNTAX_TREE;
+    tree->typeobj = NULL;
+    tree->syntax_tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree*, struct Minimal_SyntaxTree_t);
+    tree->syntax_tree->type = ST_BRACKET;
+    tree->syntax_tree->type_id = NULL;
+    tree->syntax_tree->type_def = b;
+    return tree;
+}
+
 MinimalValue Minimal_SyntaxTree_createTuple(int size) {
     MinimalValue tree = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     tree->type = M_SYNTAX_TREE;
@@ -587,6 +598,10 @@ Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree) {
         Minimal_addReference(tree->_else);
         ntree->_else = tree->_else;
         return ntree;
+    case ST_BRACKET:
+        ntree->type = ST_BRACKET;
+        Minimal_addReference(tree->type_def);
+        ntree->type_def = tree->type_def;
     }
     return NULL;
 }
@@ -670,6 +685,9 @@ void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_Sy
         Minimal_addToCyclicGarbageList(list, ptr->_if);
         Minimal_addToCyclicGarbageList(list, ptr->_then);
         Minimal_addToCyclicGarbageList(list, ptr->_else);
+        break;
+    case ST_BRACKET:
+        Minimal_addToCyclicGarbageList(list, ptr->type_def);
         break;
     }
 }
@@ -850,6 +868,8 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2) {
         } else {
             return Minimal_SyntaxTree_cmp(t1->_else->syntax_tree, t2->_else->syntax_tree);
         }
+    case ST_BRACKET:
+        return Minimal_SyntaxTree_cmp(t1->type_def->syntax_tree, t2->type_def->syntax_tree);
     }
     return 0;
 }
@@ -954,6 +974,9 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree) {
         free(tree->_if);
         free(tree->_then);
         free(tree->_else);
+        break;
+    case ST_BRACKET:
+        free(tree->type_def);
         break;
     }
 

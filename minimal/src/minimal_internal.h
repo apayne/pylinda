@@ -43,6 +43,7 @@ MinimalValue Minimal_SyntaxTree_createBlank();
 MinimalValue Minimal_SyntaxTree_createNil();
 MinimalValue Minimal_SyntaxTree_createID(char* id);
 MinimalValue Minimal_SyntaxTree_createInteger(int i);
+MinimalValue Minimal_SyntaxTree_createBracket(MinimalValue v1);
 MinimalValue Minimal_SyntaxTree_createSequence();
 MinimalValue Minimal_SyntaxTree_createSequence2(MinimalValue v1, MinimalValue v2);
 MinimalValue Minimal_SyntaxTree_addToSequence(MinimalValue v1, MinimalValue v2);

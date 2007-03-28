@@ -46,7 +46,6 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
         strcpy(map->name, name);
         map->value = tree;
      } else if(strcmp(map->name, name) == 0) {
-        printf("replace %s\n", name);
         Minimal_delReference(map->value);
         map->value = tree;
     } else if(strcmp(map->name, name) == -1) {

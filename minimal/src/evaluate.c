@@ -148,6 +148,10 @@ MinimalValue Minimal_evaluate(MinimalValue tree, MinimalLayer layer) {
         }
         Minimal_delReference(t);
         return r;
+    case ST_BRACKET:
+        {
+        return Minimal_evaluate(tree->syntax_tree->type_def, layer);
+        }
         }
     case ST_TYPE_FUNCTION:
     case ST_PARAMETER_LIST:

@@ -430,6 +430,7 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         }
         break;
     case M_SYNTAX_TREE:
+        fprintf(stderr, "Error: Should never get here. (%s:%i)\n", __FILE__, __LINE__);
         break;
     }
 }
@@ -476,12 +477,7 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         }
     case ST_TYPE_SPEC:
         {
-        int i = *((int*)NULL);
-        i++;
-        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"type_spec", NULL);
-        xmlAddChild(parent, node);
-        xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->type_name);
-        Minimal_serialiseTypeSpec(doc, node, type_spec->type_def->syntax_tree, typemap);
+        Minimal_serialiseTypeSpec(doc, parent, type_spec->type_def->syntax_tree, typemap);
         return;
         }
     case ST_TYPE_FUNCTION:
@@ -519,8 +515,13 @@ void Minimal_serialiseTypeSpec(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_
         xmlNewProp(node, (xmlChar*)"name", (xmlChar*)type_spec->ptr);
         return;
         }
+    case ST_BRACKET:
+        {
+        Minimal_serialiseTypeSpec(doc, parent, type_spec->type_def->syntax_tree, typemap);
+        return;
+        }
     default:
-        fprintf(stderr, "Error: Unknown syntax tree id in Minimal_serializeTypeSpec (%i).\n", type_spec->type);
+        fprintf(stderr, "Error: Unknown syntax tree id in Minimal_serialiseTypeSpec (%i).\n", type_spec->type);
         return;
     }
 }

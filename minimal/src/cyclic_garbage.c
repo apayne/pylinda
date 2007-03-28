@@ -34,7 +34,9 @@ struct CyclicGarbageList* Minimal_newCyclicGarbageList() {
 
 void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalValue ptr) {
     if(list->used < list->size) {
+        int refcount = Minimal_getReferenceCount(ptr);
         int k = 0;
+        if(refcount < 0) { return; }
         struct CyclicGarbage* item = &(list->list[list->used]);
         while(k < list->used) {
              if(list->list[k].ptr == ptr) {
@@ -50,7 +52,7 @@ void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalValue
         item->ptr = ptr;
         item->type_id = Minimal_getTypeId(ptr);
         item->count = 1;
-        item->refcount = Minimal_getReferenceCount(ptr);
+        item->refcount = refcount;
     } else {
         struct CyclicGarbage* newlist = malloc(sizeof(struct CyclicGarbage)*(list->used*2));
         memcpy(newlist, list->list, sizeof(struct CyclicGarbage)*list->used);
