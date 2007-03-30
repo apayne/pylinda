@@ -280,12 +280,18 @@ void Minimal_setLindaTSDelRefFunc(void (*func)(MinimalValue t)) {
     Minimal_linda_ts_delref_func = func;
 }
 
-MinimalValue Minimal_typeSpec(const char* type_name, MinimalValue type_spec) {
+MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree type_spec) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = M_TYPE;
     v->type_name = (char*)malloc(strlen(type_name)+1);
     strcpy(v->type_name, type_name);
-    v->type_spec = type_spec;
+    if(type_spec->type == ST_TYPE_SPEC) {
+        Minimal_addReference(type_spec->type_def);
+        v->type_spec = type_spec->type_def;
+        Minimal_delReference(type_spec);
+    } else {
+        v->type_spec = type_spec;
+    }
     v->typeobj = NULL;
     v->typemap = Minimal_getCurrentLayer();
     v->type_id = 0;
@@ -325,8 +331,8 @@ unsigned char Minimal_isFunction(MinimalValue v) {
 MinimalValue Minimal_function(char* code) {
     MinimalValue f;
     MinimalLayer layer;
-    MinimalValue tree = Minimal_parseCode(code);
-    MinimalValue tree2;
+    Minimal_SyntaxTree tree = Minimal_parseCode(code);
+    Minimal_SyntaxTree tree2;
     MinimalLayer l;
     if(tree == NULL) {
         return NULL;
@@ -339,7 +345,7 @@ MinimalValue Minimal_function(char* code) {
     while(tree2->type != ST_TYPE_SPEC && tree2->type != ST_FUNCTION_DEF) {
         switch(tree2->type) {
         case ST_SEQENTIAL_DEFS:
-            tree2 = tree2->syntax_tree->branches[0];
+            tree2 = tree2->branches[0];
             break;
         default:
             fprintf(stderr, "Error: Tried to parse function but didn't get a function back - got %i.\n", tree2->type);
@@ -358,7 +364,7 @@ MinimalValue Minimal_function(char* code) {
     return f;
 }
 
-MinimalValue Minimal_function2(char* func_name, MinimalValue func_type, MinimalValue parameter_list, MinimalValue code) {
+MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree func_type, Minimal_SyntaxTree parameter_list, Minimal_SyntaxTree code) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
     v->type = M_FUNCTION;
     v->func_name = (char*)malloc(strlen(func_name)+1);
@@ -380,17 +386,17 @@ MinimalValue Minimal_function2(char* func_name, MinimalValue func_type, MinimalV
 MinimalValue Minimal_type(const char* typespec) {
     MinimalLayer layer;
     MinimalValue v;
-    MinimalValue tree = Minimal_parseTypeSpec(typespec);
+    Minimal_SyntaxTree tree = Minimal_parseTypeSpec(typespec);
     if(tree == NULL) {
         fprintf(stderr, "Error: Tried to parse type spec but got NULL\n");
         return NULL;
-    } else if(tree->type != M_SYNTAX_TREE || tree->syntax_tree->type != ST_TYPE_SPEC) {
+    } else if(tree->type != ST_TYPE_SPEC) {
         fprintf(stderr, "Error: Tried to parse type spec but didn't get a type spec back - got %i\n", tree->type);
         return NULL;
     }
     layer = Minimal_getCurrentLayer();
     Minimal_Layer_addTree(layer, tree);
-    v = Minimal_getName(layer, tree->syntax_tree->type_name);
+    v = Minimal_getName(layer, tree->type_name);
     Minimal_delReference(tree);
     Minimal_delReference(layer);
 
@@ -878,7 +884,9 @@ void Minimal_Value_free(MinimalValue v) {
         break;
     case M_TYPE:
         free(v->type_name);
-        Minimal_delReference(v->type_spec);
+        if(v->type_spec != NULL) {
+            Minimal_delReference(v->type_spec);
+        }
         if(v->typemap != NULL) {
             Minimal_delReference(v->typemap);
         }

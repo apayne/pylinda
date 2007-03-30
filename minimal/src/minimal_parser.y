@@ -21,11 +21,11 @@
 %{
 #include "minimal_internal.h"
 
-#define YYSTYPE MinimalValue
+#define YYSTYPE Minimal_SyntaxTree
 
 #include "yy.lex.h"
 
-MinimalValue yy_result;
+Minimal_SyntaxTree yy_result;
 
 void yyerror(char* s) {
 }
@@ -37,14 +37,14 @@ void yyerror(char* s) {
 
 input: { $$ = Minimal_SyntaxTree_createBlank(); yy_result = $$; }
      | input typespec_def YY_SEMICOLON {
-                        if($1->syntax_tree->type == ST_BLANK) {
+                        if($1->type == ST_BLANK) {
                             $$ = $2;
                             Minimal_delReference($1);
-                        } else if($2->syntax_tree->type == ST_BLANK) {
+                        } else if($2->type == ST_BLANK) {
                             $$ = $1;
                             Minimal_delReference($2);
                         } else {
-                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                            if($1->type != ST_SEQENTIAL_DEFS) {
                                 $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
                                 $$ = Minimal_SyntaxTree_addToSequence($1, $2);
@@ -53,14 +53,14 @@ input: { $$ = Minimal_SyntaxTree_createBlank(); yy_result = $$; }
                         yy_result = $$;
                         }
      | input definition YY_SEMICOLON {
-                        if($1->syntax_tree->type == ST_BLANK) {
+                        if($1->type == ST_BLANK) {
                             Minimal_delReference($1);
                             $$ = $2;
-                        } else if($2->syntax_tree->type == ST_BLANK) {
+                        } else if($2->type == ST_BLANK) {
                             Minimal_delReference($2);
                             $$ = $1;
                         } else {
-                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                            if($1->type != ST_SEQENTIAL_DEFS) {
                                 $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
                                 $$ = Minimal_SyntaxTree_addToSequence($1, $2);
@@ -69,14 +69,14 @@ input: { $$ = Minimal_SyntaxTree_createBlank(); yy_result = $$; }
                         yy_result = $$;
                         }
      | input expr YY_SEMICOLON {
-                        if($1->syntax_tree->type == ST_BLANK) {
+                        if($1->type == ST_BLANK) {
                             Minimal_delReference($1);
                             $$ = $2;
-                        } else if($2->syntax_tree->type == ST_BLANK) {
+                        } else if($2->type == ST_BLANK) {
                             Minimal_delReference($2);
                             $$ = $1;
                         } else {
-                            if($1->syntax_tree->type != ST_SEQENTIAL_DEFS) {
+                            if($1->type != ST_SEQENTIAL_DEFS) {
                                 $$ = Minimal_SyntaxTree_createSequence2($1, $2);
                             } else {
                                 $$ = Minimal_SyntaxTree_addToSequence($1, $2);
@@ -91,7 +91,7 @@ typespec_def: YY_ID YY_TYPESPEC typespec {
     }
 ;
 
-typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
+typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                     Minimal_delReference($1);
                     $$ = Minimal_SyntaxTree_createNil();
                   } else {
@@ -102,11 +102,11 @@ typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
                         $$ = Minimal_SyntaxTree_createFunction($1, $3);
                         }
         | typespec YY_OPERATOR typespec {
-                        if(strcmp($2->syntax_tree->string, "*") == 0) {
-                            if($1->syntax_tree->type == ST_PRODUCT_TYPE) {
+                        if(strcmp($2->string, "*") == 0) {
+                            if($1->type == ST_PRODUCT_TYPE) {
                                 Minimal_SyntaxTree_addToProductType($1, $3);
                                 $$ = $1;
-                            } else if($2->syntax_tree->type == ST_PRODUCT_TYPE) {
+                            } else if($2->type == ST_PRODUCT_TYPE) {
                                 Minimal_SyntaxTree_prependToProductType($1, $3);
                                 $$ = $1;
                             } else {
@@ -114,55 +114,55 @@ typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
                                 Minimal_SyntaxTree_addToProductType($$, $1);
                                 Minimal_SyntaxTree_addToProductType($$, $3);
                             }
-                        } else if(strcmp($2->syntax_tree->string, "+") == 0) {
-                            if($1->syntax_tree->type == ST_SUM_TYPE) {
+                        } else if(strcmp($2->string, "+") == 0) {
+                            if($1->type == ST_SUM_TYPE) {
                                 Minimal_SyntaxTree_addToSumType($1, $3);
                                 $$ = $1;
-                            } else if($2->syntax_tree->type == ST_SUM_TYPE) {
+                            } else if($2->type == ST_SUM_TYPE) {
                                 Minimal_SyntaxTree_prependToSumType($1, $3);
                                 $$ = $1;
                             } else {
                                 $$ = Minimal_SyntaxTree_createSumType($1, $3);
                             }
                         } else {
-                            fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2->syntax_tree->string);
+                            fprintf(stderr, "Error: Type operator '%s' is not defined.\n", $2->string);
                             $$ = Minimal_SyntaxTree_createBlank();
                         }
                         Minimal_delReference($2);
                         }
         | typespec YY_OPERATOR value {
-                        if($3->syntax_tree->type != ST_INTEGER) {
+                        if($3->type != ST_INTEGER) {
                             fprintf(stderr, "Error: Type multiplication must involve an integer.\n");
                             $$ = Minimal_SyntaxTree_createBlank();
                             Minimal_delReference($1); Minimal_delReference($2); Minimal_delReference($3);
-                        } else if(strcmp($2->syntax_tree->string, "*") == 0) {
+                        } else if(strcmp($2->string, "*") == 0) {
                             int i;
-                            if($3->syntax_tree->integer == 0) {
+                            if($3->integer == 0) {
                                 Minimal_delReference($1); Minimal_delReference($3);
                                 $$ = Minimal_SyntaxTree_createProductType();
                             } else {
                                 $$ = Minimal_SyntaxTree_createProductType();
-                                for(i = 0; i < $3->syntax_tree->integer; i++) {
+                                for(i = 0; i < $3->integer; i++) {
                                     Minimal_addReference($1);
                                     Minimal_SyntaxTree_addToProductType($$, $1);
                                 }
                             }
                             Minimal_delReference($3);
-                        } else if(strcmp($2->syntax_tree->string, "+") == 0) {
+                        } else if(strcmp($2->string, "+") == 0) {
                             int i;
-                            if($3->syntax_tree->integer == 0) {
+                            if($3->integer == 0) {
                                 Minimal_delReference($1); Minimal_delReference($3);
                                 $$ = Minimal_SyntaxTree_createSumType();
                             } else {
                                 $$ = Minimal_SyntaxTree_createSumType();
-                                for(i = 0; i < $3->syntax_tree->integer; i++) {
+                                for(i = 0; i < $3->integer; i++) {
                                     Minimal_addReference($1);
                                     $$ = Minimal_SyntaxTree_addToSumType($$, $1);
                                 }
                             }
                             Minimal_delReference($3);
                         } else {
-                            fprintf(stderr, "Error: Type operator '%s' is not for a value as the second operator.\n", $2->syntax_tree->string);
+                            fprintf(stderr, "Error: Type operator '%s' is not for a value as the second operator.\n", $2->string);
                             $$ = Minimal_SyntaxTree_createBlank();
                             Minimal_delReference($1); Minimal_delReference($3);
                         }
@@ -172,10 +172,10 @@ typespec: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
                         $$ = Minimal_SyntaxTree_createBracket($2);
                         }
         | YY_ID YY_OPENB YY_ID YY_CLOSEB {
-                        if(strcmp($1->syntax_tree->string, "ptr") == 0) {
+                        if(strcmp($1->string, "ptr") == 0) {
                             $$ = Minimal_SyntaxTree_createPointer($3);
                         } else {
-                            fprintf(stderr, "Error: %s is an invalid type function.\n", $1->syntax_tree->string);
+                            fprintf(stderr, "Error: %s is an invalid type function.\n", $1->string);
                             $$ = Minimal_SyntaxTree_createBlank();
                         }
                         Minimal_delReference($1); Minimal_delReference($3);
@@ -197,7 +197,7 @@ expr: value { $$ = $1; }
     | test_expr               { $$ = $1; }
 ;
 
-value: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
+value: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                     Minimal_delReference(&$1);
                     $$ = Minimal_SyntaxTree_createNil();
                   } else {
@@ -208,7 +208,7 @@ value: YY_ID { if(strcmp($1->syntax_tree->string, "Nil") == 0) {
 ;
 
 parameter_list: { $$ = Minimal_SyntaxTree_createBlank(); }
-              | parameter_list YY_ID { if($1->syntax_tree->type == ST_BLANK) {
+              | parameter_list YY_ID { if($1->type == ST_BLANK) {
                                         $$ = Minimal_SyntaxTree_createParameterList1($2);
                                         Minimal_delReference($1);
                                        } else {
@@ -223,7 +223,7 @@ function_call: expr YY_OPENB argument_list YY_CLOSEB {
 ;
 
 argument_list: { $$ = Minimal_SyntaxTree_createBlank(); }
-              | argument_list expr { if($1->syntax_tree->type == ST_BLANK) {
+              | argument_list expr { if($1->type == ST_BLANK) {
                                         $$ = Minimal_SyntaxTree_createArgumentList1($2);
                                         Minimal_delReference($1);
                                        } else {
@@ -236,9 +236,9 @@ tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
      | expr YY_COMMA tuple2 { int i;
                               $$ = Minimal_SyntaxTree_createTuple(1);
                               Minimal_SyntaxTree_setTuple($$, 0, $1);
-                              for(i=0; i<$3->syntax_tree->size; i++) {
-                                  Minimal_addReference($3->syntax_tree->tuple[i]);
-                                  Minimal_SyntaxTree_addToTuple($$, $3->syntax_tree->tuple[i]);
+                              for(i=0; i<$3->size; i++) {
+                                  Minimal_addReference($3->tuple[i]);
+                                  Minimal_SyntaxTree_addToTuple($$, $3->tuple[i]);
                               }
                               Minimal_delReference($3);
                             }

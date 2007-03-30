@@ -57,14 +57,27 @@ static PyObject* LindaPython_getSD(PyObject* self, PyObject* args) {
 static PyObject* linda_Type(PyObject* self, PyObject* args) {
     char* typespec;
     PyObject* o;
+    PyObject* _class = NULL;
+    PyObject* _from = NULL;
+    PyObject* _to = NULL;
     LindaValue l;
 
-    if(!PyArg_ParseTuple(args, "s", &typespec)) {
+    if(!PyArg_ParseTuple(args, "s|OOO", &typespec, &_class, &_from, &_to)) {
+        return NULL;
+    }
+    if(_class != NULL && !(_from != NULL && _to != NULL)) {
+        PyErr_SetString(PyExc_TypeError, "Type takes either 1 or 4 parameters.\n");
         return NULL;
     }
 
     l = Linda_type(typespec);
+
     o = Value2PyO(l);
+
+    if(_class != NULL) {
+        LindaPython_registerType(o, _class, _from, _to);
+    }
+
     Linda_delReference(l);
     return o;
 }
@@ -142,4 +155,5 @@ PyMODINIT_FUNC init_linda(void)
     inittsref(Linda_module);
     initvalue(Linda_module);
     inittypemap(Linda_module);
+    initregistery(Linda_module);
 }

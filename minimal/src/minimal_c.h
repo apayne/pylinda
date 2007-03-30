@@ -49,7 +49,7 @@ struct MinimalValue_t;
 typedef struct MinimalValue_t* MinimalValue;
 
 struct Minimal_SyntaxTree_t;
-typedef struct Minimal_SyntaxTree_t Minimal_SyntaxTree;
+typedef struct Minimal_SyntaxTree_t* Minimal_SyntaxTree;
 
 struct MinimalLayer_t;
 typedef struct MinimalLayer_t* MinimalLayer;
@@ -93,7 +93,7 @@ struct MinimalValue_t {
         };
         struct {
             char* type_name;
-            MinimalValue type_spec;
+            Minimal_SyntaxTree type_spec;
             MinimalLayer typemap;
             char* type_id;
         };
@@ -104,14 +104,14 @@ struct MinimalValue_t {
         };
         struct {
             char* func_name;
-            MinimalValue parameter_list;
-            MinimalValue code;
+            Minimal_SyntaxTree parameter_list;
+            Minimal_SyntaxTree code;
             MinimalLayer layer;
         };
         struct {
             MinimalValue ptr;
         };
-        struct Minimal_SyntaxTree_t* syntax_tree;
+        Minimal_SyntaxTree syntax_tree;
     };
 };
 
@@ -167,11 +167,11 @@ EXPORT unsigned int Minimal_getStringLen(MinimalValue v);
 EXPORT unsigned char Minimal_isType(MinimalValue v);
 EXPORT MinimalValue Minimal_type(const char* typespec);
 EXPORT MinimalValue Minimal_typeFromId(char* tid);
-EXPORT MinimalValue Minimal_typeSpec(const char* type_name, MinimalValue type_spec);
+EXPORT MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree type_spec);
 
 EXPORT unsigned char Minimal_isFunction(MinimalValue v);
 EXPORT MinimalValue Minimal_function(char* code);
-EXPORT MinimalValue Minimal_function2(char* func_name, MinimalValue type_spec, MinimalValue parameters, MinimalValue code);
+EXPORT MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree type_spec, Minimal_SyntaxTree parameters, Minimal_SyntaxTree code);
 
 EXPORT MinimalValue Minimal_copy(MinimalValue v);
 EXPORT char* Minimal_Value_string(MinimalValue v);
@@ -227,43 +227,43 @@ struct Minimal_SyntaxTree_t {
         char* string;
         struct {
             int length;
-            MinimalValue* branches;
+            Minimal_SyntaxTree* branches;
         };
         struct {
             char* type_name;
-            MinimalValue type_def;
+            Minimal_SyntaxTree type_def;
         };
         struct {
             char* var_name;
-            MinimalValue next_var;
+            Minimal_SyntaxTree next_var;
         };
         struct {
             char* func_name;
-            MinimalValue type_spec;
-            MinimalValue parameter_list;
-            MinimalValue body;
+            Minimal_SyntaxTree type_spec;
+            Minimal_SyntaxTree parameter_list;
+            Minimal_SyntaxTree body;
         };
         struct {
-            MinimalValue function;
-            MinimalValue arguments;
+            Minimal_SyntaxTree function;
+            Minimal_SyntaxTree arguments;
         };
         struct {
-            MinimalValue argument;
-            MinimalValue next_arg;
+            Minimal_SyntaxTree argument;
+            Minimal_SyntaxTree next_arg;
         };
         struct {
             char* _operator;
-            MinimalValue op1;
-            MinimalValue op2;
+            Minimal_SyntaxTree op1;
+            Minimal_SyntaxTree op2;
         };
         struct {
             int size;
-            MinimalValue* tuple;
+            Minimal_SyntaxTree* tuple;
         };
         struct {
-            MinimalValue _if;
-            MinimalValue _then;
-            MinimalValue _else;
+            Minimal_SyntaxTree _if;
+            Minimal_SyntaxTree _then;
+            Minimal_SyntaxTree _else;
         };
         char* ptr;
     };
@@ -285,14 +285,14 @@ struct MinimalLayer_t {
 EXPORT MinimalLayer Minimal_createLayer();
 EXPORT MinimalLayer Minimal_createLayer2(MinimalLayer parent);
 
-EXPORT MinimalValue Minimal_parseTypeSpec(const char* code);
-EXPORT MinimalValue Minimal_parseCode(char* code);
+EXPORT Minimal_SyntaxTree Minimal_parseTypeSpec(const char* code);
+EXPORT Minimal_SyntaxTree Minimal_parseCode(char* code);
 EXPORT MinimalValue Minimal_parseValue(char* code);
 
 EXPORT int Minimal_SyntaxMap_size(Minimal_NameValueMap* map);
 
 EXPORT MinimalValue Minimal_apply(MinimalValue func, MinimalValue args);
-EXPORT MinimalValue Minimal_evaluate(MinimalValue code, MinimalLayer layer);
+EXPORT MinimalValue Minimal_evaluate(Minimal_SyntaxTree code, MinimalLayer layer);
 
 EXPORT MinimalValue Minimal_getFunction(char* funcname);
 
@@ -311,7 +311,7 @@ IMPORT extern MinimalLayer Minimal_defaultLayer;
 EXPORT char* Minimal_serialise(MinimalValue f, unsigned char include_type, unsigned char include_type_spec);
 EXPORT xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, unsigned char include_type, unsigned char include_type_spec);
 
-EXPORT MinimalValue Minimal_parseXMLCode(const char* code);
+EXPORT Minimal_SyntaxTree Minimal_parseXMLCode(const char* code);
 EXPORT MinimalValue Minimal_xmlToValue(xmlNodePtr node);
 
 IMPORT extern MinimalValue Minimal_typeType;
@@ -341,7 +341,7 @@ IMPORT extern unsigned char Minimal_use_types;
 
 /* These should probably be internal. */
 
-EXPORT void Minimal_Layer_addTree(MinimalLayer layer, MinimalValue tree);
+EXPORT void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree tree);
 
 EXPORT void Minimal_interpreter();
 

@@ -28,11 +28,11 @@
 #include "minimal_internal.h"
 
 void Minimal_interpreter() {
-    MinimalValue tree;
+    Minimal_SyntaxTree tree;
 
     while(1) {
         MinimalValue v;
-		
+
 #ifndef NO_READLINE
         char* line = readline("> ");
 #else

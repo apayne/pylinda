@@ -39,41 +39,41 @@ void Minimal_Layer_init();
 void Minimal_Layer_finalise();
 void Minimal_refCountFinalise();
 
-MinimalValue Minimal_SyntaxTree_createBlank();
-MinimalValue Minimal_SyntaxTree_createNil();
-MinimalValue Minimal_SyntaxTree_createID(char* id);
-MinimalValue Minimal_SyntaxTree_createInteger(int i);
-MinimalValue Minimal_SyntaxTree_createBracket(MinimalValue v1);
-MinimalValue Minimal_SyntaxTree_createSequence();
-MinimalValue Minimal_SyntaxTree_createSequence2(MinimalValue v1, MinimalValue v2);
-MinimalValue Minimal_SyntaxTree_addToSequence(MinimalValue v1, MinimalValue v2);
-MinimalValue Minimal_SyntaxTree_prependToSequence(MinimalValue v1, MinimalValue v2);
-MinimalValue Minimal_SyntaxTree_createTypeSpec(MinimalValue id, MinimalValue type_spec);
-MinimalValue Minimal_SyntaxTree_createIfExpr(MinimalValue test, MinimalValue expr1, MinimalValue expr2);
-MinimalValue Minimal_SyntaxTree_createFunction(MinimalValue arg, MinimalValue value);
-MinimalValue Minimal_SyntaxTree_createFunctionDef(MinimalValue name, MinimalValue args, MinimalValue expr);
-MinimalValue Minimal_SyntaxTree_createProductType();
-MinimalValue Minimal_SyntaxTree_addToProductType(MinimalValue type, MinimalValue v);
-MinimalValue Minimal_SyntaxTree_prependToProductType(MinimalValue type, MinimalValue v);
-MinimalValue Minimal_SyntaxTree_createSumType();
-MinimalValue Minimal_SyntaxTree_addToSumType(MinimalValue type, MinimalValue v);
-MinimalValue Minimal_SyntaxTree_prependToSumType(MinimalValue type, MinimalValue v);
-MinimalValue Minimal_SyntaxTree_createPointer(MinimalValue v1);
-MinimalValue Minimal_SyntaxTree_createOperator(MinimalValue op, MinimalValue expr1, MinimalValue expr2);
-MinimalValue Minimal_SyntaxTree_createParameterList1(MinimalValue v1);
-MinimalValue Minimal_SyntaxTree_createParameterList2(MinimalValue v1, MinimalValue v2);
-MinimalValue Minimal_SyntaxTree_createArgumentList1(MinimalValue v1);
-MinimalValue Minimal_SyntaxTree_createArgumentList2(MinimalValue v1, MinimalValue v2);
-MinimalValue Minimal_SyntaxTree_createFunctionCall(MinimalValue func, MinimalValue args);
+Minimal_SyntaxTree Minimal_SyntaxTree_createBlank();
+Minimal_SyntaxTree Minimal_SyntaxTree_createNil();
+Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
+Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
+Minimal_SyntaxTree Minimal_SyntaxTree_createBracket(Minimal_SyntaxTree v1);
+Minimal_SyntaxTree Minimal_SyntaxTree_createSequence();
+Minimal_SyntaxTree Minimal_SyntaxTree_createSequence2(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
+Minimal_SyntaxTree Minimal_SyntaxTree_addToSequence(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
+Minimal_SyntaxTree Minimal_SyntaxTree_prependToSequence(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
+Minimal_SyntaxTree Minimal_SyntaxTree_createTypeSpec(Minimal_SyntaxTree id, Minimal_SyntaxTree type_spec);
+Minimal_SyntaxTree Minimal_SyntaxTree_createIfExpr(Minimal_SyntaxTree test, Minimal_SyntaxTree expr1, Minimal_SyntaxTree expr2);
+Minimal_SyntaxTree Minimal_SyntaxTree_createFunction(Minimal_SyntaxTree arg, Minimal_SyntaxTree value);
+Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionDef(Minimal_SyntaxTree name, Minimal_SyntaxTree args, Minimal_SyntaxTree expr);
+Minimal_SyntaxTree Minimal_SyntaxTree_createProductType();
+Minimal_SyntaxTree Minimal_SyntaxTree_addToProductType(Minimal_SyntaxTree type, Minimal_SyntaxTree v);
+Minimal_SyntaxTree Minimal_SyntaxTree_prependToProductType(Minimal_SyntaxTree type, Minimal_SyntaxTree v);
+Minimal_SyntaxTree Minimal_SyntaxTree_createSumType();
+Minimal_SyntaxTree Minimal_SyntaxTree_addToSumType(Minimal_SyntaxTree type, Minimal_SyntaxTree v);
+Minimal_SyntaxTree Minimal_SyntaxTree_prependToSumType(Minimal_SyntaxTree type, Minimal_SyntaxTree v);
+Minimal_SyntaxTree Minimal_SyntaxTree_createPointer(Minimal_SyntaxTree v1);
+Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(Minimal_SyntaxTree op, Minimal_SyntaxTree expr1, Minimal_SyntaxTree expr2);
+Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList1(Minimal_SyntaxTree v1);
+Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList2(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
+Minimal_SyntaxTree Minimal_SyntaxTree_createArgumentList1(Minimal_SyntaxTree v1);
+Minimal_SyntaxTree Minimal_SyntaxTree_createArgumentList2(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
+Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionCall(Minimal_SyntaxTree func, Minimal_SyntaxTree args);
 
-EXPORT int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree* t1, Minimal_SyntaxTree* t2);
+EXPORT int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree t1, Minimal_SyntaxTree t2);
 
-MinimalValue Minimal_SyntaxTree_createTuple(int size);
-void Minimal_SyntaxTree_setTuple(MinimalValue tuple, int i, MinimalValue tree);
-void Minimal_SyntaxTree_addToTuple(MinimalValue tuple, MinimalValue tree);
+Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size);
+void Minimal_SyntaxTree_setTuple(Minimal_SyntaxTree tuple, int i, Minimal_SyntaxTree tree);
+void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree tuple, Minimal_SyntaxTree tree);
 
-EXPORT Minimal_SyntaxTree* Minimal_SyntaxTree_copy(Minimal_SyntaxTree* tree);
-EXPORT void Minimal_SyntaxTree_free(Minimal_SyntaxTree* tree);
+EXPORT Minimal_SyntaxTree Minimal_SyntaxTree_copy(Minimal_SyntaxTree tree);
+EXPORT void Minimal_SyntaxTree_free(Minimal_SyntaxTree tree);
 
 void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name);
@@ -132,7 +132,7 @@ struct ValueMemo_t {
 typedef struct ValueMemo_t ValueMemo;
 
 unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type);
-void Minimal_getTypeList2(MinimalValue type, MinimalLayer typemap, Minimal_TypeList* list);
+void Minimal_getTypeList2(Minimal_SyntaxTree type, MinimalLayer typemap, Minimal_TypeList* list);
 void Minimal_freeTypeList(Minimal_TypeList list);
 
 unsigned char Minimal_isBuiltIn(char* type_name);
@@ -154,13 +154,13 @@ struct CyclicGarbageList {
     struct CyclicGarbage* list;
 };
 
-void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalValue ptr);
+void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObject ptr);
 
 void Minimal_getReferences(struct CyclicGarbageList* list, MinimalTypeId type_id, MinimalObject ptr);
 
 void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue ptr);
 void Minimal_Layer_getReferences(struct CyclicGarbageList* list, MinimalLayer layer);
 void Minimal_SyntaxMap_getReferences(struct CyclicGarbageList* list, Minimal_NameValueMap* ptr);
-void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_SyntaxTree* ptr);
+void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_SyntaxTree ptr);
 
 #endif

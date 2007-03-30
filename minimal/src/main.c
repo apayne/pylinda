@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     Minimal_init();
 
     if(argc > 1) {
-        MinimalValue tree;
+        Minimal_SyntaxTree tree;
         int size;
         char* code;
 

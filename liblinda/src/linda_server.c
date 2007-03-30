@@ -154,7 +154,7 @@ unsigned char Linda_serve(unsigned char use_domain, int port) {
         return 0;
     } else {
 #ifdef WIN32
-		Sleep(1000);
+        Sleep(1000);
 #else
         sleep(1); /* It appears that if we accept too soon things fail, so pause. */
 #endif

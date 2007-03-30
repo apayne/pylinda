@@ -54,41 +54,38 @@ MinimalLayer Minimal_getCurrentLayer() {
     return Minimal_currentLayer;
 }
 
-void Minimal_Layer_addTree(MinimalLayer layer, MinimalValue tree) {
+void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree tree) {
     int i;
-    if(tree->type != M_SYNTAX_TREE) {
-        fprintf(stderr, "Value which is not a syntax tree passed to Minimal_Layer_addTree\n");
-        return;
-    }
-    switch(tree->syntax_tree->type) {
+    switch(tree->type) {
     case ST_BLANK:
         break;
     case ST_SEQENTIAL_DEFS:
-        for(i = 0; i < tree->syntax_tree->length; i++) {
-            Minimal_Layer_addTree(layer, tree->syntax_tree->branches[i]);
+        for(i = 0; i < tree->length; i++) {
+            Minimal_Layer_addTree(layer, tree->branches[i]);
         }
         break;
     case ST_TYPE_SPEC:
         {
+        MinimalValue v;
         Minimal_addReference(tree);
-        tree = Minimal_typeSpec(tree->syntax_tree->type_name, tree);
-        Minimal_addName(&(layer->map), tree->type_name, tree);
+        v = Minimal_typeSpec(tree->type_name, tree);
+        Minimal_addName(&(layer->map), tree->type_name, v);
         }
         break;
     case ST_FUNCTION_DEF:
         {
         MinimalValue f;
-        MinimalValue typespec = Minimal_getName(layer, tree->syntax_tree->func_name);
+        MinimalValue typespec = Minimal_getName(layer, tree->func_name);
         if(typespec != NULL && Minimal_isType(typespec)) {
-            Minimal_addReference(typespec);
-            tree->syntax_tree->type_spec = typespec;
+            Minimal_addReference(typespec->type_spec);
+            tree->type_spec = typespec->type_spec;
         } else {
-            tree->syntax_tree->type_spec = NULL;
+            tree->type_spec = NULL;
         }
-        if(tree->syntax_tree->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL from tree.\n"); *((int*)NULL) = 1; }
-        Minimal_addReference(tree->syntax_tree->parameter_list);
-        Minimal_addReference(tree->syntax_tree->body);
-        f = Minimal_function2(tree->syntax_tree->func_name, tree->syntax_tree->type_spec, tree->syntax_tree->parameter_list, tree->syntax_tree->body);
+        if(tree->parameter_list == NULL) { fprintf(stderr, "Error: Parameter list is NULL from tree.\n"); *((int*)NULL) = 1; }
+        Minimal_addReference(tree->parameter_list);
+        Minimal_addReference(tree->body);
+        f = Minimal_function2(tree->func_name, tree->type_spec, tree->parameter_list, tree->body);
         Minimal_delReference(f->layer);
         Minimal_addReference(layer);
         f->layer = layer;
@@ -96,7 +93,7 @@ void Minimal_Layer_addTree(MinimalLayer layer, MinimalValue tree) {
         if(typespec != NULL && Minimal_isType(typespec)) {
             Minimal_delReference(typespec);
         }
-        Minimal_addName(&(layer->map), tree->syntax_tree->func_name, f);
+        Minimal_addName(&(layer->map), tree->func_name, f);
         }
         break;
     default:

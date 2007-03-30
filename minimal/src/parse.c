@@ -26,9 +26,9 @@
 #include "yy.lex.h"
 
 int yyparse();
-MinimalValue yy_result;
+Minimal_SyntaxTree yy_result;
 
-MinimalValue Minimal_parseTypeSpec(const char* code) {
+Minimal_SyntaxTree Minimal_parseTypeSpec(const char* code) {
     int r;
     YY_BUFFER_STATE buf;
 
@@ -48,7 +48,7 @@ MinimalValue Minimal_parseTypeSpec(const char* code) {
     }
 }
 
-MinimalValue Minimal_parseCode(char* code) {
+Minimal_SyntaxTree Minimal_parseCode(char* code) {
     int r;
     YY_BUFFER_STATE buf;
 

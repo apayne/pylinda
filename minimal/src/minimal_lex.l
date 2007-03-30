@@ -23,7 +23,7 @@
 
 #include "minimal_internal.h"
 
-#define YYSTYPE MinimalValue
+#define YYSTYPE Minimal_SyntaxTree
 
 #include "minimal_parser.h"
 %}

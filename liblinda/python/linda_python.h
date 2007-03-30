@@ -27,6 +27,7 @@ void inittuplespace(PyObject* m);
 void inittsref(PyObject* m);
 void initvalue(PyObject* m);
 void inittypemap(PyObject* m);
+void initregistery(PyObject* m);
 
 LindaValue PyO2Value(PyObject* obj);
 PyObject* Value2PyO(LindaValue obj);
@@ -35,6 +36,10 @@ PyObject* Tuple2PyO(LindaValue t);
 
 PyObject* LindaPython_send(PyObject *self, PyObject* args);
 PyObject* LindaPython_recv(PyObject *self, PyObject* args);
+
+void LindaPython_registerType(PyObject* type, PyObject* _class, PyObject* _to, PyObject* _from);
+PyObject* LindaPython_lookupConvertTo(PyObject* type);
+LindaValue LindaPython_lookupType(PyObject* type);
 
 typedef struct {
     PyObject_HEAD

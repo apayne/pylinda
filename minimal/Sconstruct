@@ -20,7 +20,7 @@ conf.Finish()
 if platform.system() == "Windows":
     readline = []
 else:
-    readline = ["readline", "termcap"]
+    readline = ["readline"]
     if needbc==1:
         readline += ["bc"]
 

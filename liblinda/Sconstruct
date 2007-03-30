@@ -18,7 +18,7 @@ else:
     includes = ["/home/andrew/include", "/usr/include/libxml2"]
     libdir = [".", "/home/andrew/lib"]
     libs = []
-    pylib = ["python%i.%i" % (sys.version_info[0], sys.version_info[1]), "readline", "termcap"]
+    pylib = ["python%i.%i" % (sys.version_info[0], sys.version_info[1]), "readline"]
 
 debug = int(ARGUMENTS.get("debug", "1"))
 types = int(ARGUMENTS.get("types", "1"))
