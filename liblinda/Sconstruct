@@ -29,6 +29,18 @@ network = int(ARGUMENTS.get("network", "1"))
 env = Environment(CCFLAGS=ccflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
 cppenv = Environment(CCFLAGS=ccflags + cppflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
 
+conf = env.Configure()
+
+if conf.CheckLib("termcap", "BC"):
+    needbc = 1
+else:
+    needbc = 0
+
+if needbc:
+    pylib += ["termcap"]
+
+conf.Finish()
+
 if debug:
     env.Append(CCFLAGS=" -DDEBUG")
 else:
