@@ -9,11 +9,10 @@ else:
 
 conf = env.Configure()
 
-#if conf.CheckLib("readline") and conf.CheckLib("termcap"):
-#    needbc = 0
-#else:
-#    needbc = 1
-needbc = 0
+if conf.CheckLib("readline") and conf.CheckLib("termcap"):
+    needbc = 0
+else:
+    needbc = 1
 
 conf.Finish()
 
