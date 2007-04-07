@@ -9,10 +9,10 @@ else:
 
 conf = env.Configure()
 
-if conf.CheckLib("readline") and conf.CheckLib("termcap"):
-    needbc = 0
-else:
+if conf.CheckLib("termcap", "BC"):
     needbc = 1
+else:
+    needbc = 0
 
 conf.Finish()
 
@@ -21,7 +21,7 @@ if platform.system() == "Windows":
 else:
     readline = ["readline"]
     if needbc==1:
-        readline += ["bc"]
+        readline += ["termcap"]
 
 Export("env")
 

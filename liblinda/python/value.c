@@ -28,7 +28,7 @@
 typedef int Py_ssize_t;
 #define lenfunc inquiry
 #define ssizeargfunc intargfunc
-#define ssizeobjargfunc intobjargfunc
+#define ssizeobjargproc intobjargproc
 #endif
 
 #include "linda_python.h"
