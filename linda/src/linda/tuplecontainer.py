@@ -29,6 +29,7 @@ from match import compare
 
 if _linda_server.use_types:
     from iso_cache import saveIso, lookupIso
+    from type_cache import lookupType
 
 def identity(value):
     return value
@@ -71,11 +72,14 @@ def doesMatch_types(e1, e2):
     elif e1.isType():
         if e1.type_id == e2.type.type_id:
             return e2
-        iso = lookupIso(e1, e2.type)
+        t1 = lookupType(e1.type_id)
+        t2 = lookupType(e2.type.type_id)
+        iso = lookupIso(t1, t2)
         if iso is None:
             print "failed to match", e1, e2.type, e2
             raise NoTupleMatch
-        return iso(e2)
+        v = iso(t1, t2, e2, {}, {}, True)
+        return v
     else:
         if e1.type.type_id == e2.type.type_id:
             if e1 == e2:
@@ -85,7 +89,7 @@ def doesMatch_types(e1, e2):
         iso = lookupIso(e1.type, e2.type)
         if iso is None:
             raise NoTupleMatch
-        e2 = iso(e2)
+        e2 = iso(e1.type, e2.type, e2, {}, {}, True)
         if e1 == e2:
             return e2
         else:

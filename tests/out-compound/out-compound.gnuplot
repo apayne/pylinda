@@ -2,10 +2,10 @@ set terminal png
 set output "out-compound.png"
 
 #set terminal latex
-#set output "out-compund.tex"
+#set output "out-compound.tex"
 
 #set term postscript eps enhanced
-#set output "out-compund.eps"
+#set output "out-compound.eps"
 
 set size 1, 1
 set xrange[0:50]
@@ -16,7 +16,7 @@ set grid ytics
 set ylabel "Seconds"
 set xlabel "Tuple Size (Elements)"
 
-#set title "Time Taken To In 10,000 tuples"
+#set title "Time Taken To Out 10,000 tuples"
 
 plot "out-compound.txt" using 1:2 title "Traditional" with lines, \
      "out-compound.txt" using 1:3 title "Registered (Compound)" with lines, \

@@ -60,12 +60,8 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
 #endif
 
     if(PyObject_IsInstance(obj, (PyObject*)&linda_ValueType)) {
-        if(Linda_isTupleSpace(((linda_ValueObject*)obj)->val)) {
-            Linda_addReference(((linda_ValueObject*)obj)->val);
-            self->val = ((linda_ValueObject*)obj)->val;
-        } else {
-            self->val = Linda_copy(((linda_ValueObject*)obj)->val);
-        }
+        Linda_addReference(((linda_ValueObject*)obj)->val);
+        self->val = ((linda_ValueObject*)obj)->val;
     } else if(obj == Py_None) {
         self->val = Linda_nil();
     } else if(PyInt_Check(obj)) {
@@ -81,26 +77,32 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
             LindaValue nv = PyO2Value(o);
             if(nv == NULL) {
                 Linda_delReference(self->val);
-                PyErr_SetString(PyExc_TypeError, "PyO2Value: Failed to convert value when converting tuple.\n");
+                PyErr_SetString(PyExc_TypeError, "linda_Value_init: Failed to convert value when converting tuple.\n");
                 return -1;
             }
             Linda_tupleSet(self->val, i, nv); /* Steals reference to nv. */
         }
     } else if(PyType_Check(obj)) {
         if(obj == (PyObject*)&PyInt_Type) {
-            self->val = Linda_copy(Linda_longType);
+            Linda_addReference(Linda_longType);
+            self->val = Linda_longType;
         } else if(obj == (PyObject*)&PyFloat_Type) {
-            self->val = Linda_copy(Linda_floatType);
+            Linda_addReference(Linda_floatType);
+            self->val = Linda_floatType;
         } else if(obj == (PyObject*)&PyString_Type) {
-            self->val = Linda_copy(Linda_stringType);
+            Linda_addReference(Linda_stringType);
+            self->val = Linda_stringType;
         } else if(obj == (PyObject*)&PyBool_Type) {
-            self->val = Linda_copy(Linda_boolType);
+            Linda_addReference(Linda_boolType);
+            self->val = Linda_boolType;
         } else if(obj == (PyObject*)&linda_TupleSpaceType) {
-            self->val = Linda_copy(Linda_tupleSpaceType);
+            Linda_addReference(Linda_tupleSpaceType);
+            self->val = Linda_tupleSpaceType;
         } else if(obj == (PyObject*)&linda_ValueType) {
-            self->val = Linda_copy(((linda_ValueObject*)obj)->val);
+            Linda_addReference(((linda_ValueObject*)obj)->val);
+            self->val = ((linda_ValueObject*)obj)->val;
         } else {
-            PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type of type.\n");
+            PyErr_SetString(PyExc_TypeError, "linda_Value_init: Invalid type of type.\n");
             return -1;
         }
     } else if(Linda_is_server && PyObject_IsInstance(obj, (PyObject*)&linda_TSRefType)) {
@@ -109,7 +111,7 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
         Linda_addReference(((linda_TupleSpaceObject*)obj)->ts);
         self->val = ((linda_TupleSpaceObject*)obj)->ts;
     } else {
-        PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type.\n");
+        PyErr_Format(PyExc_TypeError, "linda_Value_init: Invalid type. %s.\n", PyString_AsString(PyObject_Str(obj)));
         return -1;
     }
 
@@ -143,9 +145,11 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 1;
         }
-    } else if(self->val->type == M_NIL) {
+    }
+    switch(self->val->type) {
+    case M_NIL:
         return 0;
-    } else if(self->val->type == M_BOOLEAN) {
+    case M_BOOLEAN:
         if(self->val->boolean == 0 && other->val->boolean == 0) {
             return 0;
         } else if(self->val->boolean == 0 && other->val->boolean == 1) {
@@ -155,7 +159,10 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    } else if(self->val->type == M_INTEGER || self->val->type == M_LONG) {
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
         if(self->val->integer < other->val->integer) {
             return -1;
         } else if(self->val->integer > other->val->integer) {
@@ -163,9 +170,36 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    } else if(self->val->type == M_STRING) {
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+        if(self->val->uinteger < other->val->uinteger) {
+            return -1;
+        } else if(self->val->uinteger > other->val->uinteger) {
+            return 1;
+        } else {
+            return 0;
+        }
+    case M_FLOAT:
+        if(self->val->singlefloat < other->val->singlefloat) {
+            return -1;
+        } else if(self->val->singlefloat > other->val->singlefloat) {
+            return 1;
+        } else {
+            return 0;
+        }
+    case M_DOUBLE:
+        if(self->val->doublefloat < other->val->doublefloat) {
+            return -1;
+        } else if(self->val->doublefloat > other->val->doublefloat) {
+            return 1;
+        } else {
+            return 0;
+        }
+    case M_STRING:
         return strcmp(self->val->string, other->val->string);
-    } else if(self->val->type == M_TUPLE) {
+    case M_TUPLE:
         if(self->val->size < other->val->size) {
             return -1;
         } else if(self->val->size > other->val->size) {
@@ -184,9 +218,9 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
             }
             return 0;
         }
-    } else if(self->val->type == M_FUNCTION) {
+    case M_FUNCTION:
         return strcmp(self->val->func_name, other->val->func_name);
-    } else if(self->val->type == M_TYPE) {
+    case M_TYPE:
         if(self->val->type_name != NULL && other->val->type_name != NULL && strcmp(self->val->type_name, other->val->type_name)) {
             return strcmp(self->val->type_name, other->val->type_name);
         } else if(self->val->type_spec != NULL && other->val->type_spec != NULL) {
@@ -198,12 +232,20 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    } else if(self->val->type == M_TSREF) {
+    case M_TSREF:
         return strcmp(self->val->string, other->val->string);
-    } else {
-        PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("PyLibLinda: Unknown type (%i) in comparison.\n", self->val->type));
-        return -1;
+    case M_POINTER:
+        if(self->val->ptr < other->val->ptr) {
+            return -1;
+        } else if(self->val->ptr > other->val->ptr) {
+            return 1;
+        } else {
+            return 0;
+        }
+    case M_SYNTAX_TREE:
+        return Minimal_SyntaxTree_cmp(self->val->syntax_tree, other->val->syntax_tree);
     }
+    return 0;
 }
 
 static PyObject* linda_Value_str(linda_ValueObject* self) {
@@ -285,6 +327,16 @@ static PyObject* linda_Value_isTupleSpace(linda_ValueObject* self) {
 
 static PyObject* linda_Value_isFunction(linda_ValueObject* self) {
     if(Linda_isFunction(self->val)) {
+        Py_INCREF(Py_True);
+        return Py_True;
+    } else {
+        Py_INCREF(Py_False);
+        return Py_False;
+    }
+}
+
+static PyObject* linda_Value_isPtr(linda_ValueObject* self) {
+    if(Linda_isPtr(self->val)) {
         Py_INCREF(Py_True);
         return Py_True;
     } else {
@@ -430,6 +482,7 @@ static PyMethodDef value_methods[] = {
     {"isString", (PyCFunction)linda_Value_isString, METH_NOARGS, ""},
     {"isTuple", (PyCFunction)linda_Value_isTuple, METH_NOARGS, ""},
     {"isTupleSpace", (PyCFunction)linda_Value_isTupleSpace, METH_NOARGS, ""},
+    {"isPtr", (PyCFunction)linda_Value_isPtr, METH_NOARGS, ""},
     {"__deepcopy__", (PyCFunction)linda_Value_deepcopy, METH_VARARGS, ""},
     {NULL}  /* Sentinel */
 };
@@ -477,12 +530,16 @@ static PyObject* linda_Value_gettype(linda_ValueObject *self, void *closure) {
     case M_POINTER:
         Py_INCREF(Py_None);
         return Py_None;
+    case M_SYNTAX_TREE:
+        Py_INCREF(Py_None);
+        return Py_None;
     }
     Py_INCREF(Py_None);
     return Py_None;
 #endif
 }
 
+#ifdef TYPES
 static int linda_Value_settype(linda_ValueObject* self, PyObject* value, void* closure) {
     LindaValue type;
     if(!PyObject_IsInstance(value, (PyObject*)&linda_ValueType)) { PyErr_SetString(PyExc_TypeError, "setType - Setting to not an value."); return -1; }
@@ -495,6 +552,7 @@ static int linda_Value_settype(linda_ValueObject* self, PyObject* value, void* c
     Linda_delReference(type);
     return 0;
 }
+#endif
 
 static PyObject* linda_Value_getid(linda_ValueObject *self, void *closure) {
     PyObject* string;
@@ -650,6 +708,43 @@ static PyObject* linda_Value_gettype_name(linda_ValueObject* self, void* closure
         return Py_None;
     }
 }
+
+static PyObject* linda_Value_getptr(linda_ValueObject* self, void* closure) {
+    if(!Linda_isPtr(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getptr- Not a pointer.");
+        return NULL;
+    }
+
+    if(Linda_getPtr(self->val) != NULL) {
+        return Value2PyO(Linda_getPtr(self->val));
+    } else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+}
+
+static int linda_Value_setptr(linda_ValueObject* self, PyObject* value, void* closure) {
+    if(!Linda_isPtr(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getptr- Not a pointer.");
+        return 1;
+    }
+
+    if(value == Py_None) {
+        Linda_setPtr(self->val, NULL);
+    } else {
+        Linda_setPtr(self->val, PyO2Value(value));
+    }
+    return 0;
+}
+
+static PyObject* linda_Value_getptrtype(linda_ValueObject* self, void* closure) {
+    if(!Linda_isType(self->val) || self->val->type_spec->type != ST_POINTER) {
+        PyErr_SetString(PyExc_TypeError, "getptrtype - Not a pointer type.");
+        return NULL;
+    }
+
+    return PyString_FromString(self->val->type_spec->ptr);
+}
 #endif
 
 static PyObject* linda_Value_gettsid(linda_ValueObject *self, void *closure) {
@@ -660,17 +755,21 @@ static PyObject* linda_Value_gettsid(linda_ValueObject *self, void *closure) {
 static PyGetSetDef value_getseters[] = {
     {"id", (getter)linda_Value_getid, (setter)NULL, "", NULL},
     {"int", (getter)linda_Value_getint, (setter)NULL, "", NULL},
-    {"type", (getter)linda_Value_gettype, (setter)linda_Value_settype, "", NULL},
     {"string", (getter)linda_Value_getstring, (setter)NULL, "", NULL},
     {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
     {"tsid", (getter)linda_Value_gettsid, (setter)NULL, "", NULL},
 #ifdef TYPES
+    {"type", (getter)linda_Value_gettype, (setter)linda_Value_settype, "", NULL},
     {"type_name", (getter)linda_Value_gettype_name, (setter)NULL, "", NULL},
     {"typemap", (getter)linda_Value_gettypemap, (setter)NULL, "", NULL},
     {"type_id", (getter)linda_Value_gettypeid, (setter)linda_Value_settypeid, "", NULL},
     {"id_type_id", (getter)linda_Value_getidtypeid, (setter)linda_Value_setidtypeid, "", NULL},
     {"sum_pos", (getter)linda_Value_getsumpos, (setter)linda_Value_setsumpos, "", NULL},
+    {"ptr", (getter)linda_Value_getptr, (setter)linda_Value_setptr, "", NULL},
+    {"ptrtype", (getter)linda_Value_getptrtype, (setter)NULL, "", NULL},
+#else
+    {"type", (getter)linda_Value_gettype, (setter)NULL, "", NULL},
 #endif
     {NULL}  /* Sentinel */
 };
@@ -724,13 +823,27 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
     }
 }
 
+static int linda_Value_assign_item(linda_ValueObject *self, Py_ssize_t index, PyObject* value) {
+    switch(self->val->type) {
+    case M_TUPLE:
+        {
+        LindaValue v = PyO2Value(value);
+        Linda_tupleSet(self->val, index, v);
+        return 0;
+        }
+    default:
+        PyErr_SetObject(PyExc_TypeError, PyString_FromFormat("Setting item for a type with is a single element %i.", self->val->type));
+        return 1;
+    }
+}
+
 PySequenceMethods linda_ValueSeq = {
         (lenfunc)linda_Value_len,  /* lenfunc sq_length; */
         0,                /*binaryfunc sq_concat; */
         0,                /*ssizeargfunc sq_repeat; */
         (ssizeargfunc)linda_Value_item, /*ssizeargfunc sq_item; */
         0,                /*ssizessizeargfunc sq_slice; */
-        0,                /*ssizeobjargproc sq_ass_item; */
+        (ssizeobjargproc)linda_Value_assign_item,                /*ssizeobjargproc sq_ass_item; */
         0,                /*ssizessizeobjargproc sq_ass_slice; */
         0,                /*objobjproc sq_contains; */
         0,                /*binaryfunc sq_inplace_concat; */
@@ -881,7 +994,12 @@ static long linda_ValueHash(linda_ValueObject* self) {
         }
     case M_TYPE:
         {
-        PyObject* r = PyString_FromString(self->val->type_name);
+        PyObject* r;
+        if(self->val->type_name != NULL) {
+            r = PyString_FromString(self->val->type_name);
+        } else {
+            r = PyString_FromString(self->val->type_id);
+        }
         long hash = PyObject_Hash(r);
         Py_DecRef(r);
         return hash;
@@ -1021,12 +1139,16 @@ LindaValue PyO2Value(PyObject* obj) {
         return ((linda_ValueObject*)obj)->val;
     } else {
         PyObject* o = PyObject_CallFunctionObjArgs((PyObject*)&linda_ValueType, obj, NULL);
+#ifdef TYPES
         if(o == NULL) {
+            PyObject* func = NULL;
             PyObject* type = PyObject_GetAttrString(obj, "__class__");
-            PyObject* func = LindaPython_lookupConvertTo(type);
-            Py_DECREF(type);
-            if(func == NULL) {
+            if(type != NULL) {
+                func = LindaPython_lookupConvertTo(type);
+            }
+            if(type == NULL || func == NULL) {
                 LindaValue t = LindaPython_lookupType(obj);
+                if(type != NULL) { Py_DECREF(type); }
                 if(t == NULL) {
                     PyErr_SetString(PyExc_SystemError, "Failed to create Value from Python Object.");
                     return NULL;
@@ -1034,31 +1156,86 @@ LindaValue PyO2Value(PyObject* obj) {
                     return t;
                 }
             } else {
+                PyObject* converted;
                 LindaValue v;
-                LindaValue t = LindaPython_lookupType(obj);
-                PyObject* converted = PyObject_CallFunction(func, "OO", obj, PyDict_New());
-                if(converted == NULL) {
-                    return NULL;
-                }
+                LindaValue t = LindaPython_lookupType(type);
+                Py_DECREF(type);
+                if(t == NULL) { return NULL; }
+                PyObject* memo = PyObject_CallFunction((PyObject*)&linda_MemoType, "");
+                ((linda_MemoObject*)memo)->convert_to = 1;
+                converted = PyObject_CallFunction(func, "OO", obj, memo);
+                Py_DECREF(memo);
+                Py_DECREF(func);
+                if(converted == NULL) { return NULL; }
                 v = PyO2Value(converted);
-                Linda_setType(v, t);
+                if(v != NULL) {
+                    Linda_setType(v, t);
+                }
                 return v;
             }
         } else {
+#endif
             LindaValue v;
             Linda_addReference(((linda_ValueObject*)o)->val);
             v = ((linda_ValueObject*)o)->val;
             Py_DECREF(o);
             return v;
+#ifdef TYPES
         }
+#endif
     }
 }
 
+linda_MemoObject* memo = NULL;
 PyObject* Value2PyO(LindaValue obj) {
     if(!Linda_is_server && Linda_isTupleSpace(obj)) {
         return PyObject_CallFunction((PyObject*)&linda_TupleSpaceType, "s", Linda_getTupleSpace(obj));
     } else if(!Linda_is_server) {
-        /* convert back */
+        PyObject* func = NULL;
+        PyObject* type = (PyObject*)((&linda_ValueType)->tp_alloc(&linda_ValueType, 0));
+        if(type == NULL) {
+            PyErr_SetString(PyExc_SystemError, "Failed to create Python Object from Value.");
+            return NULL;
+        }
+        ((linda_ValueObject*)type)->val = Linda_getType(obj);
+        if(((linda_ValueObject*)type)->val != NULL) {
+            func = LindaPython_lookupConvertFrom(type);
+        }
+        if(func != NULL) {
+            unsigned char newmemo;
+            PyObject* converted;
+            Linda_addReference(obj);
+            ((linda_ValueObject*)type)->val = obj;
+            if(memo == NULL) {
+                memo = (linda_MemoObject*)PyObject_CallFunction((PyObject*)&linda_MemoType, "");
+                memo->convert_to = 0;
+                newmemo = 1;
+            } else {
+                newmemo = 0;
+                converted = PyObject_CallMethod((PyObject*)memo, "getReal", "O", type);
+                if(converted != NULL) {
+                    Py_DECREF(type); Py_DECREF(func);
+                    return converted;
+                }
+                PyErr_Clear();
+            }
+            converted = PyObject_CallFunction(func, "OO", type, (PyObject*)memo);
+            if(newmemo) {
+                Py_DECREF(memo); memo = NULL;
+            }
+            Py_DECREF(type);
+            Py_DECREF(func);
+            return converted;
+        } else if(((linda_ValueObject*)type)->val != NULL) {
+            PyObject* _class = LindaPython_lookupClass(type);
+            Py_DECREF(type);
+            if(_class != NULL) {
+                Py_INCREF(_class);
+                return _class;
+            }
+        } else {
+            Py_DECREF(type);
+        }
     }
 
     PyObject* o = (PyObject*)((&linda_ValueType)->tp_alloc(&linda_ValueType, 0));

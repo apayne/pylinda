@@ -209,6 +209,27 @@ static PyObject* linda_TypeFromId(PyObject* self, PyObject* args) {
     Linda_delReference(l);
     return o;
 }
+
+static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
+    PyObject* obj;
+    LindaValue v;
+    PyObject* o;
+    LindaValue l;
+
+    if(!PyArg_ParseTuple(args, "O", &obj)) {
+        return NULL;
+    }
+
+    v = PyO2Value(obj);
+    if(v == NULL) {
+        return NULL;
+    }
+
+    l = Linda_ptr(v);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
+}
 #endif
 
 static PyMethodDef LindaServerMethods[] = {
@@ -224,8 +245,9 @@ static PyMethodDef LindaServerMethods[] = {
     {"getpeername",  LindaServerPython_getpeername, METH_VARARGS, "Return the remote address to which the socket is connected."},
     {"socket_disconnect",  LindaServerPython_sddisconnect, METH_VARARGS, "Disconnect a socket."},
     {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
-    {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "Set the id of this node."},
+    {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "."},
 #ifdef TYPES
+    {"Ptr",  LindaServerPython_Ptr, METH_VARARGS, "Set the id of this node."},
     {"TypeFromId", linda_TypeFromId, METH_VARARGS, ""},
 #endif
     {NULL, NULL, 0, NULL}        /* Sentinel */

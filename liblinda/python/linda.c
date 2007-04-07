@@ -103,14 +103,29 @@ static PyObject* linda_Ptr(PyObject* self, PyObject* args) {
     LindaValue v;
     PyObject* o;
     LindaValue l;
+    PyObject* type = NULL;
 
-    if(!PyArg_ParseTuple(args, "O", &obj)) {
+    if(!PyArg_ParseTuple(args, "O|O", &obj, &type)) {
         return NULL;
     }
 
     v = PyO2Value(obj);
+    if(v == NULL) {
+        return NULL;
+    }
 
     l = Linda_ptr(v);
+
+#ifdef TYPES
+    if(type != NULL && PyObject_IsInstance(type, (PyObject*)&linda_ValueType)) {
+        Linda_setType(l, ((linda_ValueObject*)type)->val);
+    } else if(type != NULL) {
+        PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type object.\n");
+        Linda_delReference(v); Linda_delReference(l);
+        return NULL;
+    }
+#endif
+
     o = Value2PyO(l);
     Linda_delReference(l);
     return o;
@@ -156,4 +171,5 @@ PyMODINIT_FUNC init_linda(void)
     initvalue(Linda_module);
     inittypemap(Linda_module);
     initregistery(Linda_module);
+    initmemo(Linda_module);
 }

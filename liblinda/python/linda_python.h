@@ -28,6 +28,7 @@ void inittsref(PyObject* m);
 void initvalue(PyObject* m);
 void inittypemap(PyObject* m);
 void initregistery(PyObject* m);
+void initmemo(PyObject* m);
 
 LindaValue PyO2Value(PyObject* obj);
 PyObject* Value2PyO(LindaValue obj);
@@ -39,7 +40,9 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args);
 
 void LindaPython_registerType(PyObject* type, PyObject* _class, PyObject* _to, PyObject* _from);
 PyObject* LindaPython_lookupConvertTo(PyObject* type);
+PyObject* LindaPython_lookupConvertFrom(PyObject* type);
 LindaValue LindaPython_lookupType(PyObject* type);
+PyObject* LindaPython_lookupClass(PyObject* type);
 
 typedef struct {
     PyObject_HEAD
@@ -68,5 +71,13 @@ typedef struct {
     MinimalLayer map;
 } linda_TypeMapObject;
 PyTypeObject linda_TypeMapType;
+
+typedef struct {
+    PyObject_HEAD
+    /* Type-specific fields go here. */
+    unsigned char convert_to;
+    PyObject* dict;
+} linda_MemoObject;
+PyTypeObject linda_MemoType;
 
 #endif

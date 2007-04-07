@@ -149,8 +149,10 @@ static inline LindaValue Linda_getProduct(LindaValue t, int i) { return Minimal_
 static inline unsigned char Linda_isFunction(LindaValue v) { return Minimal_isFunction(v); }
 static inline LindaValue Linda_function(char* code) { return Minimal_function(code); }
 
+static inline unsigned char Linda_isPtr(LindaValue v) { return Minimal_isPtr(v); }
 static inline LindaValue Linda_ptr(LindaValue v) { return Minimal_ptr(v); }
 static inline LindaValue Linda_getPtr(LindaValue v) { return Minimal_getPtr(v); }
+static inline void Linda_setPtr(LindaValue v, LindaValue v2) { return Minimal_setPtr(v, v2); }
 
 static inline LindaValue Linda_copy(LindaValue v) { return Minimal_copy(v); }
 

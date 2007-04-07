@@ -186,6 +186,7 @@ EXPORT MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
 EXPORT unsigned char Minimal_isPtr(MinimalValue v);
 EXPORT MinimalValue Minimal_ptr(MinimalValue ptr);
 EXPORT MinimalValue Minimal_getPtr(MinimalValue v);
+EXPORT void Minimal_setPtr(MinimalValue v, MinimalValue v2);
 EXPORT MinimalValue Minimal_getPtrType(MinimalValue v);
 
 EXPORT unsigned char Minimal_isTupleSpace(MinimalValue v);

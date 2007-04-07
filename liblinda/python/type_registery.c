@@ -32,9 +32,14 @@ PyObject* dict_from;
 void LindaPython_registerType(PyObject* type, PyObject* _class, PyObject* _to, PyObject* _from) {
     PyObject* t = PyTuple_New(2);
     PyTuple_SetItem(t, 0, _to);
-    PyTuple_SetItem(t, 1, _from);
+    PyTuple_SetItem(t, 1, type);
     PyDict_SetItem(dict_to, _class, t);
-    PyDict_SetItem(dict_from, type, _from);
+    Py_DECREF(t);
+    t = PyTuple_New(2);
+    PyTuple_SetItem(t, 0, _from);
+    PyTuple_SetItem(t, 1, _class);
+    PyDict_SetItem(dict_from, type, t);
+    Py_DECREF(t);
 }
 
 PyObject* LindaPython_lookupConvertTo(PyObject* type) {
@@ -42,11 +47,15 @@ PyObject* LindaPython_lookupConvertTo(PyObject* type) {
     if(t == NULL) {
         return t;
     }
-    t = PyTuple_GetItem(t, 0);
+    return PyTuple_GetItem(t, 0);
+}
+
+PyObject* LindaPython_lookupConvertFrom(PyObject* type) {
+    PyObject* t = PyDict_GetItem(dict_from, type);
     if(t == NULL) {
-        printf("failed to get from tuple\n");
+        return t;
     }
-    return t;
+    return PyTuple_GetItem(t, 0);
 }
 
 LindaValue LindaPython_lookupType(PyObject* type) {
@@ -55,6 +64,14 @@ LindaValue LindaPython_lookupType(PyObject* type) {
         return NULL;
     }
     return PyO2Value(PyTuple_GetItem(t, 1));
+}
+
+PyObject* LindaPython_lookupClass(PyObject* type) {
+    PyObject* t = PyDict_GetItem(dict_from, type);
+    if(t == NULL) {
+        return NULL;
+    }
+    return PyTuple_GetItem(t, 1);
 }
 
 void initregistery(PyObject* m) {

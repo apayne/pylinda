@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <libxml/xmlmemory.h>
 #include <libxml/xmlsave.h>
@@ -440,7 +441,8 @@ Message* Message_result_tuple(LindaValue t) {
     }
     m = (Message*)malloc(sizeof(Message));
     m->type = L_RESULT_TUPLE;
-    m->tuple = Linda_copy(t);
+    Linda_addReference(t);
+    m->tuple = t;
     return m;
 }
 
@@ -722,7 +724,8 @@ Message* Message_tuple_request(LindaValue ts, LindaValue t) {
     m->type = L_TUPLE_REQUEST;
     Linda_addReference(ts);
     m->tuple_request.ts = ts;
-    m->tuple_request.t = Linda_copy(t);
+    Linda_addReference(t);
+    m->tuple_request.t = t;
     return m;
 }
 
@@ -731,7 +734,8 @@ Message* Message_cancel_request(LindaValue ts, LindaValue t) {
     m->type = L_CANCEL_REQUEST;
     Linda_addReference(ts);
     m->tuple_request.ts = ts;
-    m->tuple_request.t = Linda_copy(t);
+    Linda_addReference(t);
+    m->tuple_request.t = t;
     return m;
 }
 
@@ -740,7 +744,8 @@ Message* Message_multiple_in(LindaValue ts, LindaValue t) {
     m->type = L_MULTIPLE_IN;
     Linda_addReference(ts);
     m->tuple_request.ts = ts;
-    m->tuple_request.t = Linda_copy(t);
+    Linda_addReference(t);
+    m->tuple_request.t = t;
     return m;
 }
 
@@ -854,6 +859,11 @@ void Message_free(Message* msg) {
     }
 }
 
+#ifdef NETWORK
+FILE* fp = NULL;
+unsigned long total_sent = 0;
+#endif
+
 void Message_send(int sd, MsgID* msgid, Message* msg) {
     char* msgstr;
     int len;
@@ -863,6 +873,40 @@ void Message_send(int sd, MsgID* msgid, Message* msg) {
     msgstr = Message_getString(msg);
     len = strlen(msgstr);
     sent = 0;
+
+#ifdef NETWORK
+    if(fp == NULL) {
+        if(Linda_is_server) {
+            int size = snprintf(NULL, 0, "%i-server-network.txt", getpid());
+            char* filename = malloc(size+1);
+            sprintf(filename, "%i-server-network.txt", getpid());
+            fp = fopen(filename, "w");
+            free(filename);
+        } else {
+            int size = snprintf(NULL, 0, "%i-network.txt", getpid());
+            char* filename = malloc(size+1);
+            sprintf(filename, "%i-network.txt", getpid());
+            fp = fopen(filename, "w");
+            free(filename);
+        }
+    }
+    fseek(fp, 0, SEEK_SET);
+    total_sent += len;
+    fprintf(fp, "%li\n", total_sent);
+#endif
+#ifdef MEMORY
+    char* filename;
+    if(Linda_is_server) {
+        int size = snprintf(NULL, 0, "./ps_mem.py %i > %i-server-memory.txt", getpid(), getpid());
+        filename = malloc(size+1);
+        sprintf(filename, "./ps_mem.py %i > %i-server-memory.txt", getpid(), getpid());
+    } else {
+        int size = snprintf(NULL, 0, "./ps_mem.py %i > %i-memory.txt", getpid(), getpid());
+        filename = malloc(size+1);
+        sprintf(filename, "./ps_mem.py %i > %i-memory.txt", getpid(), getpid());
+    }
+    system(filename);
+#endif
 
     *((int*)msglen) = htonl(len);
 

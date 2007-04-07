@@ -469,7 +469,7 @@ MinimalValue Minimal_ptr(MinimalValue value) {
     if(value != NULL) {
         Minimal_addReference(value);
     }
-    if(value->typeobj == NULL) {
+    if(value != NULL && value->typeobj == NULL) {
         fprintf(stderr, "Minimal: Warning, pointer to value taken when value has no type.\n");
     }
     v->ptr = value;
@@ -480,6 +480,13 @@ MinimalValue Minimal_ptr(MinimalValue value) {
 
 MinimalValue Minimal_getPtr(MinimalValue v) {
     return v->ptr;
+}
+
+void Minimal_setPtr(MinimalValue v, MinimalValue v2) {
+    if(v->ptr != NULL) {
+        Minimal_delReference(v->ptr);
+    }
+    v->ptr = v2;
 }
 
 MinimalValue Minimal_getPtrType(MinimalValue v) {
@@ -695,9 +702,12 @@ char* Minimal_Value_string(MinimalValue v) {
         strcpy(r, "<Function>");
         return r;
     case M_POINTER:
-        r = (char*)malloc(strlen("<Pointer ")+sizeof(void*)*2+3);
-        sprintf(r, "<Pointer %p>", v->ptr);
+        {
+        int size = snprintf(r, 0, "<Pointer %li>", (unsigned long)(v->ptr));
+        r = (char*)malloc(size+1);
+        sprintf(r, "<Pointer %li>", (unsigned long)(v->ptr));
         return r;
+        }
     case M_SYNTAX_TREE:
         r = (char*)malloc(strlen("<Syntax Tree>")+1);
         strcpy(r, "<Syntax Tree>");
@@ -755,11 +765,40 @@ void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v)
     }
 }
 
+MinimalValue Minimal_copy_internal(MinimalValue v, MinimalValue** memo);
 MinimalValue Minimal_copy(MinimalValue v) {
+    MinimalValue r;
+    MinimalValue* memo = malloc(sizeof(void*));
+    memo[0] = NULL;
+
+    r = Minimal_copy_internal(v, &memo);
+    free(memo);
+    return r;
+}
+
+MinimalValue Minimal_copy_internal(MinimalValue v, MinimalValue** memo) {
+    int memosize;
     MinimalValue nv;
+    MinimalValue* newmemo;
     if(v == NULL) { return NULL; }
 
+    for(memosize=0; (*memo)[memosize*2] != NULL; memosize++) {
+        if((*memo)[memosize*2] == v) {
+            Minimal_addReference((*memo)[memosize*2+1]);
+            return (*memo)[memosize*2+1];
+        }
+    }
+
     nv = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+
+    newmemo = malloc(sizeof(void*)*(memosize*2+3));
+    memcpy(newmemo, (*memo), sizeof(void*)*memosize*2);
+    newmemo[memosize*2] = v;
+    newmemo[memosize*2+1] = nv;
+    newmemo[memosize*2+2] = NULL;
+    free((*memo));
+    *memo = newmemo;
+
     nv->type = v->type;
     if(v->typeobj != NULL) {
         Minimal_addReference(v->typeobj)
@@ -827,7 +866,7 @@ MinimalValue Minimal_copy(MinimalValue v) {
         nv->size = v->size;
         nv->values = malloc(sizeof(void*)*v->size);
         for(i=0; i<v->size; i++) {
-            nv->values[i] = Minimal_copy(v->values[i]);
+            nv->values[i] = Minimal_copy_internal(v->values[i], memo);
         }
         break;
         }
@@ -844,14 +883,14 @@ MinimalValue Minimal_copy(MinimalValue v) {
         Minimal_addReference(nv->layer);
         break;
     case M_POINTER:
-        Minimal_addReference(v->ptr);
-        nv->ptr = v->ptr;
+        nv->ptr = Minimal_copy_internal(v->ptr, memo);
         break;
     default:
         fprintf(stderr, "Unknown value type in Minimal_copy (%i)\n", v->type);
         Minimal_delReference(nv);
         return NULL;
     }
+
     return nv;
 }
 

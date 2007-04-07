@@ -177,8 +177,9 @@ typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                         } else {
                             fprintf(stderr, "Error: %s is an invalid type function.\n", $1->string);
                             $$ = Minimal_SyntaxTree_createBlank();
+                            Minimal_delReference($3);
                         }
-                        Minimal_delReference($1); Minimal_delReference($3);
+                        Minimal_delReference($1);
                         }
 ;
 

@@ -101,7 +101,7 @@ def registerAllTypes(type, memo = None):
         for i in range(len(type)):
             registerAllTypes(type[i], memo)
     elif type.isPtrType():
-        raise SystemError, type
+        type.id_type_id = registerAllTypes(type.typemap[type.ptrtype], memo)
     elif type.isFunctionType():
         raise SystemError, type
     else:
@@ -121,7 +121,9 @@ def findType(type, memo = None):
         type_cache.cache_lock.release()
     return _linda_server.TypeFromId(registerAllTypes(type))
 
-def convertFrom_unregistered(value):
+def convertFrom_unregistered(value, memo = None):
+    if memo is None:
+        memo = {}
     if isinstance(value, tuple):
         return tuple([convertFrom_unregistered(v) for v in value])
     elif isinstance(value, _linda_server.Value):
@@ -141,6 +143,11 @@ def convertFrom_unregistered(value):
             return value
         elif value.isType():
             return findType(value)
+        elif value.isPtr():
+            if value.ptr not in memo:
+                memo[value.ptr] = True
+                convertFrom_unregistered(value.ptr, memo)
+            return value
         else:
             raise SystemError, (value, type(value))
     else:
@@ -166,6 +173,8 @@ def convertTo_unregistered(value):
         elif value.isFunction():
             return value
         elif value.isType():
+            return type_cache.lookupType(value.type.type_id)
+        elif value.isPtr():
             return type_cache.lookupType(value.type.type_id)
         else:
             raise SystemError, (value, type(value))

@@ -7,13 +7,15 @@ class IntPair:
     def __init__(self, a, b):
        self.a = a
        self.b = b
+    def __str__(self):
+       return "<IntPair %i %i>" % (self.a, self.b)
 
 def IntPairToValue(pair, memo):
     return linda.Value((pair.a, pair.b))
 
 def ValueToIntPair(v, memo):
     pair = IntPair(int(v[0]), int(v[1]))
-    memo.register(v, pair)
+#    memo.register(v, pair)
     return pair
 
 t = linda.Type("intpair :: (long * long);", IntPair, IntPairToValue, 

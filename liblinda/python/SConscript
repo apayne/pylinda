@@ -1,6 +1,6 @@
 Import("env")
 
-clientobjs = env.SharedObject(["linda.c", "tuplespace.c", "value.c", "message.c", "tsref.c", "typemap.c", "type_registery.c"])
-serverobjs = env.SharedObject(["linda-server.c", "value.c", "message.c", "tsref.c", "typemap.c",  "type_registery.c"])
+clientobjs = env.SharedObject(["linda.c", "tuplespace.c", "value.c", "message.c", "tsref.c", "typemap.c", "type_registery.c", "memo.c"])
+serverobjs = env.SharedObject(["linda-server.c", "value.c", "message.c", "tsref.c", "typemap.c",  "type_registery.c", "memo.c"])
 
 Return("clientobjs", "serverobjs")

@@ -290,8 +290,10 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
                 type = (char*)xmlGetProp(node, (xmlChar*)"typename");
                 if(type != NULL) {
                     MinimalValue t = Minimal_getName(types, type);
-                    Minimal_setType(root, t);
-                    Minimal_delReference(t);
+                    if(t != NULL) {
+                        Minimal_setType(root, t);
+                        Minimal_delReference(t);
+                    }
                     free(type);
                 }
                 typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");

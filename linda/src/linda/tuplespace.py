@@ -31,6 +31,7 @@ from connections import broadcast_message, broadcast_firstreplyonly, broadcast_t
 from tuplecontainer import TupleContainer, doesMatch, NoTupleMatch
 from messages import *
 import interserver_types
+import _linda_server
 
 class MatchedTuple(Exception):
     pass

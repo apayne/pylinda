@@ -391,7 +391,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList2(Minimal_SyntaxTree s1
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createPointer(Minimal_SyntaxTree v1) {
     Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
-    tree->type = ST_TYPE_FUNCTION;
+    tree->type = ST_POINTER;
     tree->type_id = NULL;
     tree->ptr = malloc(strlen(v1->string) + 1);
     strcpy(tree->ptr, v1->string);

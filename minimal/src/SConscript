@@ -1,16 +1,13 @@
 Import("env")
 
 try:
-	yfile, _ = env.CFile(source="minimal_parser.y", YACCFLAGS="-d")
+    yfile, _ = env.CFile(source="minimal_parser.y", YACCFLAGS="-d")
 except ValueError:
-	yfile = env.CFile(source="minimal_parser.y", YACCFLAGS="-d")
+    yfile = env.CFile(source="minimal_parser.y", YACCFLAGS="-d")
 try:
-	lfile, lheader = env.CFile("minimal_lex.l", 
-LEXFLAGS="--header-file=src/yy.lex.h")
+    lfile, lheader = env.CFile("minimal_lex.l", LEXFLAGS="--header-file=src/yy.lex.h")
 except ValueError:
-        lfile = env.CFile("minimal_lex.l",
-LEXFLAGS="--header-file=src/yy.lex.h")
-print lfile
+    lfile = env.CFile("minimal_lex.l", LEXFLAGS="--header-file=src/yy.lex.h")
 
 env.SideEffect("#src/yy.lex.h", lfile)
 env.Depends(yfile, "#src/yy.lex.h")
