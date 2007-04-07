@@ -23,8 +23,8 @@ else:
 debug = int(ARGUMENTS.get("debug", "1"))
 types = int(ARGUMENTS.get("types", "1"))
 register = int(ARGUMENTS.get("register", "1"))
-memory = int(ARGUMENTS.get("memory", "1"))
-network = int(ARGUMENTS.get("network", "1"))
+memory = int(ARGUMENTS.get("memory", "0"))
+network = int(ARGUMENTS.get("network", "0"))
 
 env = Environment(CCFLAGS=ccflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
 cppenv = Environment(CCFLAGS=ccflags + cppflags, CPPPATH=["#src/", "#cpp/", "#"] + includes, LIBPATH=libdir)
