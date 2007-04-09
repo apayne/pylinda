@@ -411,7 +411,7 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             value = Minimal_typeFromId((char*)tid);
             Minimal_setTypeMap(value, types);
             free(tid);
-            Minimal_delReference(tree);
+            if(tree != NULL) { Minimal_delReference(tree); }
         } else {
             xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
             value = Minimal_typeSpec((char*)name, tree);
