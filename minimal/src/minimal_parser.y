@@ -138,7 +138,7 @@ typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                         } else if(strcmp($2->string, "*") == 0) {
                             int i;
                             if($3->integer == 0) {
-                                Minimal_delReference($1); Minimal_delReference($3);
+                                Minimal_delReference($1);
                                 $$ = Minimal_SyntaxTree_createProductType();
                             } else {
                                 $$ = Minimal_SyntaxTree_createProductType();
@@ -151,7 +151,7 @@ typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                         } else if(strcmp($2->string, "+") == 0) {
                             int i;
                             if($3->integer == 0) {
-                                Minimal_delReference($1); Minimal_delReference($3);
+                                Minimal_delReference($1);
                                 $$ = Minimal_SyntaxTree_createSumType();
                             } else {
                                 $$ = Minimal_SyntaxTree_createSumType();
