@@ -46,7 +46,7 @@ xmlDocPtr Minimal_serialiseXML(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f,
     memo = malloc(sizeof(void*)*2);
     memo[0] = NULL;
 
-    Minimal_serialiseValue(doc, parent, parent, f, &memo, include_type, include_type_spec);
+    Minimal_serialiseValue(doc, parent, parent, f, &memo, include_type, include_type_spec, 1);
 
     free(memo);
 
@@ -122,7 +122,7 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
                        if(f->typeobj != NULL) { \
                         if(f->typeobj->type_id == NULL) { \
                          xmlNewProp(x, (xmlChar*)"typename", (xmlChar*)f->typeobj->type_name); \
-                        } else { \
+                        } else if(include_type_id) { \
                          xmlNewProp(x, (xmlChar*)"typeid", (xmlChar*)f->typeobj->type_id); \
                         } \
                        } \
@@ -180,7 +180,7 @@ void Minimal_includeTypes(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f) {
     Minimal_freeTypeList(list);
 }
 
-void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type, unsigned char include_type_spec) {
+void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type, unsigned char include_type_spec, unsigned char include_type_id) {
     int i;
     MinimalValue* newmemo;
 
@@ -388,12 +388,15 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         AddTypeName(node);
         AddSumPos(node);
         AddId(node);
+        if(f->typeobj != NULL && f->typeobj->type_id != NULL) {
+            include_type_id = 0;
+        }
         for(i=0; i<f->size; i++) {
             xmlNodePtr e;
             if(f->values[i] == NULL) { break; }
             e = xmlNewDocNode(doc, NULL, (xmlChar*)"element", NULL);
             xmlAddChild(node, e);
-            Minimal_serialiseValue(doc, root, e, f->values[i], memo, 0, 0); 
+            Minimal_serialiseValue(doc, root, e, f->values[i], memo, 0, 0, include_type_id);
         }
         return;
         }
@@ -427,7 +430,7 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         free(*memo);
         *memo = newmemo;
 
-        Minimal_serialiseValue(doc, root, root, f->ptr, memo, 0, 0);
+        Minimal_serialiseValue(doc, root, root, f->ptr, memo, 0, 0, include_type_id);
 
         return;
         }
@@ -585,6 +588,7 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
 }
 
 void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f, MinimalValue** memo, unsigned char include_type) {
+    unsigned char include_type_id = 1;
     xmlNodePtr type_spec;
     xmlNodePtr code;
     xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"function", NULL);
