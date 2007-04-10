@@ -60,8 +60,9 @@ def compare_types(t1, t2, checked=None):
             else:
                 convfunc = compare(lookupType(t1.id_type_id), lookupType(t2.id_type_id), checked)
                 def func(get, value):
-                    v = convfunc(get, value)
-                    v.type_id = t1.type_id
+                    v = get(lookupType(t1.id_type_id), lookupType(t2.id_type_id), value)
+                    if t1.type_id is not None:
+                        v.type_id = t1.type_id
                     return v
         #elif t1.isId(): # t2 is something else
         #    compare_types(lookupType(t1.id_type_id), t2)
@@ -114,16 +115,16 @@ def compare_types(t1, t2, checked=None):
             if t2 is None:
                 waiting[value] = (t1[0], t1[1], [t1[2]])
                 return None
-            if value in memo:
-                v = memo[value]
+            if (t1, t2, value) in memo:
+                v = memo[(t1, t2, value)]
             else:
-                memo[value] = None
+                memo[(t1, t2, value)] = None
                 v = checked[(t1, t2)](lambda x, y, z: get(x, y, z, memo, waiting), value)
                 if value in waiting:
                     for p in waiting[value][2]:
                         p.ptr = v
                     del waiting[value]
-                memo[value] = v
+                memo[(t1, t2, value)] = v
             if first:
                 while len(waiting) > 0:
                     newvalue = waiting.keys()[0]
