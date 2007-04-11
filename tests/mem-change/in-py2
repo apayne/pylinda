@@ -1,0 +1,10 @@
+import linda
+import sys
+import time
+
+linda.connect()
+
+tup = (t, ) * int(sys.argv[1])
+
+for i in range(1000):
+    linda.uts._rd(tup)

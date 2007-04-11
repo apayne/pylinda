@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import sys
+import glob
+
+line = "%s\t" % (sys.argv[1])
+
+files = glob.glob("*-server-memory.txt")
+
+data = file(files[0]).read()
+data = data.strip()
+
+line = line + data + "\t"
+
+files = glob.glob("*-network.txt")
+
+for f in files:
+    if not f.endswith("-server-network.txt"):
+        data = file(f).read()
+        data = data.strip()
+
+line = line + data
+
+fp = file(sys.argv[2], "a")
+fp.write(line + "\n")

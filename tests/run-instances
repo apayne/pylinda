@@ -80,7 +80,7 @@ try:
     while test.test_running(db):
         time.sleep(10)
 except:
-    print "Manually terminate instances", ", ".join(instances)
+    print "Manually terminate instances", " ".join(instances)
     raise
 else:
     terminateInstances(con, instances)

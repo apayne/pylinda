@@ -1,0 +1,24 @@
+import linda
+import sys
+import time
+
+linda.connect()
+
+t = linda.Type("t :: int * %i;" % (int(sys.argv[1]), ))
+
+val = linda.Value((1, ) * int(sys.argv[1]), t)
+
+tup = (val, )
+
+for i in range(10000):
+    linda.uts._out(tup)
+
+if len(sys.argv) > 2:
+    sys.exit(0)
+
+tup = (t, )
+
+start = time.time()
+for i in range(10000):
+    linda.uts._in(tup)
+print "%s\t%f" % (sys.argv[1], time.time()-start)

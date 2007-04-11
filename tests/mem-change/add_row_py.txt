@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import sys
+import glob
+
+line = "%s\t" % (sys.argv[1])
+
+start = int(file("start.txt").read().strip())
+
+files = glob.glob("*-memory.txt")
+
+for f in files:
+    if f.endswith("-server-memory.txt"):
+        data = file(f).read()
+        data = int(data.strip())
+        break
+
+line = line + str(data - start)
+
+fp = file(sys.argv[2], "a")
+fp.write(line + "\n")

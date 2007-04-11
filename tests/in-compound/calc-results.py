@@ -8,12 +8,13 @@ files = os.listdir("results")
 tradf = [x for x in files if x.startswith("traditional")]
 regf = [x for x in files if x.startswith("registered")]
 reg2f = [x for x in files if x.startswith("reg2")]
-unregf = [x for x in files if x.startswith("unregistered")]
+unregf = [x for x in files if x.startswith("unreg2")]
 
 trad = [0 for _ in range(51)]
 reg = [0 for _ in range(51)]
 reg2 = [0 for _ in range(51)]
 unreg = [0 for _ in range(51)]
+unreg2 = [0 for _ in range(51)]
 
 for f in tradf:
     fp = open("results/"+f)
