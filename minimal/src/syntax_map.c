@@ -105,10 +105,6 @@ void Minimal_delName(Minimal_NameValueMap* map, char* name) {
     }
 }
 
-void Minimal_SyntaxMap_free(Minimal_NameValueMap* map) {
-    Minimal_SyntaxMap_empty(map);
-    free(map);
-}
 int Minimal_SyntaxMap_size(Minimal_NameValueMap* map) {
     int count = 0;
     if(map == NULL) { return 0; }
@@ -126,11 +122,11 @@ int Minimal_SyntaxMap_size(Minimal_NameValueMap* map) {
 
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map) {
     if(map->left != NULL) {
-        Minimal_SyntaxMap_free(map->left);
+        Minimal_SyntaxMap_empty(map->left); free(map->left);
         map->left = NULL;
     }
     if(map->right != NULL) {
-        Minimal_SyntaxMap_free(map->right);
+        Minimal_SyntaxMap_empty(map->right); free(map->right);
         map->right = NULL;
     }
     if(map->name != NULL) {

@@ -961,5 +961,4 @@ void Minimal_Value_free(MinimalValue v) {
         Minimal_delReference(v->syntax_tree);
         break;
     }
-    free(v);
 }

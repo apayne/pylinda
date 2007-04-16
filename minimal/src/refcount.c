@@ -25,7 +25,7 @@
 
 #define hash(ptr) (((unsigned long)(ptr) >> 3) % Minimal_refCountListSize)
 
-struct MinimalRefCount {
+/*struct MinimalRefCount {
     void* ptr;
     MinimalTypeId type_id;
     long count;
@@ -37,10 +37,10 @@ struct MinimalRefCount {
 
 int Minimal_refCountListSize = 0;
 int Minimal_refCountListUsed = 0;
-struct MinimalRefCount** Minimal_refCountList = NULL;
+struct MinimalRefCount** Minimal_refCountList = NULL;*/
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line) {
-    int index;
+    /*int index;
     struct MinimalRefCount* newchain;
 
     if(Minimal_refCountListSize == 0) {
@@ -91,11 +91,15 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
     Minimal_refCountList[index] = newchain;
 
     Minimal_refCountListUsed++;
+    return ptr;*/
+    ((MinimalRefCount*)ptr)->ref_count = 1;
+    ((MinimalRefCount*)ptr)->value_type = type_id;
     return ptr;
 }
 
 void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
-    struct MinimalRefCount* list;
+    ((MinimalRefCount*)ptr)->ref_count++;
+    /*struct MinimalRefCount* list;
     int i;
 
     if(ptr == NULL) {
@@ -113,44 +117,56 @@ void Minimal_addReference2(MinimalObject ptr, char* file, int line) {
     }
     fprintf(stderr, "Error: addReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
     i = *((int*)ptr);
-    i = i + 1;
+    i = i + 1;*/
 }
 
 int Minimal_getReferenceCount(MinimalObject ptr) {
-    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    return ((MinimalRefCount*)ptr)->ref_count;
+    /*struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
             return list->count;
         }
         list = list->next;
     }
-    return -2;
+    return -2;*/
 }
 
 void Minimal_setReferenceCount(MinimalObject ptr, long i) {
-    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    ((MinimalRefCount*)ptr)->ref_count = i;
+    /*struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
             list->count = i;
             return;
         }
         list = list->next;
-    }
+    }*/
 }
 
 MinimalTypeId Minimal_getTypeId(MinimalObject ptr) {
-    struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
+    return ((MinimalRefCount*)ptr)->value_type;
+    /*struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
             return list->type_id;
         }
         list = list->next;
     }
-    return -1;
+    return -1;*/
 }
 
 void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
-    struct MinimalRefCount* list;
+    if(((MinimalRefCount*)ptr)->ref_count < 0) {
+        return;
+    }
+    ((MinimalRefCount*)ptr)->ref_count--;
+    if(((MinimalRefCount*)ptr)->ref_count == 0) {
+        Minimal_delObject(((MinimalRefCount*)ptr)->value_type, ptr, 1);
+    } else {
+        Minimal_performCyclicCollection(ptr);
+    }
+    /*struct MinimalRefCount* list;
 
     if(Minimal_refCountListSize == 0) {
         fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
@@ -187,10 +203,10 @@ void Minimal_delReference2(MinimalObject ptr, char* file, int line) {
         list = list->next;
     }
     fprintf(stderr, "Error: delReference to pointer (%p) not allocated with Minimal_newReference (%s:%i).\n", ptr, file, line);
-    (*((int*)ptr))++;
+    (*((int*)ptr))++;*/
 }
 
-void Minimal_removeFromRefHashTable(MinimalObject ptr) {
+/*void Minimal_removeFromRefHashTable(MinimalObject ptr) {
     struct MinimalRefCount* list = Minimal_refCountList[hash(ptr)];
     while(list != NULL) {
         if(list->ptr == ptr) {
@@ -212,21 +228,33 @@ void Minimal_removeFromRefHashTable(MinimalObject ptr) {
         list = list->next;
     }
 
-}
+}*/
 
-void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr) {
+void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr, unsigned char do_free) {
     switch(type_id) {
     case MINIMAL_VALUE:
         Minimal_Value_free((MinimalValue)ptr);
+        if(do_free) {
+            free((MinimalValue)ptr);
+        }
         break;
     case MINIMAL_LAYER:
         Minimal_Layer_free((MinimalLayer)ptr);
+        if(do_free) {
+            free((MinimalLayer)ptr);
+        }
         break;
     case MINIMAL_MAP:
         Minimal_SyntaxMap_empty((Minimal_NameValueMap*)ptr);
+        if(do_free) {
+            free((Minimal_NameValueMap*)ptr);
+        }
         break;
     case MINIMAL_SYNTAXTREE:
         Minimal_SyntaxTree_free((Minimal_SyntaxTree)ptr);
+        if(do_free) {
+            free((Minimal_SyntaxTree)ptr);
+        }
         break;
     }
 }
@@ -248,7 +276,7 @@ void Minimal_getReferences(struct CyclicGarbageList* list, MinimalTypeId type_id
     }
 }
 
-int Minimal_countAllReferences() {
+/*int Minimal_countAllReferences() {
     int i;
     int count = 0;
     for(i = 0; i < Minimal_refCountListSize; i++) {
@@ -259,9 +287,9 @@ int Minimal_countAllReferences() {
         }
     }
     return count;
-}
+}*/
 
-static void Minimal_refCountEmpty() {
+/*static void Minimal_refCountEmpty() {
     int i;
     struct MinimalRefCount* prev;
     for(i = 0; i < Minimal_refCountListSize; i++) {
@@ -275,9 +303,9 @@ static void Minimal_refCountEmpty() {
         Minimal_refCountList[i] = NULL;
     }
     Minimal_refCountListUsed = 0;
-}
+}*/
 
-void Minimal_refCountFinalise() {
+/*void Minimal_refCountFinalise() {
     int i = Minimal_countAllReferences();
     if(i > 0) {
         fprintf(stderr, "Warning, %i references unfreed. %i of %i remaining.\n", i, Minimal_refCountListUsed, Minimal_refCountListSize);
@@ -288,4 +316,4 @@ void Minimal_refCountFinalise() {
         Minimal_refCountList = NULL;
         Minimal_refCountListSize = 0;
     }
-}
+}*/

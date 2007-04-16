@@ -922,6 +922,4 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree tree) {
         free(tree->type_def);
         break;
     }
-
-    free(tree);
 }

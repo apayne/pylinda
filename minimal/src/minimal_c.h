@@ -57,7 +57,25 @@ typedef struct MinimalLayer_t* MinimalLayer;
 struct Minimal_NameValueMap_t;
 typedef struct Minimal_NameValueMap_t Minimal_NameValueMap;
 
+enum MinimalTypeId_t {
+    MINIMAL_VALUE,
+    MINIMAL_LAYER,
+    MINIMAL_MAP,
+    MINIMAL_SYNTAXTREE
+};
+typedef enum MinimalTypeId_t MinimalTypeId;
+
+#define MINIMAL_REF_COUNT \
+    long ref_count; \
+    MinimalTypeId value_type;
+
+struct MinimalRefCount_t {
+    MINIMAL_REF_COUNT
+};
+typedef struct MinimalRefCount_t MinimalRefCount;
+
 struct MinimalValue_t {
+    MINIMAL_REF_COUNT
     enum {
         M_NIL,
         M_BOOLEAN,
@@ -201,6 +219,7 @@ EXPORT int Minimal_getSumPos(MinimalValue value);
 EXPORT unsigned char Minimal_isTrue(MinimalValue value);
 
 struct Minimal_SyntaxTree_t {
+    MINIMAL_REF_COUNT
     enum {
         ST_BLANK,
         ST_NIL,
@@ -271,6 +290,7 @@ struct Minimal_SyntaxTree_t {
 };
 
 struct Minimal_NameValueMap_t {
+    MINIMAL_REF_COUNT
     char* name;
     MinimalValue value;
     struct Minimal_NameValueMap_t* left;
@@ -278,6 +298,7 @@ struct Minimal_NameValueMap_t {
 };
 
 struct MinimalLayer_t {
+    MINIMAL_REF_COUNT
     char* name;
     MinimalLayer parent;
     Minimal_NameValueMap map;

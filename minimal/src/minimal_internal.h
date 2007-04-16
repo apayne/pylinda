@@ -37,7 +37,6 @@
 
 void Minimal_Layer_init();
 void Minimal_Layer_finalise();
-void Minimal_refCountFinalise();
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createBlank();
 Minimal_SyntaxTree Minimal_SyntaxTree_createNil();
@@ -89,14 +88,6 @@ static inline void Minimal_SyntaxMap_init(Minimal_NameValueMap* map) {
     map->right = NULL;
 }
 
-enum MinimalTypeId_t {
-    MINIMAL_VALUE,
-    MINIMAL_LAYER,
-    MINIMAL_MAP,
-    MINIMAL_SYNTAXTREE
-};
-typedef enum MinimalTypeId_t MinimalTypeId;
-
 #define Minimal_newReference(type_id, ptr_type, val_type) ((ptr_type)Minimal_newReference2(type_id, malloc(sizeof(val_type)), __FILE__, __LINE__))
 
 void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int line);
@@ -104,7 +95,7 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 void Minimal_performCyclicCollection(MinimalObject ptr);
 
 void Minimal_setReferenceCount(MinimalObject ptr, long count);
-void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr);
+void Minimal_delObject(MinimalTypeId type_id, MinimalObject ptr, unsigned char do_free);
 MinimalTypeId Minimal_getTypeId(MinimalObject ptr);
 
 MinimalValue Minimal_Value_add(MinimalValue op1, MinimalValue op2);
@@ -139,7 +130,7 @@ unsigned char Minimal_isBuiltIn(char* type_name);
 
 extern void (*Minimal_override_type_func)(MinimalValue t);
 
-void Minimal_removeFromRefHashTable(MinimalObject ptr);
+/* void Minimal_removeFromRefHashTable(MinimalObject ptr); */
 
 struct CyclicGarbage {
     MinimalObject ptr;

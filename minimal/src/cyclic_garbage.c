@@ -119,12 +119,12 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
     }
     i = 0;
     while(i < list->used) {
-        Minimal_delObject(list->list[i].type_id, list->list[i].ptr);
+        Minimal_delObject(list->list[i].type_id, list->list[i].ptr, 0);
         i++;
     }
     i = 0;
     while(i < list->used) {
-        Minimal_removeFromRefHashTable(list->list[i].ptr);
+        free(list->list[i].ptr);
         i++;
     }
     Minimal_delCyclicGarbageList(list);

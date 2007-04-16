@@ -123,7 +123,6 @@ void Minimal_Layer_free(MinimalLayer layer) {
     free(layer->name);
     if(layer->parent != NULL) { Minimal_delReference(layer->parent); }
     Minimal_SyntaxMap_empty(&(layer->map));
-    free(layer);
 }
 
 void Minimal_Layer_getReferences(struct CyclicGarbageList* list, MinimalLayer layer) {
