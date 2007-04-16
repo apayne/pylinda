@@ -897,13 +897,13 @@ void Message_send(int sd, MsgID* msgid, Message* msg) {
 #ifdef MEMORY
     char* filename;
     if(Linda_is_server) {
-        int size = snprintf(NULL, 0, "./ps_mem.py %i > %i-server-memory.txt", getpid(), getpid());
+        int size = snprintf(NULL, 0, "./update_memory.py `./ps_mem.py %i` %i-server-memory.txt", getpid(), getpid());
         filename = malloc(size+1);
-        sprintf(filename, "./ps_mem.py %i > %i-server-memory.txt", getpid(), getpid());
+        sprintf(filename, "./update_memory.py `./ps_mem.py %i` %i-server-memory.txt", getpid(), getpid());
     } else {
-        int size = snprintf(NULL, 0, "./ps_mem.py %i > %i-memory.txt", getpid(), getpid());
+        int size = snprintf(NULL, 0, "./update_memory.py `./ps_mem.py %i` %i-memory.txt", getpid(), getpid());
         filename = malloc(size+1);
-        sprintf(filename, "./ps_mem.py %i > %i-memory.txt", getpid(), getpid());
+        sprintf(filename, "./update_memory.py `./ps_mem.py %i` %i-memory.txt", getpid(), getpid());
     }
     system(filename);
 #endif
