@@ -33,7 +33,9 @@ struct CyclicGarbageList* Minimal_newCyclicGarbageList() {
 };
 
 void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObject ptr) {
-    if(list->used < list->size) {
+    if(ptr == NULL) {
+        return;
+    } else if(list->used < list->size) {
         int refcount = Minimal_getReferenceCount(ptr);
         int k = 0;
         if(refcount < 0) { return; }

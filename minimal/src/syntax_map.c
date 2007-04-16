@@ -46,8 +46,9 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
         strcpy(map->name, name);
         map->value = tree;
      } else if(strcmp(map->name, name) == 0) {
-        Minimal_delReference(map->value);
+        MinimalValue old = map->value;
         map->value = tree;
+        Minimal_delReference(old);
     } else if(strcmp(map->name, name) == -1) {
         if(map->left == NULL) {
             map->left = (Minimal_NameValueMap*)malloc(sizeof(struct Minimal_NameValueMap_t));
