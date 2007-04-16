@@ -579,7 +579,6 @@ def cleanShutdown():
 
     gc.collect() # Run garbage collection so libminimal doesn't produce spurious warnings.
 
-    print "exit"
     sys.exit()
 
 def unblock_thread(tid):
