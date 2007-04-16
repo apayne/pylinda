@@ -45,14 +45,14 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
 
     if(Minimal_refCountListSize == 0) {
         int i;
-        Minimal_refCountListSize = 128;
+        Minimal_refCountListSize = 2048;
         Minimal_refCountList = malloc(sizeof(void*) * Minimal_refCountListSize);
         for(i = 0; i < Minimal_refCountListSize; i++) { Minimal_refCountList[i] = NULL; }
     } else if(Minimal_refCountListSize * 2 <= Minimal_refCountListUsed) {
         int i;
         int copy = 0;
-        struct MinimalRefCount** newlist = malloc(sizeof(void*)*Minimal_refCountListSize * 4);
-        for(i = 0; i < Minimal_refCountListSize * 4; i++) { newlist[i] = NULL; }
+        struct MinimalRefCount** newlist = malloc(sizeof(void*)*(Minimal_refCountListSize + 256));
+        for(i = 0; i < Minimal_refCountListSize + 256; i++) { newlist[i] = NULL; }
         for(i = 0; i < Minimal_refCountListSize; i++) {
             struct MinimalRefCount* chain = Minimal_refCountList[i];
             while(chain != NULL) {
@@ -75,7 +75,7 @@ void* Minimal_newReference2(MinimalTypeId type_id, void* ptr, char* file, int li
         }
         free(Minimal_refCountList);
         Minimal_refCountList = newlist;
-        Minimal_refCountListSize = Minimal_refCountListSize * 4;
+        Minimal_refCountListSize = Minimal_refCountListSize + 256;
     }
 
     index = hash(ptr);
