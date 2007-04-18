@@ -103,13 +103,17 @@ typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                         }
         | typespec YY_OPERATOR typespec {
                         if(strcmp($2->string, "*") == 0) {
+                            printf("creating product type %i %i %i\n", ST_PRODUCT_TYPE, $1->type, $3->type);
                             if($1->type == ST_PRODUCT_TYPE) {
+                                printf("adding to product type\n");
                                 Minimal_SyntaxTree_addToProductType($1, $3);
                                 $$ = $1;
-                            } else if($2->type == ST_PRODUCT_TYPE) {
-                                Minimal_SyntaxTree_prependToProductType($1, $3);
-                                $$ = $1;
+                            } else if($3->type == ST_PRODUCT_TYPE) {
+                                printf("prepend to product type\n");
+                                Minimal_SyntaxTree_prependToProductType($3, $1);
+                                $$ = $3;
                             } else {
+                                printf("new product type\n");
                                 $$ = Minimal_SyntaxTree_createProductType();
                                 Minimal_SyntaxTree_addToProductType($$, $1);
                                 Minimal_SyntaxTree_addToProductType($$, $3);

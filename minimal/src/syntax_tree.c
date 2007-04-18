@@ -202,14 +202,17 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createProductType() {
 Minimal_SyntaxTree Minimal_SyntaxTree_addToProductType(Minimal_SyntaxTree type, Minimal_SyntaxTree v) {
     Minimal_SyntaxTree* old = type->branches;
     if(old == NULL) {
+        printf("append new\n");
         type->branches = malloc(sizeof(void*));
         type->branches[0] = v;
         type->length = 1;
     } else {
+        printf("append old %i\n", type->length);
         type->branches = malloc(sizeof(void*)*(type->length+1));
         memcpy(type->branches, old, sizeof(void*)*type->length);
         type->branches[type->length] = v;
         type->length++;
+        free(old);
     }
     return type;
 }
@@ -217,14 +220,17 @@ Minimal_SyntaxTree Minimal_SyntaxTree_addToProductType(Minimal_SyntaxTree type, 
 Minimal_SyntaxTree Minimal_SyntaxTree_prependToProductType(Minimal_SyntaxTree type, Minimal_SyntaxTree v) {
     Minimal_SyntaxTree* old = type->branches;
     if(old == NULL) {
+        printf("prepend new\n");
         type->branches = malloc(sizeof(void*));
         type->branches[0] = v;
         type->length = 1;
     } else {
+        printf("prepend old %i\n", type->length);
         type->branches = malloc(sizeof(void*)*(type->length+1));
         memcpy(&(type->branches[1]), old, sizeof(void*)*type->length);
         type->branches[0] = v;
         type->length++;
+        free(old);
     }
     return type;
 }
