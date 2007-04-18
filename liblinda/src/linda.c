@@ -197,6 +197,18 @@ void Linda_out(LindaValue ts, LindaValue t) {
     Linda_thread_data* tdata = Linda_get_thread_data();
     Linda_addReference(t);
     Linda_scanTuple(t, ts);
+#ifdef TYPES
+#ifdef DEBUG
+    {
+    int i;
+    for(i=0; i<Linda_getTupleSize(t); i++) {
+        if(Linda_getType(Linda_tupleGet(t, i)) == NULL) {
+            fprintf(stderr, "Warning, sending a tuple with an element without a type.\n");
+        }
+    }
+    }
+#endif
+#endif
     m = Message_out(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);

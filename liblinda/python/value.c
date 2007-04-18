@@ -793,6 +793,10 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
     switch(self->val->type) {
     case M_TYPE:
         {
+        if(self->val->type_spec->type != ST_PRODUCT_TYPE && self->val->type_spec->type != ST_SUM_TYPE) {
+            PyErr_SetString(PyExc_TypeError, "Not a product or sum type.");
+            return NULL;
+        }
         LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[index]);
         Minimal_addReference(self->val->type_spec->branches[index]);
         Linda_delReference((void*)(val->typemap));
