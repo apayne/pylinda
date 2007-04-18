@@ -5,8 +5,26 @@ import time
 
 import linda
 
-rowtype = linda.Type("row :: int * 9;")
-gridtype = linda.Type("grid :: row * 9;")
+if not linda.connect():
+    print "Please start the Linda server first."
+    sys.exit(1)
+
+class Grid:
+    def __init__(self):
+        self.grid = tuple([tuple([None for _ in range(9)]) for _ in range(9)])
+
+def gridToValue(grid, memo):
+    return linda.Value(grid.grid)
+
+def valueToGrid(val, memo):
+    print "convert grid back"
+    g = Grid()
+    for x in range(9):
+        for y in range(9):
+            g.grid[x][y] = val[x][y]
+    return g
+
+gridtype = linda.Type("grid :: ((int + Nil) * 9) * 9;", Grid, gridToValue, valueToGrid)
 
 def master():
     grid = loadFile(sys.argv[1])
@@ -14,21 +32,17 @@ def master():
     print "Solving..."
     print gridString(grid)
 
-    empty = sum([len([x for x in row if x is None]) for row in grid])
-
-    if not linda.connect():
-        print "Please start the Linda server first."
-        return
+    empty = sum([len([x for x in row if x is None]) for row in grid.grid])
 
     start = time.time()
-    linda.uts._out((empty, gridToTup(grid)))
+    linda.uts._out((empty, grid))
 
     tup = linda.uts._in((0, gridtype))
 
     assert tup[0] == 0, tup[0]
 
     print "Solved Grid in %f seconds." % (time.time() - start)
-    print gridString(tupleToGrid(tup[1]))
+    print gridString(tup[1])
 
 def loadFile(filename):
     fp = open(filename, "r")
@@ -43,25 +57,12 @@ def loadFile(filename):
         rows.append(tuple(cols))
     if len(rows) != 9:
         raise SystemError, "File only has %i rows." % (len(rows), )
-    return tuple(rows)
-
-def tupleToGrid(tup):
-    grid = []
-    for row in tup:
-        r = []
-        for e in row:
-            if e.isLong():
-                r.append(int(e))
-            else:
-                r.append(None)
-        grid.append(r)
-    return grid
-
-def gridToTup(grid):
-    return linda.Value(grid, gridtype)
+    g = Grid()
+    g.grid = tuple(rows)
+    return g
 
 def gridString(grid):
-    return "\n".join([" ".join([(x is None and "_") or str(x) for x in row]) for row in grid])
+    return "\n".join([" ".join([(x is None and "_") or str(x) for x in row]) for row in grid.grid])
 
 if __name__ == "__main__":
     master()

@@ -70,6 +70,7 @@ def doesMatch_types(e1, e2):
             l.append(e)
         return tuple(l)
     elif e1.isType():
+        assert e2.type is not None, (str(e1), str(e2))
         if e1.type_id == e2.type.type_id:
             return e2
         t1 = lookupType(e1.type_id)

@@ -4,19 +4,61 @@ import sys
 
 import linda
 
-rowtype = linda.Type("row :: int * int * int * int * int * int * int * int * int;")
-gridtype = linda.Type("grid :: row * row * row * row * row * row * row * row * row;")
+if not linda.connect():
+    print "Please start the Linda server first."
+    sys.exit(1)
+
+class Square:
+    def __init__(self, val):
+        self.val = val
+
+def squareToValue(sq, memo):
+    if sq.val is None:
+        v = linda.Nil()
+        v.sum_pos = 0
+    else:
+        v = linda.Value(sq.val)
+        v.sum_pos = 1
+    return v
+
+def valueToSquare(val, memo):
+    if val.isNil():
+        return Square(None)
+    else:
+        return Square(int(val))
+
+sqtype = linda.Type("square :: Nil + int;", Square, squareToValue, valueToSquare)
+
+class Row:
+    def __init__(self, row):
+        self.row = row
+
+def rowToValue(row, memo):
+    return linda.Value(row.row)
+
+def valueToRow(val, memo):
+    return Row(list(val))
+
+rowtype = linda.Type("row :: square * 9;", Row, rowToValue, valueToRow)
+
+class Grid:
+    def __init__(self, rows):
+        self.rows = rows
+
+def gridToValue(grid, memo):
+    return linda.Value(grid.rows)
+
+def valueToGrid(val, memo):
+    return Grid([row for row in val])
+
+gridtype = linda.Type("grid :: row * 9;", Grid, gridToValue, valueToGrid)
 
 def slave():
-    if not linda.connect():
-        print "Please start the Linda server first."
-        return
-
     processed, waiting = 0, 1
 
     while True:
         tup = linda.uts._in((int, gridtype))
-        empty, grid = tup[0], tupleToGrid(tup[1])
+        empty, grid = tup[0], tup[1]
 
         print processed, waiting, empty,
         processed += 1
@@ -55,21 +97,6 @@ def getValid(grid, x, y):
         if grid[(x/3)*3+i%3][(y/3)*3+i/3] is not None and grid[(x/3)*3+i%3][(y/3)*3+i/3] in valid:
             valid.remove(grid[(x/3)*3+i%3][(y/3)*3+i/3])
     return valid
-
-def tupleToGrid(tup):
-    grid = []
-    for row in tup:
-        r = []
-        for e in row:
-            if e.isLong():
-                r.append(e.int)
-            else:
-                r.append(None)
-        grid.append(r)
-    return grid
-
-def gridToTuple(grid):
-    return linda.Value(tuple([tuple(row) for row in grid]), gridtype)
 
 if __name__ == "__main__":
     slave()

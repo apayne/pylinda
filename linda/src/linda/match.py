@@ -38,9 +38,11 @@ def compare_types(t1, t2, checked=None):
     assert t2.isType()
 
     func = None
+    first = False
 
     if checked is None:
         checked = {(t1, t2): func}
+        first = True
     elif (t1, t2) in checked:
         return lambda get, x: get(t1, t2, x)
     else:
@@ -64,25 +66,21 @@ def compare_types(t1, t2, checked=None):
                     if t1.type_id is not None:
                         v.type_id = t1.type_id
                     return v
-        #elif t1.isId(): # t2 is something else
-        #    compare_types(lookupType(t1.id_type_id), t2)
-        #elif t2.isId(): # t1 is something else
-        #    compare_types(t1, lookupType(t2.id_type_id))
         elif t1.isProductType() and t2.isProductType():
-            if len(t1) != len(t2):
+            pt1 = flattenProductType(t1)
+            pt2 = flattenProductType(t2)
+            zipped = zip(pt2, pt1)
+            if len(pt1) != len(pt2):
                 func = None
             else:
-                l = []
-                for i in range(len(t1)):
-                    e1, e2 = t1[i], t2[i]
-                    x = compare(e1, e2, checked)
-                    if x is None:
-                        func = None
-                        break
-                    l.append((t1[i], t2[i]))
-                if len(l) == len(t1):
-                    def func(get, x):
-                        v = _linda_server.Value(tuple([get(l[i][0], l[i][1], x[i]) for i in range(len(t1))]))
+                isos = [compare(x, y, checked) for (x, y) in zipped]
+                if None in isos:
+                    func = None
+                else:
+                    def func(get, value):
+                        v = flattenProductValue(value, t2)
+                        v = [get(x, y, item) for ((x, y), item) in zip(zipped, v)]
+                        v = raiseProduct(v, t1)
                         v.type_id = t1.type_id
                         return v
         elif t1.isSumType() and t2.isSumType():
@@ -119,7 +117,11 @@ def compare_types(t1, t2, checked=None):
                 v = memo[(t1, t2, value)]
             else:
                 memo[(t1, t2, value)] = None
-                v = checked[(t1, t2)](lambda x, y, z: get(x, y, z, memo, waiting), value)
+                try:
+                    v = checked[(t1, t2)](lambda x, y, z: get(x, y, z, memo, waiting), value)
+                except TypeError:
+                    print t1, t2, value
+                    raise
                 if value in waiting:
                     for p in waiting[value][2]:
                         p.ptr = v
@@ -134,7 +136,65 @@ def compare_types(t1, t2, checked=None):
                     for w in ptrs:
                         w.ptr = ptrval
             return v
-        return get
+
+        if first and None in checked.values():
+            return None
+        else:
+            return get
+
+def flattenProductType(p, memo = None):
+    if memo is None:
+        memo = {}
+    if p.type_id:
+        memo[p.type_id] = True
+    l = []
+    for i in range(len(p)):
+        e = p[i]
+        if e.isProductType():
+            l.extend(flattenProductType(e, memo))
+        elif e.isId() and not e.id in builtin:
+            t = lookupType(e.id_type_id)
+            if t.id_type_id not in memo and t.isProductType():
+                l.extend(flattenProductType(t, memo))
+            else:
+                l.append(t)
+        else:
+            l.append(t)
+    return l
+
+def flattenProductValue(v, p):
+    nv = []
+    for i in range(len(p)):
+        e = p[i]
+        if e.isProductType():
+            nv.extend(flattenProductValue(v[i], e))
+        elif e.isId() and not e.id in builtin:
+            t = lookupType(e.id_type_id)
+            if t.isProductType():
+                nv.extend(flattenProductValue(v[i], t))
+            else:
+                nv.append(v[i])
+        else:
+            nv.append(v[i])
+    return nv
+
+def raiseProduct(v, p):
+    nv = []
+    for i in range(len(p)):
+        e = p[i]
+        if e.isProductType():
+            nv.append(raiseProduct(v, e))
+        elif e.isId() and not e.id in builtin:
+            t = lookupType(e.id_type_id)
+            if t.isProductType():
+                nv.append(raiseProduct(v, t))
+            else:
+                nv.append(v[0])
+                del v[0]
+        else:
+            nv.append(v[0])
+            del v[0]
+    return _linda_server.Value(tuple(nv))
 
 if not _linda_server.use_types:
     compare = compare_notypes
