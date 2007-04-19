@@ -107,7 +107,8 @@ static int linda_Value_init(linda_ValueObject* self, PyObject* args, PyObject* k
             return -1;
         }
     } else if(Linda_is_server && PyObject_IsInstance(obj, (PyObject*)&linda_TSRefType)) {
-        self->val = Linda_copy(((linda_TSRefObject*)obj)->ts);
+        Linda_addReference(((linda_TSRefObject*)obj)->ts);
+        self->val = ((linda_TSRefObject*)obj)->ts;
     } else if(!Linda_is_server && PyObject_TypeCheck(obj, &linda_TupleSpaceType)) {
         Linda_addReference(((linda_TupleSpaceObject*)obj)->ts);
         self->val = ((linda_TupleSpaceObject*)obj)->ts;
@@ -799,10 +800,11 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
         }
         LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[index]);
         Minimal_addReference(self->val->type_spec->branches[index]);
-        Linda_delReference((void*)(val->typemap));
-        Linda_addReference((void*)(self->val->typemap));
+        Linda_delReference((MinimalObject)(val->typemap));
+        Linda_addReference((MinimalObject)(self->val->typemap));
         val->typemap = self->val->typemap;
         o = Value2PyO(val);
+        Linda_delReference(val);
         return o;
         }
     case M_TUPLE:
@@ -1147,7 +1149,9 @@ LindaValue PyO2Value(PyObject* obj) {
 #ifdef TYPES
         if(o == NULL) {
             PyObject* func = NULL;
-            PyObject* type = PyObject_GetAttrString(obj, "__class__");
+            PyObject* type;
+            PyErr_Clear();
+            type = PyObject_GetAttrString(obj, "__class__");
             if(type != NULL) {
                 func = LindaPython_lookupConvertTo(type);
             }

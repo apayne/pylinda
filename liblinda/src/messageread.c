@@ -391,6 +391,7 @@ void BuildMessage(buildmessage* bm, xmlDocPtr doc, xmlNodePtr node) {
             break;
         default:
             fprintf(stderr, "Discarding element due to invalid message type.\n");
+            Linda_delReference(t);
         }
     } else if(strcmp((char*)node->name, "msgid") == 0) {
         bm->m->msgid = (MsgID*)malloc(sizeof(MsgID));

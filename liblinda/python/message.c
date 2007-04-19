@@ -124,7 +124,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             t = Py_BuildValue("(Oss)", msgid, "REQUEST_TYPE", m->typestruct.type_id);
             break;
         case L_RESULT_TYPE:
-            t = Py_BuildValue("(OsO)", msgid, "REQUEST_TYPE", m->typestruct.typeobj);
+            t = Py_BuildValue("(OsO)", msgid, "RESULT_TYPE", m->typestruct.typeobj);
             break;
         case L_GET_NODE_ID:
             t = Py_BuildValue("(Os)", msgid, "GET_NODE_ID");
@@ -164,6 +164,7 @@ PyObject* LindaPython_recv(PyObject *self, PyObject* args) {
             Message_free(m);
             return NULL;
         }
+        Py_DecRef(msgid);
         Message_free(m);
         return t;
     }

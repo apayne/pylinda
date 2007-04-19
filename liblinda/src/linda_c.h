@@ -185,6 +185,7 @@ EXPORT void Linda_init();
 EXPORT unsigned char Linda_connect(int port);
 IMPORT extern int Linda_port;
 EXPORT void Linda_disconnect();
+EXPORT void Linda_finalise();
 #endif
 
 EXPORT LindaValue Linda_createTuplespace();

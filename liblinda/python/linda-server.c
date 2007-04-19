@@ -69,6 +69,13 @@ static PyObject* LindaServerPython_serve(PyObject *self, PyObject* args) {
     }
 }
 
+static PyObject* LindaServerPython_finalise(PyObject *self, PyObject* args) {
+    Linda_finalise();
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject* LindaServerPython_serverSockets(PyObject *self, PyObject* args) {
 #ifdef USE_DOMAIN_SOCKETS
     return Py_BuildValue("(ii)", Linda_sd, Linda_udd);
@@ -234,6 +241,7 @@ static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
 
 static PyMethodDef LindaServerMethods[] = {
     {"serve",  LindaServerPython_serve, METH_VARARGS, "Create the listening sockets."},
+    {"finalise",  LindaServerPython_finalise, METH_NOARGS, ""},
     {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connections"},
     {"accept",  LindaServerPython_accept, METH_VARARGS, "Accept a new connection."},
     {"recv", LindaPython_recv, METH_VARARGS, "Recieve a message from the socket."},

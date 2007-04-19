@@ -385,7 +385,7 @@ int Linda_copy_collect(LindaValue ts1, LindaValue ts2, LindaValue t) {
 void Linda_registerType(LindaValue t) {
     if(t->type_id != 0) {
         return;
-    } else if(Linda_active_connections > 0) {
+    } else if(Linda_active_connections > 0 && Linda_process_id != NULL) {
         int i;
         Linda_thread_data* tdata = Linda_get_thread_data();
 
@@ -411,7 +411,7 @@ void Linda_registerType(LindaValue t) {
             if(m == NULL) { free(types); return; }
             Message_free(m);
         }
-        free(types);
+        Minimal_freeTypeList(types);
     } else if(Linda_unregistered_type_list == NULL) {
         Linda_unregistered_type_list = malloc(sizeof(void*)*2);
         Linda_addReference(t);

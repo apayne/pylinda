@@ -62,13 +62,6 @@ unsigned char Linda_register_types = 0;
 unsigned char Linda_inited = 0;
 
 LindaValue Linda_uts;
-/*LindaValue Linda_typeType = NULL;
-LindaValue Linda_nilType;
-LindaValue Linda_boolType;
-LindaValue Linda_intType;
-LindaValue Linda_floatType;
-LindaValue Linda_stringType;
-LindaValue Linda_tupleSpaceType;*/
 
 void Linda_init() {
     if(Linda_inited) { return; }
@@ -77,15 +70,6 @@ void Linda_init() {
     Minimal_init();
 
 #ifdef TYPES
-    Linda_typeType = Linda_type("typetype :: type;");
-    Linda_typeType->typeobj = Linda_typeType;
-    Linda_nilType = Linda_type("niltype :: Nil;");
-    Linda_boolType = Linda_type("booltype :: bool;");
-    Linda_intType = Linda_type("inttype :: int;");
-    Linda_floatType = Linda_type("floattype :: float;");
-    Linda_stringType = Linda_type("stringtype :: string;");
-    Linda_tupleSpaceType = Linda_type("tupleSpacetype :: tuplespace;");
-
     Minimal_use_types = 1;
 #else
     Minimal_use_types = 0;
@@ -93,8 +77,13 @@ void Linda_init() {
 
     Minimal_setLindaTSAddRefFunc(Linda_fakeAddTSReference);
     Minimal_setLindaTSDelRefFunc(Linda_fakeDelTSReference);
+}
 
-    Linda_uts = Minimal_tupleSpace("UTS");
+void Linda_finalise() {
+    if(!Linda_inited) { return; }
+    Linda_inited = 0;
+
+    Minimal_finalise();
 }
 
 unsigned char Linda_serve(unsigned char use_domain, int port) {
@@ -183,6 +172,7 @@ int Linda_server_disconnect() {
     shutdown(Linda_sd, SHUT_RDWR);
 #endif
     Linda_active_connections -= 1;
+
     return 1;
 }
 

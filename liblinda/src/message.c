@@ -630,6 +630,7 @@ Message* Message_register_thread() {
 Message* Message_register_type(LindaValue type) {
     Message* m = (Message*)malloc(sizeof(Message));
     m->type = L_REGISTER_TYPE;
+    m->typestruct.type_id = NULL;
     Linda_addReference(type);
     m->typestruct.typeobj = type;
     m->typestruct.pid = NULL;
@@ -813,7 +814,7 @@ void Message_free(Message* msg) {
     case L_REGISTER_TYPE:
     case L_UPDATE_TYPE:
         Linda_delReference(msg->typestruct.typeobj);
-        if(msg->typestruct.pid != NULL) {
+        if(msg->typestruct.type_id != NULL) {
             free(msg->typestruct.type_id);
         }
         if(msg->typestruct.pid != NULL) {

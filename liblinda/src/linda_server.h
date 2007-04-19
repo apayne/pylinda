@@ -30,6 +30,7 @@ LSEXPORT int Linda_server_disconnect();
 
 LSEXPORT int Linda_connect(char* address);
 LSEXPORT void Linda_disconnect(int sd);
+LSEXPORT void Linda_finalise();
 
 LSIMPORT extern int Linda_port;
 
