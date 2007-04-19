@@ -40,7 +40,7 @@ import _linda_server
 
 import utils as utils
 
-if _linda_server.use_types and _linda_server.register_types:
+if _linda_server.use_types:
     from type_cache import registerType, updateType, emptyTypeCache, unregisterTypesFromProcess
     from iso_cache import emptyIsoCache
     import interserver_types
@@ -573,12 +573,13 @@ def cleanShutdown():
     finally:
         connections.socket_lock.release()
 
-    if _linda_server.use_types and _linda_server.register_types:
+    if _linda_server.use_types:
         emptyTypeCache()
         emptyIsoCache()
 
     gc.collect() # Run garbage collection so libminimal doesn't produce spurious warnings.
 
+    _linda_server.finalise()
     sys.exit()
 
 def unblock_thread(tid):

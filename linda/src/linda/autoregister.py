@@ -83,17 +83,26 @@ def registerAllTypes(type, memo = None):
     if memo is None:
         memo = {}
     else:
-        if type in memo:
-            return memo[type]
-    memo[type] = type_cache.registerType(type, "")
+        if type.type_name in memo:
+            return memo[type.type_name]
+    memo[type.type_name] = type_cache.registerType(type, "")
 
+    registerAllTypes2(type, memo)
+
+    type.type_id = memo[type.type_name]
+    type_cache.updateType(type.type_id , type)
+    return type.type_id
+
+def registerAllTypes2(type, memo):
     if type.isNil():
         pass
     elif type.isId():
         if type.id in match.builtin:
             pass
         else:
-            type.id_type_id = registerAllTypes(type.typemap[type.id], memo)
+            id = registerAllTypes(type.typemap[type.id], memo)
+            print "got id type id", id
+            type.id_type_id = id
     elif type.isProductType():
         for i in range(len(type)):
             registerAllTypes(type[i], memo)
@@ -106,10 +115,6 @@ def registerAllTypes(type, memo = None):
         raise SystemError, type
     else:
         raise SystemError, type
-
-    type.type_id = memo[type]
-    type_cache.updateType(type.type_id , type)
-    return type.type_id
 
 def findType(type, memo = None):
     type_cache.cache_lock.acquire()

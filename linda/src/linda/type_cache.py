@@ -52,6 +52,7 @@ def updateType(type_id, type):
         cache_lock.release()
 
 def emptyTypeCache():
+    global __cache
     __cache = None
 
 def lookupType(id):
