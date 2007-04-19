@@ -33,6 +33,8 @@ struct CyclicGarbageList* Minimal_newCyclicGarbageList() {
 };
 
 void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObject ptr) {
+    int i = 0;
+
     if(ptr == NULL) {
         return;
     } else if(list->used < list->size) {
@@ -41,20 +43,23 @@ void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObjec
         if(refcount < 0) { return; }
         struct CyclicGarbage* item = &(list->list[list->used]);
         while(k < list->used) {
-             if(list->list[k].ptr == ptr) {
+            if(list->list[k].ptr == ptr) {
                 list->list[k].count++;
-                return;
+                break;
             }
 
             k++;
         }
+        if(k == list->used) {
+            list->used++;
 
-        list->used++;
-
-        item->ptr = ptr;
-        item->type_id = Minimal_getTypeId(ptr);
-        item->count = 1;
-        item->refcount = refcount;
+            item->ptr = ptr;
+            item->type_id = Minimal_getTypeId(ptr);
+            item->count = 1;
+            item->refcount = refcount;
+            item->ptrcount = 0;
+            item->ptrtos = NULL;
+        }
     } else {
         struct CyclicGarbage* newlist = malloc(sizeof(struct CyclicGarbage)*(list->used*2));
         memcpy(newlist, list->list, sizeof(struct CyclicGarbage)*list->used);
@@ -62,17 +67,62 @@ void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObjec
         list->size = list->used * 2;
         Minimal_addToCyclicGarbageList(list, ptr);
     }
+
+    while(list->list[i].ptr != ptr) {
+        i++;
+    }
+
+    if(list->list[list->current_object].ptrcount == 0) {
+        list->list[list->current_object].ptrcount = 1;
+        list->list[list->current_object].ptrtos = malloc(sizeof(int));
+        list->list[list->current_object].ptrtos[0] = i;
+    } else {
+        int* newlist = malloc(sizeof(int) * (list->list[list->current_object].ptrcount + 1));
+        memcpy(newlist, list->list[list->current_object].ptrtos, sizeof(int) * list->list[list->current_object].ptrcount);
+        newlist[list->list[list->current_object].ptrcount] = i;
+        list->list[list->current_object].ptrcount++;
+        free(list->list[list->current_object].ptrtos);
+        list->list[list->current_object].ptrtos = newlist;
+    }
 }
 
 void Minimal_delCyclicGarbageList(struct CyclicGarbageList* list) {
+    int i = 0;
+    i = 0;
+    while(i < list->used) {
+        if(list->list[i].ptrtos != NULL) {
+            free(list->list[i].ptrtos);
+        }
+        i++;
+    }
     free(list->list);
     free(list);
 }
 
+static unsigned char is_ptr_in_clique(int* clique, int max_size, int ptr) {
+    int i;
+    for(i=0; i<max_size; i++) {
+        if(clique[i] == ptr) {
+            return 1;
+        }
+        if(clique[i] == -1) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
 void Minimal_performCyclicCollection(MinimalObject ptr) {
     int i;
+    int j;
+    int k;
+    int l;
+    int m;
+    int possible;
     struct CyclicGarbageList* list;
     struct CyclicGarbage* item;
+    int* clique;
+    unsigned char change = 1;
 
     if(Minimal_getReferenceCount(ptr) < 0) {
         return;
@@ -84,28 +134,73 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
     item->type_id = Minimal_getTypeId(ptr);
     item->count = 0;
     item->refcount = Minimal_getReferenceCount(ptr);
+    item->ptrcount = 0;
+    item->ptrtos = NULL;
     list->used = 1;
 
-    /* Calculate the clique */
+    /* Calculate the possible clique */
 
     i = 0;
     while(i < list->used) {
         item = &(list->list[i]);
+        list->current_object = i;
         Minimal_getReferences(list, item->type_id, item->ptr);
 
         i++;
     }
 
+    /* Calculate the clique */
+    clique = malloc(sizeof(int) * list->used);
+    for(i=0; i<list->used; i++) {
+        clique[i] = -1;
+    }
+
+    i = 0;
+    clique[0] = 0;
+    while(change) {
+        change = 0;
+        j = 0;
+        while(j < list->used && clique[j] != -1) {
+            for(k=0; k<list->list[clique[j]].ptrcount; k++) {
+                possible = list->list[clique[j]].ptrtos[k];
+                if(is_ptr_in_clique(clique, list->used, possible)) {
+                    continue;
+                }
+                l = 0;
+                for(l=0; l<list->list[possible].ptrcount; l++) {
+                    if(is_ptr_in_clique(clique, list->used, list->list[possible].ptrtos[l])) {
+                        change = 1;
+                        break;
+                    }
+                }
+                if(l < list->list[possible].ptrcount) {
+                    m = 0;
+                    while(clique[m] != -1) {
+                        m++;
+                    }
+                    clique[m] = possible;
+                }
+                if(change) { break; }
+            }
+
+            if(change) { break; }
+            j++;
+        }
+    }
+
     /* Are we garbage? */
 
     i = 0;
-    while(i < list->used) {
-        if(list->list[i].refcount > list->list[i].count) {
+    while(clique[i] != -1) {
+        if(list->list[clique[i]].refcount > list->list[clique[i]].count) {
+            free(clique);
             Minimal_delCyclicGarbageList(list);
             return;
-        } else if(list->list[i].refcount < list->list[i].count) {
+        } else if(list->list[clique[i]].refcount < list->list[clique[i]].count) {
             fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen! (%p type %i)\n", list->list[i].refcount, list->list[i].count, list->list[i].ptr, Minimal_getTypeId(list->list[i].ptr));
+            free(clique);
             Minimal_delCyclicGarbageList(list);
+            *((int*)NULL) = 0;
             return;
         }
 
@@ -114,19 +209,20 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
 
     /* Destroy them all! Mwahahaha! */
     i = 0;
-    while(i < list->used) {
-        Minimal_setReferenceCount(list->list[i].ptr, -1);
+    while(clique[i] != -1) {
+        Minimal_setReferenceCount(list->list[clique[i]].ptr, -1);
         i++;
     }
     i = 0;
-    while(i < list->used) {
-        Minimal_delObject(list->list[i].type_id, list->list[i].ptr, 0);
+    while(clique[i] != -1) {
+        Minimal_delObject(list->list[clique[i]].type_id, list->list[clique[i]].ptr, 0);
         i++;
     }
     i = 0;
-    while(i < list->used) {
-        free(list->list[i].ptr);
+    while(clique[i] != -1) {
+        free(list->list[clique[i]].ptr);
         i++;
     }
+    free(clique);
     Minimal_delCyclicGarbageList(list);
 }

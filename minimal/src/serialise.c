@@ -73,10 +73,6 @@ char* Minimal_serialise(MinimalValue f, unsigned char include_type, unsigned cha
 }
 
 void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
-    if(strlen(v->type_name) == 0) {
-        return;
-    }
-
     if(v->typeobj != NULL) {
         if(Minimal_addTypeToTypeList(list, v->typeobj) && v->typeobj->type_spec != NULL) {
             Minimal_getTypeList2(v->typeobj->type_spec, v->typeobj->typemap, list);

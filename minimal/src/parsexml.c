@@ -281,7 +281,6 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
         if(node->type == XML_ELEMENT_NODE) {
             if(strcmp((char*)node->name, "type") == 0) {
                 MinimalValue type = Minimal_xmlToValue2(node, memo, types);
-                Minimal_setTypeMap(type, types);
                 Minimal_addName(&(types->map), type->type_name, type);
             } else if(root == NULL) {
                 char* type;
@@ -298,14 +297,16 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
                 }
                 typeid = (char*)xmlGetProp(node, (xmlChar*)"typeid");
                 if(typeid != NULL) {
-                    Minimal_setType(root, Minimal_typeFromId(typeid));
+                    MinimalValue t = Minimal_typeFromId(typeid);
+                    Minimal_setType(root, t);
+                    Minimal_delReference(t);
                     free(typeid);
                 }
-                if(Minimal_isType(root) && root->type_name != NULL) {
+                /*if(Minimal_isType(root) && root->type_name != NULL) {
                     Minimal_addReference(root);
                     Minimal_addName(&(types->map), root->type_name, root);
                 }
-                Minimal_setTypeMap(root, types);
+                Minimal_setTypeMap(root, types);*/
             } else {
                 char* type;
                 char* typeid;
@@ -322,11 +323,11 @@ MinimalValue Minimal_xmlSeriesToValue(xmlNodePtr node, ValueMemo* memo, MinimalL
                     Minimal_setType(root, Minimal_typeFromId((char*)typeid));
                     free(typeid);
                 }
-                if(Minimal_isType(v) && v->type_name != NULL) {
+                /*if(Minimal_isType(v) && v->type_name != NULL) {
                     Minimal_addReference(v);
                     Minimal_addName(&(types->map), v->type_name, v);
                 }
-                Minimal_setTypeMap(v, types);
+                Minimal_setTypeMap(v, types);*/
                 Minimal_delReference(v);
             }
         }
@@ -580,7 +581,9 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
         }
         if(type != NULL) { Minimal_setType(value, type); Minimal_delReference(type); }
     } else {
-        Minimal_setType(value, Minimal_typeFromId((char*)tid));
+        MinimalValue type = Minimal_typeFromId((char*)tid);
+        Minimal_setType(value, type);
+        Minimal_delReference(type);
 
         free(tid);
     }

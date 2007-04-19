@@ -745,8 +745,8 @@ void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v)
         Minimal_addToCyclicGarbageList(list, (MinimalValue)v->code);
         break;
     case M_TYPE:
-        Minimal_addToCyclicGarbageList(list, (MinimalValue)v->typemap);
-        Minimal_addToCyclicGarbageList(list, (MinimalValue)v->type_spec);
+        Minimal_addToCyclicGarbageList(list, (MinimalObject)v->typemap);
+        Minimal_addToCyclicGarbageList(list, (MinimalObject)v->type_spec);
         break;
     case M_TUPLE:
         {

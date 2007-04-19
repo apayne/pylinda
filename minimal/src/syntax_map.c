@@ -121,6 +121,19 @@ int Minimal_SyntaxMap_size(Minimal_NameValueMap* map) {
     return count;
 }
 
+void Minimal_SyntaxMap_listNames(Minimal_NameValueMap* map) {
+    if(map == NULL) { return; }
+    if(map->left != NULL) {
+        Minimal_SyntaxMap_listNames(map->left);
+    }
+    if(map->right != NULL) {
+        Minimal_SyntaxMap_listNames(map->right);
+    }
+    if(map->name != NULL) {
+        printf("%s\n", map->name);
+    }
+}
+
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map) {
     if(map->left != NULL) {
         Minimal_SyntaxMap_empty(map->left); free(map->left);

@@ -358,6 +358,7 @@ EXPORT void Minimal_setLindaTSDelRefFunc(void (*func)(MinimalValue t));
 
 typedef MinimalValue* Minimal_TypeList;
 EXPORT Minimal_TypeList Minimal_getTypeList(MinimalValue type);
+void Minimal_freeTypeList(Minimal_TypeList list);
 
 IMPORT extern unsigned char Minimal_use_types;
 

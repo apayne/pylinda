@@ -78,6 +78,7 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree);
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name);
 void Minimal_delName(Minimal_NameValueMap* map, char* name);
 void Minimal_SyntaxMap_empty(Minimal_NameValueMap* map);
+void Minimal_SyntaxMap_listNames(Minimal_NameValueMap* map);
 
 void Minimal_Layer_free(MinimalLayer layer);
 void Minimal_Value_free(MinimalValue val);
@@ -124,7 +125,6 @@ typedef struct ValueMemo_t ValueMemo;
 
 unsigned char Minimal_addTypeToTypeList(Minimal_TypeList* list, MinimalValue type);
 void Minimal_getTypeList2(Minimal_SyntaxTree type, MinimalLayer typemap, Minimal_TypeList* list);
-void Minimal_freeTypeList(Minimal_TypeList list);
 
 unsigned char Minimal_isBuiltIn(char* type_name);
 
@@ -137,11 +137,14 @@ struct CyclicGarbage {
     MinimalTypeId type_id;
     int count;
     int refcount;
+    int ptrcount;
+    int* ptrtos;
 };
 
 struct CyclicGarbageList {
     int size;
     int used;
+    int current_object;
     struct CyclicGarbage* list;
 };
 

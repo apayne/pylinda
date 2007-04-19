@@ -35,6 +35,14 @@ void Minimal_Layer_init() {
     Minimal_currentLayer = Minimal_defaultLayer;
 }
 
+void Minimal_Layer_refCheck(Minimal_NameValueMap* map) {
+    if(map->name != NULL) {
+        printf("%s in layer with %li references\n", map->name, map->value->ref_count);
+    }
+    if(map->left != NULL) { Minimal_Layer_refCheck(map->left); }
+    if(map->right != NULL) { Minimal_Layer_refCheck(map->right); }
+}
+
 void Minimal_Layer_finalise() {
     Minimal_delReference(Minimal_defaultLayer); Minimal_defaultLayer = NULL;
     Minimal_delReference(Minimal_currentLayer); Minimal_currentLayer = NULL;
