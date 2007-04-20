@@ -138,7 +138,9 @@ struct CyclicGarbage {
     int count;
     int refcount;
     int ptrcount;
+    int ptrsize;
     int* ptrtos;
+    unsigned char in_clique;
 };
 
 struct CyclicGarbageList {
