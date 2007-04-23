@@ -87,10 +87,12 @@ def doesMatch_types(e1, e2):
                 return e2
             else:
                 raise NoTupleMatch
-        iso = lookupIso(e1.type, e2.type)
+        t1 = lookupType(e1.type.type_id)
+        t2 = lookupType(e2.type.type_id)
+        iso = lookupIso(t1, t2)
         if iso is None:
             raise NoTupleMatch
-        e2 = iso(e1.type, e2.type, e2, {}, {}, True)
+        e2 = iso(t1, t2, e2, {}, {}, True)
         if e1 == e2:
             return e2
         else:
