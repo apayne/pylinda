@@ -33,6 +33,7 @@ struct CyclicGarbageList* Minimal_newCyclicGarbageList() {
 };
 
 void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObject ptr) {
+    struct CyclicGarbage* item = &(list->list[list->used]);
     int refcount;
     int k = 0;
 
@@ -48,8 +49,7 @@ void Minimal_addToCyclicGarbageList(struct CyclicGarbageList* list, MinimalObjec
     }
 
     refcount = Minimal_getReferenceCount(ptr);
-    if(refcount < 0) { return; }
-    struct CyclicGarbage* item = &(list->list[list->used]);
+
     while(k < list->used) {
         if(list->list[k].ptr == ptr) {
             list->list[k].count++;
@@ -152,7 +152,7 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
 
             for(k=0; k<list->list[j].ptrcount; k++) {
                 possible = list->list[j].ptrtos[k];
-                if(list->list[possible].in_clique) { continue; }
+                if(list->list[possible].in_clique || list->list[possible].refcount < 0) { continue; }
 
                 for(l=0; l<list->list[possible].ptrcount; l++) {
                     if(list->list[list->list[possible].ptrtos[l]].in_clique) {
