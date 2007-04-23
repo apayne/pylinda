@@ -1199,6 +1199,7 @@ linda_MemoObject* memo = NULL;
 PyObject* Value2PyO(LindaValue obj) {
     if(!Linda_is_server && Linda_isTupleSpace(obj)) {
         return PyObject_CallFunction((PyObject*)&linda_TupleSpaceType, "s", Linda_getTupleSpace(obj));
+#ifdef USE_TYPES
     } else if(!Linda_is_server) {
         PyObject* func = NULL;
         PyObject* type = (PyObject*)((&linda_ValueType)->tp_alloc(&linda_ValueType, 0));
@@ -1245,6 +1246,7 @@ PyObject* Value2PyO(LindaValue obj) {
         } else {
             Py_DECREF(type);
         }
+#endif
     }
 
     PyObject* o = (PyObject*)((&linda_ValueType)->tp_alloc(&linda_ValueType, 0));

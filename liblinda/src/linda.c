@@ -285,6 +285,7 @@ LindaValue Linda_inp(LindaValue ts, LindaValue t) {
     Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
+    Linda_addReference(t);
     m = Message_inp(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
@@ -321,6 +322,7 @@ LindaValue Linda_rdp(LindaValue ts, LindaValue t) {
     Message* m;
     LindaValue r;
     Linda_thread_data* tdata = Linda_get_thread_data();
+    Linda_addReference(t);
     m = Message_rdp(ts, t);
     Message_send(tdata->sd, NULL, m);
     Message_free(m);
