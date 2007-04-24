@@ -139,11 +139,11 @@ static PyObject* linda_TupleSpace_rd(linda_TupleSpaceObject* self, PyObject* arg
     if(t1 == NULL) {
         return NULL;
     }
-    Linda_delReference(t1);
 
     Py_BEGIN_ALLOW_THREADS
     t2 = Linda_rd(self->ts, t1);
     Py_END_ALLOW_THREADS
+    Linda_delReference(t1);
 
     if(t2 == NULL) {
         PyErr_SetString(PyExc_KeyboardInterrupt, "Linda message interupted");
