@@ -504,6 +504,7 @@ MinimalValue Minimal_tupleSpace(const char* ts) {
     strcpy(v->string, ts);
     v->typeobj = NULL;
     v->sum_pos = -1;
+    Minimal_setType(v, Minimal_tupleSpaceType);
     return v;
 }
 
