@@ -609,6 +609,8 @@ def main():
         #    from monitor import monitor
         #    return monitor.Thread(options.port).run()
 
+    _linda_server.init()
+
     if options.peer:
         options.peer.append("127.0.0.1") # always allow local connections.
 
