@@ -180,8 +180,8 @@ IMPORT extern char* Linda_version;
 #define NULL (void*)0
 #endif
 
-#ifndef LINDA_SERVER
 EXPORT void Linda_init();
+#ifndef LINDA_SERVER
 EXPORT unsigned char Linda_connect(int port);
 IMPORT extern int Linda_port;
 EXPORT void Linda_disconnect();

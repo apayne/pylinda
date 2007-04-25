@@ -54,6 +54,13 @@ PyObject* LindaServer_module;
 
 int LindaPython_is_server = 1;
 
+static PyObject* LindaServerPython_init(PyObject *self, PyObject* args) {
+    Linda_init();
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyObject* LindaServerPython_serve(PyObject *self, PyObject* args) {
     int use_domain;
     int r;
@@ -240,6 +247,7 @@ static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
 #endif
 
 static PyMethodDef LindaServerMethods[] = {
+    {"init",  LindaServerPython_init, METH_NOARGS, ""},
     {"serve",  LindaServerPython_serve, METH_VARARGS, "Create the listening sockets."},
     {"finalise",  LindaServerPython_finalise, METH_NOARGS, ""},
     {"serverSockets",  LindaServerPython_serverSockets, METH_NOARGS, "Return the sockets that are accepting connections"},
