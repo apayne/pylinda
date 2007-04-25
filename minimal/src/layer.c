@@ -49,6 +49,10 @@ void Minimal_Layer_finalise() {
 }
 
 MinimalLayer Minimal_setCurrentLayer(MinimalLayer layer) {
+    if(layer == NULL) {
+        fprintf(stderr, "Error: Setting current layer to NULL.\n");
+        *((int*)NULL) = 0;
+    }
     Minimal_addReference(layer);
     Minimal_delReference(Minimal_currentLayer);
 
