@@ -64,7 +64,7 @@ static PyGetSetDef typemap_getseters[] = {
 };
 
 static Py_ssize_t linda_TypeMapLen(linda_TypeMapObject *self) {
-    return Minimal_SyntaxMap_size(&(self->map->map));
+    return Minimal_SyntaxMap_size(self->map->map);
 }
 
 static PyObject* linda_TypeMapSubScript(linda_TypeMapObject* self, PyObject* arg) {
@@ -105,7 +105,7 @@ static void find_names(struct Minimal_NameValueMap_t* map, PyObject* list) {
 static PyObject* linda_TypeMap_keys(linda_TypeMapObject* self) {
     PyObject* list = Py_BuildValue("[]");
 
-    find_names(&(self->map->map), list);
+    find_names(self->map->map, list);
 
     return list;
 }
