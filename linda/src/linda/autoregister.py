@@ -90,7 +90,7 @@ def registerAllTypes(type, memo = None):
     registerAllTypes2(type, memo)
 
     type.type_id = memo[type.type_name]
-    type_cache.updateType(type.type_id , type)
+    type_cache.updateType(type.type_id, type)
     return type.type_id
 
 def registerAllTypes2(type, memo):
@@ -101,14 +101,13 @@ def registerAllTypes2(type, memo):
             pass
         else:
             id = registerAllTypes(type.typemap[type.id], memo)
-            print "got id type id", id
             type.id_type_id = id
     elif type.isProductType():
         for i in range(len(type)):
-            registerAllTypes(type[i], memo)
+            registerAllTypes2(type[i], memo)
     elif type.isSumType():
         for i in range(len(type)):
-            registerAllTypes(type[i], memo)
+            registerAllTypes2(type[i], memo)
     elif type.isPtrType():
         type.id_type_id = registerAllTypes(type.typemap[type.ptrtype], memo)
     elif type.isFunctionType():

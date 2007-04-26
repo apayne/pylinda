@@ -180,7 +180,7 @@ class Connection:
                 del message_store[msgid[2]]
             finally:
                 ms_lock.release()
-            return convertTo(m[1])
+            return convertFrom(m[1])
     def realrecv(self):
         r = _linda_server.recv(self.sd)
         return r
