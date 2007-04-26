@@ -99,9 +99,7 @@ void Minimal_delCyclicGarbageList(struct CyclicGarbageList* list) {
 void Minimal_performCyclicCollection(MinimalObject ptr) {
     int i;
     int j;
-    int k;
     int l;
-    int possible;
     struct CyclicGarbageList* list;
     struct CyclicGarbage* item;
     unsigned char change = 1;
@@ -137,7 +135,7 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
         Minimal_delCyclicGarbageList(list);
         return;
     } else if(list->list[0].refcount < list->list[0].count) {
-        fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen! (%p type %i)\n", list->list[0].refcount, list->list[0].count, list->list[0].ptr, Minimal_getTypeId(list->list[0].ptr));
+        fprintf(stderr, "Minimal: Real reference count (%li) lower than cyclic count (%li). This should not happen! (%p type %i)\n", list->list[0].refcount, list->list[0].count, list->list[0].ptr, Minimal_getTypeId(list->list[0].ptr));
         Minimal_delCyclicGarbageList(list);
         *((int*)NULL) = 0;
         return;
@@ -150,32 +148,26 @@ void Minimal_performCyclicCollection(MinimalObject ptr) {
         while(j < list->used) {
             if(list->list[j].in_clique) { j++; continue; }
 
-            for(k=0; k<list->list[j].ptrcount; k++) {
-                possible = list->list[j].ptrtos[k];
-                if(list->list[possible].in_clique || list->list[possible].refcount < 0) { continue; }
+            for(l=0; l<list->list[j].ptrcount; l++) {
+                if(list->list[list->list[j].ptrtos[l]].in_clique) {
+                    list->list[j].in_clique = 1;
+                    change = 1;
 
-                for(l=0; l<list->list[possible].ptrcount; l++) {
-                    if(list->list[list->list[possible].ptrtos[l]].in_clique) {
-                        list->list[possible].in_clique = 1;
-                        change = 1;
-
-                        if(list->list[possible].refcount > list->list[possible].count) {
-                            Minimal_delCyclicGarbageList(list);
-                            return;
-                        } else if(list->list[possible].refcount < list->list[possible].count) {
-                            fprintf(stderr, "Minimal: Real reference count (%i) lower than cyclic count (%i). This should not happen! (%p type %i)\n", list->list[possible].refcount, list->list[possible].count, list->list[possible].ptr, Minimal_getTypeId(list->list[possible].ptr));
-                            Minimal_delCyclicGarbageList(list);
-                            *((int*)NULL) = 0;
-                            return;
-                        }
-
-                        break;
+                    if(list->list[j].refcount > list->list[j].count) {
+                        Minimal_delCyclicGarbageList(list);
+                        return;
+                    } else if(list->list[j].refcount < list->list[j].count) {
+                        fprintf(stderr, "Minimal: Real reference count (%li) lower than cyclic count (%li). This should not happen! (%p type %i)\n", list->list[j].refcount, list->list[j].count, list->list[j].ptr, Minimal_getTypeId(list->list[j].ptr));
+                        Minimal_delCyclicGarbageList(list);
+                        *((int*)NULL) = 0;
+                        return;
                     }
-                }
-                if(change) { break; }
-            }
 
+                    break;
+                }
+            }
             if(change) { break; }
+
             j++;
         }
     }

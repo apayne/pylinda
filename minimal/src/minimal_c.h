@@ -301,7 +301,7 @@ struct MinimalLayer_t {
     MINIMAL_REF_COUNT
     char* name;
     MinimalLayer parent;
-    Minimal_NameValueMap map;
+    Minimal_NameValueMap* map;
 };
 
 EXPORT MinimalLayer Minimal_createLayer();

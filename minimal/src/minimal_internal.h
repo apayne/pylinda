@@ -135,10 +135,10 @@ extern void (*Minimal_override_type_func)(MinimalValue t);
 struct CyclicGarbage {
     MinimalObject ptr;
     MinimalTypeId type_id;
-    int count;
-    int refcount;
-    int ptrcount;
-    int ptrsize;
+    long count;
+    long refcount;
+    long ptrcount;
+    long ptrsize;
     int* ptrtos;
     unsigned char in_clique;
 };

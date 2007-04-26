@@ -39,7 +39,7 @@ MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
     for(i=0; i < args->size; i++) {
         MinimalValue param_val = Minimal_tupleGet(args, i);
         Minimal_addReference(param_val);
-        Minimal_addName(&(new_layer->map), param->var_name, param_val);
+        Minimal_addName(new_layer->map, param->var_name, param_val);
 
         param = param->next_var;
     }
@@ -96,7 +96,7 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree tree, MinimalLayer layer) {
             MinimalValue param_val = Minimal_evaluate(arg->argument, layer);
             if(param == NULL) { fprintf(stderr, "Error: Param is NULL.\n"); return NULL; }
             if(param_val == NULL) { fprintf(stderr, "Error: Got NULL when evalutating parameter.\n"); return NULL; }
-            Minimal_addName(&(new_layer->map), param->var_name, param_val);
+            Minimal_addName(new_layer->map, param->var_name, param_val);
 
             param = param->next_var; arg = arg->next_arg;
         }

@@ -81,7 +81,7 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree tree) {
         MinimalValue v;
         Minimal_addReference(tree);
         v = Minimal_typeSpec(tree->type_name, tree);
-        Minimal_addName(&(layer->map), tree->type_name, v);
+        Minimal_addName(layer->map, tree->type_name, v);
         }
         break;
     case ST_FUNCTION_DEF:
@@ -105,7 +105,7 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree tree) {
         if(typespec != NULL && Minimal_isType(typespec)) {
             Minimal_delReference(typespec);
         }
-        Minimal_addName(&(layer->map), tree->func_name, f);
+        Minimal_addName(layer->map, tree->func_name, f);
         }
         break;
     default:
@@ -118,7 +118,8 @@ MinimalLayer Minimal_createLayer() {
     MinimalLayer layer = Minimal_newReference(MINIMAL_LAYER, MinimalLayer, struct MinimalLayer_t);
     layer->name = NULL;
     layer->parent = NULL;
-    Minimal_SyntaxMap_init(&(layer->map));
+    layer->map = Minimal_newReference(MINIMAL_MAP, Minimal_NameValueMap*, struct Minimal_NameValueMap_t);
+    Minimal_SyntaxMap_init(layer->map);
     return layer;
 }
 
@@ -127,18 +128,19 @@ MinimalLayer Minimal_createLayer2(MinimalLayer parent) {
     layer->name = NULL;
     Minimal_addReference(parent);
     layer->parent = parent;
-    Minimal_SyntaxMap_init(&(layer->map));
+    layer->map = Minimal_newReference(MINIMAL_MAP, Minimal_NameValueMap*, struct Minimal_NameValueMap_t);
+    Minimal_SyntaxMap_init(layer->map);
     return layer;
 }
 
 void Minimal_Layer_free(MinimalLayer layer) {
     free(layer->name);
     if(layer->parent != NULL) { Minimal_delReference(layer->parent); }
-    Minimal_SyntaxMap_empty(&(layer->map));
+    Minimal_delReference(layer->map);
 }
 
 void Minimal_Layer_getReferences(struct CyclicGarbageList* list, MinimalLayer layer) {
-    Minimal_SyntaxMap_getReferences(list, &(layer->map));
+    Minimal_addToCyclicGarbageList(list, layer->map);
 
     if(layer->parent == NULL) { return; }
 
