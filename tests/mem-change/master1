@@ -38,7 +38,7 @@ for ((i=0;i<=50;i+=3)); do
 
     python in-py $i
 
-    cp *-server-memory.txt start.txt
+    mv *-server-memory.txt start.txt
 
     python in-py2 $i
 

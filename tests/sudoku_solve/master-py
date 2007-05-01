@@ -5,17 +5,20 @@ import time
 
 import linda
 
+if not linda.connect():
+    print "Please start the Linda server first."
+    sys.exit(1)
+
 def master():
     grid = loadFile(sys.argv[1])
 
-    print "Solving..."
+    ts = linda.TupleSpace()
+    slaves = linda.uts.collect(ts, ("slave", ))
+
+    print "Solving with %i slaves..." % (slaves, )
     print gridString(grid)
 
     empty = sum([len([x for x in row if x is None]) for row in grid])
-
-    if not linda.connect():
-        print "Please start the Linda server first."
-        return
 
     start = time.time()
     linda.uts._out((empty, ) + gridToTup(grid))

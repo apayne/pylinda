@@ -38,8 +38,6 @@ for ((i=0;i<=50;i+=3)); do
 
     python in-compound-py $i
 
-    cp *-server-memory.txt start.txt
-
     python in-compound-py2 $i
 
     ./add_row.py $i %(this_addr)s.txt

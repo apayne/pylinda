@@ -10,6 +10,6 @@ val = linda.Value((1, ) * int(sys.argv[1]), t)
 
 tup = (val, )
 
-for i in range(1000):
+for i in range(100):
     linda.uts._out(tup)
 

@@ -11,6 +11,8 @@ def slave():
 
     processed, waiting = 0, 1
 
+    linda.uts._out(("slave", ))
+
     while True:
         tup = linda.uts._in((int, ) + (int, ) * (9*9))
         empty, grid = tup[0], tupleToGrid(tup[1:])

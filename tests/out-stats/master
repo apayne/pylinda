@@ -12,16 +12,19 @@ svn up
 cd minimal
 scons
 cd ../liblinda
-scons debug=0 types=1 register=1 network=1 memory=1
+scons debug=0 types=0 register=0 network=1 memory=1
 
 cd /root/tests
 
-wget %(test_dir)s/out-py
+#wget %(test_dir)s/out-py
+wget %(test_dir)s/out-py -O out-py
 wget %(test_dir)s/ps_mem_py.txt -O ps_mem.py
 wget %(test_dir)s/add_row_py.txt -O add_row.py
+wget %(test_dir)s/update_memory_py.txt -O update_memory.py
 
 chmod a+x ps_mem.py
 chmod a+x add_row.py
+chmod a+x update_memory.py
 
 curl http://scoobies.dyndns.org:2223/pylinda/ready.py
 

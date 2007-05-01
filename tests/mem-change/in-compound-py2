@@ -1,12 +1,15 @@
 import linda
 import sys
 import time
+import os
 
 linda.connect()
 
 t = linda.Type("t :: int * %i;" % (int(sys.argv[1]), ))
 
+os.system("mv *-server-memory.txt start.txt")
+
 tup = (t, )
 
-for i in range(1000):
+for i in range(100):
     linda.uts._rd(tup)

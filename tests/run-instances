@@ -79,9 +79,9 @@ try:
 
     while test.test_running(db):
         time.sleep(10)
+    terminateInstances(con, instances)
 except:
     print "Manually terminate instances", " ".join(instances)
     raise
 else:
-    terminateInstances(con, instances)
     test.end_test(db)

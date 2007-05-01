@@ -1,0 +1,102 @@
+Grid :: ((int + Nil) * 9 ) * 9;
+
+# We're looking for a grid which has 60 numbers, is symmetrical and requires no guess work.
+difficulty :: Grid -> bool;
+difficulty grid = count_numbers(grid) == 60 and symmetrical(grid) and guess_work(grid);
+
+# Loop through the grid counting the numbers
+count_loop :: Grid -> int -> int -> int;
+count_loop grid x y = if x != 8 and y != 8 then
+                        if grid[x][y] == Nil then 0 else 1 endif
+                        else if grid[x][y] == Nil then then count_loop(grid, (if y == 8 then x + 1 else x), (y+1)%9)
+                                              else count_loop(grid, (if y == 8 then x + 1 else x), (y+1)%9) + 1 endif;
+
+# Call count_loop to loop through the grid
+count_numbers :: Grid -> bool;
+count_numbers grid = count_loop(grid, 0, 0);
+
+# Loop through the grid checking that every filled in square has an filled in counterpart
+symmetrical_loop :: Grid -> int -> int -> int;
+symmetrical_loop grid x y = if x == 8 and y == 8 then grid[x][y] != grid[8-x][8-y]
+                                else if grid[x][y] != grid[8-x][8-y] then False
+                                                      else symmetrical_loop(grid, (if y == 8 then x + 1 else x), (y+1)%9) + 1
+                                     endif
+                            endif;
+
+# Call symmetrical_loop with the correct parameters
+symmetrical :: Grid -> bool;
+symmetrical grid = symmetrical_loop(grid, 0, 0);
+
+# Mark the test array element as false if the row contains that number
+test_row :: Grid -> int -> int -> bool * 9 -> i -> bool * 9;
+test_row grid y tests i = if i == 8 then if grid[i][y] != Nil then let tests[grid[i][y]] = False tests
+                                                                else tests endif
+                                      else if grid[i][y] != Nil then let tests[grid[i][y]] = False test_row(grid, y, tests, i+1)
+                                                                else test_row(grid, y, tests, i+1) endif
+                          endif;
+
+# Mark the test array element as false if the column contains that number
+test_col :: Grid -> int -> int -> bool * 9 -> i -> bool * 9;
+test_col grid x tests i = if i == 8 then if grid[x][i] != Nil then let tests[grid[x][i]] = False tests
+                                                                else tests endif
+                                      else if grid[x][i] != Nil then let tests[grid[x][i]] = False test_col(grid, x, tests, i+1)
+                                                                else test_col(grid, x, tests, i+1) endif
+                          endif;
+
+# Mark the test array as false if the column contains that number
+test_group :: Grid -> int -> int -> int -> bool * 9 -> int -> bool * 9;
+test_group grid x y tests i = let gx, gy = 3*(x/3)+i/3, 3*(y/3)+i%3
+                              if i == 8 then if grid[gx][gy] != Nil then let tests[grid[gx][gy]] = False tests
+                                                                else tests endif
+                                      else if grid[gx][gy] != Nil then let tests[grid[gx][gy]] = False test_group(grid, x, y, tests, i+1)
+                                                                  else test_group(grid, x, y, tests, i+1) endif
+                              endif;
+
+# Count the number of true elements in the array
+count_true :: bool * 9 -> int -> int;
+count_true list i = if i == 0 then if list[i] then 1 else 0 endif
+                              else if list[i] then count_true(list, i-1) + 1
+                                              else count_true(list, i-1)
+                                   endif
+                    endif;
+
+# Return the index of the true element in the array
+find_true :: bool * 9 -> int -> int;
+find_true list i = if i == 0 then if list[i] then i else Nil endif
+                             else if list[i] then i
+                                             else find_true(list, i-1)
+                                  endif
+                   endif;
+
+# Return the value the square can be filled with, or Nil if no or many values fit
+test_square :: Grid -> int -> int -> (int + Nil);
+test_square grid x y = let tests = test_row(grid, y, test_col(grid, x, (True, True, True, True, True, True, True, True, True), 0), 0)
+                           if count_true(tests, 9) == 1 then find_true(tests, 9) else Nil endif;
+
+# Go through each square to find one to fill in
+find_square :: Grid -> int -> int -> (int, int, int);
+find_square grid x y = if x == 8 and y == 8 then test_square(grid, x, y)
+                                            else let x = test_square(grid, x, y)
+                                                     if x then x
+                                                          else find_square(grid, (if y == 8 then x + 1 else x), (y+1)%9)
+                                                     endif
+                       endif;
+
+# Fill in one square of the grid
+fill_square :: Grid -> Grid;
+fill_square grid = let sq = find_square(grid, 0, 0)
+                       if !sq then False
+                              else let x, y, value = sq
+                                   do grid[x][y] = value
+                                      value
+                                   enddo
+                       endif;
+
+# Go through filling in the grid without guess work
+guess_work :: Grid -> bool;
+guess_work grid :: if count_numbers(grid) == 81 then True
+                                                else let newgrid = fill_square(grid)
+                                                         if newgrid then guess_work(newgrid)
+                                                                    else False
+                                                         endif
+                   endif;

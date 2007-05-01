@@ -7,10 +7,10 @@ line = "%s\t" % (sys.argv[1])
 
 files = glob.glob("*-server-memory.txt")
 
-data = file(files[0]).read()
-data = data.strip()
+data = [int(x.strip()) for x in file(files[0]).readlines()]
+data = max(data)
 
-line = line + data + "\t"
+line = line + str(data) + "\t"
 
 files = glob.glob("*-network.txt")
 

@@ -5,14 +5,14 @@ import glob
 
 line = "%s\t" % (sys.argv[1])
 
-start = int(file("start.txt").read().strip())
+start = max([int(x.strip()) for x in file("start.txt").readlines()])
 
 files = glob.glob("*-memory.txt")
 
 for f in files:
     if f.endswith("-server-memory.txt"):
-        data = file(f).read()
-        data = int(data.strip())
+        data = file(f).readlines()
+        data = max([int(x.strip()) for x in data])
         break
 
 line = line + str(data - start)
