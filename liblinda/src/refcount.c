@@ -23,11 +23,52 @@
 
 #include "linda_internal.h"
 
+void Linda_scanValueForTSRef(LindaValue v, LindaValue ref, LindaValue** scanned) {
+    Linda_thread_data* tdata;
+    Message* m;
+
+    switch(v->type) {
+    case M_NIL:
+    case M_BOOLEAN:
+    case M_BYTE:
+    case M_SHORT:
+    case M_INTEGER:
+    case M_LONG:
+    case M_UBYTE:
+    case M_USHORT:
+    case M_UINTEGER:
+    case M_ULONG:
+    case M_FLOAT:
+    case M_DOUBLE:
+    case M_STRING:
+    case M_TYPE:
+    case M_FUNCTION:
+        break;
+    case M_TSREF:
+        tdata = Linda_get_thread_data();
+        m = Message_addReference2(v, Minimal_getTupleSpace(ref));
+        Message_send(tdata->sd, NULL, m);
+        Message_free(m);
+        m = Message_recv(tdata->sd);
+        Message_free(m);
+        break;
+    case M_TUPLE:
+        Linda_scanTuple2(v, ref, scanned);
+        break;
+    case M_SUM:
+        Linda_scanValueForTSRef(Linda_getSumValue(v), ref, scanned);
+        break;
+    case M_POINTER:
+        Linda_scanValueForTSRef(Linda_getPtr(v), ref, scanned);
+        break;
+    case M_SYNTAX_TREE:
+        break;
+    }
+}
+
 void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
     int i;
-    Message* m;
     LindaValue* realscanned = NULL;
-    Linda_thread_data* tdata;
     LindaValue* newscanned;
 
     if(scanned == NULL) {
@@ -58,40 +99,7 @@ void Linda_scanTuple2(LindaValue t, LindaValue ref, LindaValue** scanned) {
 
     for(i=0; i<Linda_getTupleSize(t); i++) {
         LindaValue v = Linda_tupleGet(t, i);
-        switch(v->type) {
-        case M_NIL:
-        case M_BOOLEAN:
-        case M_BYTE:
-        case M_SHORT:
-        case M_INTEGER:
-        case M_LONG:
-        case M_UBYTE:
-        case M_USHORT:
-        case M_UINTEGER:
-        case M_ULONG:
-        case M_FLOAT:
-        case M_DOUBLE:
-        case M_STRING:
-        case M_TYPE:
-        case M_FUNCTION:
-            break;
-        case M_TSREF:
-            tdata = Linda_get_thread_data();
-            m = Message_addReference2(v, Minimal_getTupleSpace(ref));
-            Message_send(tdata->sd, NULL, m);
-            Message_free(m);
-            m = Message_recv(tdata->sd);
-            Message_free(m);
-            break;
-        case M_TUPLE:
-            Linda_scanTuple2(v, ref, scanned);
-            break;
-        case M_POINTER:
-            Linda_scanTuple2(Linda_getPtr(v), ref, scanned);
-            break;
-        case M_SYNTAX_TREE:
-            break;
-        }
+        Linda_scanValueForTSRef(v, ref, scanned);
     }
 
     if(&realscanned == scanned) {

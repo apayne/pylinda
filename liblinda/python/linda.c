@@ -83,6 +83,35 @@ static PyObject* linda_Type(PyObject* self, PyObject* args) {
 }
 #endif
 
+static PyObject* linda_Sum(PyObject* self, PyObject* args) {
+    PyObject* o;
+    PyObject* value = NULL;
+    int sumpos;
+    LindaValue v;
+    PyObject* type = NULL;
+
+    if(!PyArg_ParseTuple(args, "Oi|O", &value, &sumpos, &type)) {
+        return NULL;
+    }
+
+    v = Linda_sum(PyO2Value(value), sumpos);
+
+#ifdef TYPES
+    if(type != NULL && PyObject_IsInstance(type, (PyObject*)&linda_ValueType)) {
+        Linda_setType(v, ((linda_ValueObject*)type)->val);
+    } else if(type != NULL) {
+        PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type object.\n");
+        Linda_delReference(v);
+        return NULL;
+    }
+#endif
+
+    o = Value2PyO(v);
+
+    Linda_delReference(v);
+    return o;
+}
+
 static PyObject* linda_Function(PyObject* self, PyObject* args) {
     char* code;
     PyObject* o;
@@ -140,6 +169,7 @@ static PyMethodDef LindaMethods[] = {
 #ifdef TYPES
     {"Type", linda_Type, METH_VARARGS, ""},
 #endif
+    {"Sum", linda_Sum, METH_VARARGS, ""},
     {"Function", linda_Function, METH_VARARGS, ""},
     {"Ptr", linda_Ptr, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */

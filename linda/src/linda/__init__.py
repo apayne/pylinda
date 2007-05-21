@@ -27,9 +27,9 @@ import sys
 if "linda_server" not in sys.argv[0]:
     import _linda
     if _linda.use_types:
-        from _linda import connect, disconnect, uts, TupleSpace, version, Function, Type, Value, Ptr
+        from _linda import connect, disconnect, uts, TupleSpace, version, Function, Type, Value, Ptr, Sum
     else:
-        from _linda import connect, disconnect, uts, TupleSpace, version, Function, Value, Ptr
+        from _linda import connect, disconnect, uts, TupleSpace, version, Function, Value, Ptr, Sum
 
     del _linda
 else:

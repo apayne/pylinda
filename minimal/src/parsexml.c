@@ -379,6 +379,19 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             }
             cur_node = cur_node->next;
         }
+    } else if(strcmp((char*)(node->name), "sum") == 0) {
+        MinimalValue v = NULL;
+        char* sum_pos;
+        xmlNode* cur_node = node->children;
+        while(cur_node) {
+            if(v == NULL) {
+                v = Minimal_xmlToValue2(cur_node, memo, types);
+            }
+            cur_node = cur_node->next;
+        }
+        sum_pos = (char*)xmlGetProp(node, (xmlChar*)"sum_pos");
+        value = Minimal_sum(v, atoi(sum_pos));
+        free(sum_pos);
     } else if(strcmp((char*)(node->name), "element") == 0) {
         value = Minimal_xmlSeriesToValue(node->children, memo, types);
     } else if(strcmp((char*)(node->name), "type") == 0) {

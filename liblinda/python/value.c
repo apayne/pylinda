@@ -220,6 +220,15 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
             }
             return 0;
         }
+    case M_SUM:
+        {
+        int c;
+        PyObject* c1 = Value2PyO(self->val->value);
+        PyObject* c2 = Value2PyO(other->val->value);
+        c = linda_Value_cmp((linda_ValueObject*)c1, (linda_ValueObject*)c2);
+        Py_DECREF(c1); Py_DECREF(c2);
+        return c;
+        }
     case M_FUNCTION:
         return strcmp(self->val->func_name, other->val->func_name);
     case M_TYPE:
@@ -713,7 +722,7 @@ static PyObject* linda_Value_gettype_name(linda_ValueObject* self, void* closure
 
 static PyObject* linda_Value_getptr(linda_ValueObject* self, void* closure) {
     if(!Linda_isPtr(self->val)) {
-        PyErr_SetString(PyExc_TypeError, "getptr- Not a pointer.");
+        PyErr_SetString(PyExc_TypeError, "getptr - Not a pointer.");
         return NULL;
     }
 
@@ -727,7 +736,7 @@ static PyObject* linda_Value_getptr(linda_ValueObject* self, void* closure) {
 
 static int linda_Value_setptr(linda_ValueObject* self, PyObject* value, void* closure) {
     if(!Linda_isPtr(self->val)) {
-        PyErr_SetString(PyExc_TypeError, "getptr- Not a pointer.");
+        PyErr_SetString(PyExc_TypeError, "setptr - Not a pointer.");
         return 1;
     }
 
@@ -746,6 +755,25 @@ static PyObject* linda_Value_getptrtype(linda_ValueObject* self, void* closure) 
     }
 
     return PyString_FromString(self->val->type_spec->ptr);
+}
+
+static PyObject* linda_Value_getvalue(linda_ValueObject* self, void* closure) {
+    if(!Linda_isSum(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "getvalue - Not a Sum.");
+        return NULL;
+    }
+
+    return Value2PyO(Linda_getSumValue(self->val));
+}
+
+static int linda_Value_setvalue(linda_ValueObject* self, PyObject* value, void* closure) {
+    if(!Linda_isSum(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "setvalue - Not a Sum.");
+        return 1;
+    }
+
+    Linda_setSumValue(self->val, PyO2Value(value), Linda_getSumPos(self->val));
+    return 0;
 }
 #endif
 
@@ -773,6 +801,7 @@ static PyGetSetDef value_getseters[] = {
 #else
     {"type", (getter)linda_Value_gettype, (setter)NULL, "", NULL},
 #endif
+    {"value", (getter)linda_Value_getvalue, (setter)linda_Value_setvalue, "", NULL},
     {NULL}  /* Sentinel */
 };
 
@@ -1021,6 +1050,13 @@ static long linda_ValueHash(linda_ValueObject* self) {
     case M_TUPLE:
         {
         PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_SUM:
+        {
+        PyObject* r = Value2PyO(self->val->value);
         long hash = PyObject_Hash(r);
         Py_DecRef(r);
         return hash;

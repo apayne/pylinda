@@ -93,18 +93,22 @@ struct MinimalValue_t {
         M_TYPE,
         M_TSREF,
         M_TUPLE,
+        M_SUM,
         M_FUNCTION,
         M_POINTER,
         M_SYNTAX_TREE
     } type;
     MinimalValue typeobj;
-    int sum_pos;
     union {
         unsigned char boolean;
         long integer;
         unsigned long uinteger;
         float singlefloat;
         double doublefloat;
+        struct {
+            MinimalValue value;
+            int sum_pos;
+        };
         struct {
             char* string;
             unsigned int length;
@@ -213,8 +217,13 @@ EXPORT char* Minimal_getTupleSpace(MinimalValue v);
 
 EXPORT void Minimal_setType(MinimalValue value, MinimalValue type);
 EXPORT MinimalValue Minimal_getType(MinimalValue value);
+
+EXPORT unsigned char Minimal_isSum(MinimalValue value);
+EXPORT MinimalValue Minimal_sum(MinimalValue value, int sum_pos);
 EXPORT void Minimal_setSumPos(MinimalValue value, int sum_pos);
 EXPORT int Minimal_getSumPos(MinimalValue value);
+EXPORT MinimalValue Minimal_getSumValue(MinimalValue value);
+EXPORT void Minimal_setSumValue(MinimalValue value, MinimalValue v, int i);
 
 EXPORT unsigned char Minimal_isTrue(MinimalValue value);
 

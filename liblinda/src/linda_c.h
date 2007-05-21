@@ -91,8 +91,12 @@ static inline void Linda_setType(LindaValue value, LindaValue type) { Minimal_se
 #endif
 static inline LindaValue Linda_getType(LindaValue value) { return Minimal_getType(value); }
 
+static inline unsigned char Linda_isSum(LindaValue value) { return Minimal_isSum(value); }
+static inline LindaValue Linda_sum(LindaValue value, int i) { return Minimal_sum(value, i); }
 static inline void Linda_setSumPos(LindaValue value, int i) { Minimal_setSumPos(value, i); }
 static inline int Linda_getSumPos(LindaValue value) { return Minimal_getSumPos(value); }
+static inline LindaValue Linda_getSumValue(LindaValue value) { return Minimal_getSumValue(value); }
+static inline void Linda_setSumValue(LindaValue value, LindaValue v, int i) { Minimal_setSumValue(value, v, i); }
 
 static inline unsigned char Linda_isNil(LindaValue v) { return Minimal_isNil(v); }
 static inline LindaValue Linda_nil() { return Minimal_nil(); }

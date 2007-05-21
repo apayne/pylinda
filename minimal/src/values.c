@@ -39,7 +39,6 @@ MinimalValue Minimal_nil() {
     v->type = M_NIL;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_nilType);
-    v->sum_pos = -1;
     return v;
 }
 
@@ -53,7 +52,6 @@ MinimalValue Minimal_bool(unsigned char b) {
     v->boolean = b;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_boolType);
-    v->sum_pos = -1;
     return v;
 }
 
@@ -91,7 +89,6 @@ MinimalValue Minimal_byte(char i) {
     v->type = M_BYTE;
     v->integer = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_byteType);
     return v;
 }
@@ -100,7 +97,6 @@ MinimalValue Minimal_short(short i) {
     v->type = M_SHORT;
     v->integer = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_shortType);
     return v;
 }
@@ -109,7 +105,6 @@ MinimalValue Minimal_int(int i) {
     v->type = M_INTEGER;
     v->integer = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_intType);
     return v;
 }
@@ -118,7 +113,6 @@ MinimalValue Minimal_long(long i) {
     v->type = M_LONG;
     v->integer = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_longType);
     return v;
 }
@@ -128,7 +122,6 @@ MinimalValue Minimal_ubyte(unsigned char i) {
     v->type = M_BYTE;
     v->uinteger = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_ubyteType);
     return v;
 }
@@ -137,7 +130,6 @@ MinimalValue Minimal_ushort(unsigned short i) {
     v->type = M_SHORT;
     v->uinteger = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_ushortType);
     return v;
 }
@@ -146,7 +138,6 @@ MinimalValue Minimal_uint(unsigned int i) {
     v->type = M_INTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_uintType);
     return v;
 }
@@ -155,7 +146,6 @@ MinimalValue Minimal_ulong(unsigned long i) {
     v->type = M_LONG;
     v->uinteger = i;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_ulongType);
     return v;
 }
@@ -195,7 +185,6 @@ MinimalValue Minimal_float(float f) {
     v->type = M_FLOAT;
     v->singlefloat = f;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_floatType);
     return v;
 }
@@ -213,7 +202,6 @@ MinimalValue Minimal_double(double f) {
     v->type = M_DOUBLE;
     v->doublefloat = f;
     v->typeobj = NULL;
-    v->sum_pos = -1;
     Minimal_setType(v, Minimal_doubleType);
     return v;
 }
@@ -233,8 +221,7 @@ MinimalValue Minimal_string(char* s) {
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
     v->typeobj = NULL;
-    v->sum_pos = -1;
-    v->sum_pos = -1;
+
     Minimal_setType(v, Minimal_stringType);
     return v;
 }
@@ -246,7 +233,7 @@ MinimalValue Minimal_string2(char* s, unsigned int len) {
     v->string = malloc(v->length);
     memcpy(v->string, s, v->length);
     v->typeobj = NULL;
-    v->sum_pos = -1;
+
     return v;
 }
 
@@ -295,7 +282,7 @@ MinimalValue Minimal_typeSpec(const char* type_name, Minimal_SyntaxTree type_spe
     v->typeobj = NULL;
     v->typemap = Minimal_getCurrentLayer();
     v->type_id = 0;
-    v->sum_pos = -1;
+
     if(Minimal_typeType != NULL) {
         Minimal_setType(v, Minimal_typeType);
     }
@@ -316,7 +303,7 @@ MinimalValue Minimal_typeFromId(char* tid) {
     v->typemap = NULL;
     v->type_id = malloc(strlen(tid) + 1);
     strcpy(v->type_id, tid);
-    v->sum_pos = -1;
+
     if(Minimal_typeType != NULL) {
         Minimal_setType(v, Minimal_typeType);
     }
@@ -379,7 +366,7 @@ MinimalValue Minimal_function2(char* func_name, Minimal_SyntaxTree func_type, Mi
     } else {
         v->typeobj = NULL;
     }
-    v->sum_pos = -1;
+
     return v;
 }
 
@@ -421,7 +408,7 @@ MinimalValue Minimal_tuple(int size) {
         }
     }
     v->typeobj = NULL;
-    v->sum_pos = -1;
+
     return v;
 }
 
@@ -474,7 +461,7 @@ MinimalValue Minimal_ptr(MinimalValue value) {
     }
     v->ptr = value;
     v->typeobj = NULL;
-    v->sum_pos = -1;
+
     return v;
 }
 
@@ -503,7 +490,7 @@ MinimalValue Minimal_tupleSpace(const char* ts) {
     v->string = malloc(strlen(ts)+1);
     strcpy(v->string, ts);
     v->typeobj = NULL;
-    v->sum_pos = -1;
+
     Minimal_setType(v, Minimal_tupleSpaceType);
     return v;
 }
@@ -525,12 +512,36 @@ MinimalValue Minimal_getType(MinimalValue value) {
     return value->typeobj;
 }
 
+unsigned char Minimal_isSum(MinimalValue val) {
+    return val->type == M_SUM;
+}
+
+MinimalValue Minimal_sum(MinimalValue val, int sumpos) {
+    MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
+    v->type = M_SUM;
+    v->value = val;
+    v->sum_pos = sumpos;
+    v->typeobj = NULL;
+
+    return v;
+}
+
 void Minimal_setSumPos(MinimalValue value, int sum_pos) {
     value->sum_pos = sum_pos;
 }
 
 int Minimal_getSumPos(MinimalValue value) {
     return value->sum_pos;
+}
+
+MinimalValue Minimal_getSumValue(MinimalValue value) {
+    return value->value;
+}
+
+void Minimal_setSumValue(MinimalValue value, MinimalValue v, int i) {
+    Minimal_delReference(value->value);
+    value->value = v;
+    value->sum_pos = i;
 }
 
 void Minimal_setTypeMap(MinimalValue v, MinimalLayer types) {
@@ -580,6 +591,8 @@ unsigned char Minimal_isTrue(MinimalValue value) {
         return 1;
     case M_TUPLE:
         return value->size != 0;
+    case M_SUM:
+        return Minimal_isTrue(value->value);
     case M_FUNCTION:
         return 1;
     case M_POINTER:
@@ -668,6 +681,8 @@ char* Minimal_Value_string(MinimalValue v) {
             return r;
         }
         }
+    case M_SUM:
+        return Minimal_Value_string(v->value);
     case M_TSREF:
         r = (char*)malloc(strlen("<TSRef>")+1);
         strcpy(r, "<TSRef>");
@@ -757,6 +772,9 @@ void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v)
         }
         break;
         }
+    case M_SUM:
+        Minimal_addToCyclicGarbageList(list, (MinimalObject)v->value);
+        break;
     case M_POINTER:
         Minimal_addToCyclicGarbageList(list, v->ptr);
         break;
@@ -949,6 +967,9 @@ void Minimal_Value_free(MinimalValue v) {
         free(v->values);
         break;
         }
+    case M_SUM:
+        Minimal_delReference(v->value);
+        break;
     case M_FUNCTION:
         free(v->func_name);
         Minimal_delReference(v->parameter_list);

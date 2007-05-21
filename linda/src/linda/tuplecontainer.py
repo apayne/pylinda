@@ -37,64 +37,64 @@ def identity(value):
 class NoTupleMatch(Exception):
     pass
 
-def doesMatch_notypes(e1, e2):
-    if isinstance(e1, tuple) or (isinstance(e1, _linda_server.Value) and e1.isTuple()):
-        if len(e1) != len(e2):
+def doesMatch_notypes(tup, templ):
+    if isinstance(tup, tuple) or (isinstance(tup, _linda_server.Value) and tup.isTuple()):
+        if len(tup) != len(templ):
             raise NoTupleMatch
-        for t1, t2 in zip(e1, e2):
+        for tup_e, templ_e in zip(tup, templ):
             try:
-                doesMatch_notypes(t1, t2)
+                doesMatch_notypes(tup_e, templ_e)
             except NoTupleMatch:
                 raise NoTupleMatch
-        return e2
-    elif e1.isType():
-        if compare(e1, e2.type):
-            return e2
+        return tup
+    elif templ.isType():
+        if compare(tup.type, templ):
+            return tup
         else:
             raise NoTupleMatch
     else:
-        if compare(e1.type, e2.type) and e1 == e2:
-            return e2
+        if compare(tup.type, templ.type) and tup == templ:
+            return tup
         else:
             raise NoTupleMatch
 
-def doesMatch_types(e1, e2):
-    if isinstance(e1, tuple):
-        if len(e1) != len(e2):
+def doesMatch_types(tup, templ):
+    if isinstance(tup, tuple):
+        if len(tup) != len(templ):
             raise NoTupleMatch
         l = []
-        for t1, t2 in zip(e1, e2):
-            e = doesMatch(t1, t2)
+        for tup_e, templ_e in zip(tup, templ):
+            e = doesMatch(tup_e, templ_e)
             if e is None:
                 raise NoTupleMatch
             l.append(e)
         return tuple(l)
-    elif e1.isType():
-        assert e2.type is not None, (str(e1), str(e2))
-        if e1.type_id == e2.type.type_id:
-            return e2
-        t1 = lookupType(e1.type_id)
-        t2 = lookupType(e2.type.type_id)
-        iso = lookupIso(t1, t2)
+    elif templ.isType():
+        assert templ.type is not None, (str(tup), str(templ))
+        if tup.type.type_id == templ.type_id:
+            return tup
+        templ_e = lookupType(templ.type_id)
+        tup_e = lookupType(tup.type.type_id)
+        iso = lookupIso(tup_e, templ_e)
         if iso is None:
-            print "failed to match", e1, e2.type, e2
+            print "failed to match", tup, tup.type, templ,
             raise NoTupleMatch
-        v = iso(t1, t2, e2, {}, {}, True)
+        v = iso(tup)
         return v
     else:
-        if e1.type.type_id == e2.type.type_id:
-            if e1 == e2:
-                return e2
+        if tup.type.type_id == templ.type.type_id:
+            if tup == templ:
+                return templ
             else:
                 raise NoTupleMatch
-        t1 = lookupType(e1.type.type_id)
-        t2 = lookupType(e2.type.type_id)
-        iso = lookupIso(t1, t2)
+        tup_e = lookupType(tup.type.type_id)
+        templ_e = lookupType(templ.type.type_id)
+        iso = lookupIso(tup_e, templ_e)
         if iso is None:
             raise NoTupleMatch
-        e2 = iso(t1, t2, e2, {}, {}, True)
-        if e1 == e2:
-            return e2
+        v = iso(tup)
+        if v == templ:
+            return templ
         else:
             raise NoTupleMatch
 
@@ -119,7 +119,7 @@ class TupleContainer:
             if len(template) != len(t):
                 continue
             try:
-                r = doesMatch(template, t)
+                r = doesMatch(t, template)
             except NoTupleMatch:
                 pass
             else:
@@ -134,7 +134,7 @@ class TupleContainer:
             if len(tup) != len(t):
                 continue
             try:
-                r = doesMatch(tup, t)
+                r = doesMatch(t, tup)
             except NoTupleMatch:
                 pass
             else:

@@ -107,6 +107,9 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
         }
         }
         break;
+    case M_SUM:
+        Minimal_addTypesToList(list, v->value);
+        break;
     case M_FUNCTION:
     case M_POINTER:
     case M_TSREF:
@@ -198,7 +201,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"nil", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         return;
         }
@@ -211,7 +213,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
             node = xmlNewDocNode(doc, NULL, (xmlChar*)"false", NULL);
         }
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         return;
         }
@@ -221,7 +222,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"byte", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -235,7 +235,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"short", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -249,7 +248,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"integer", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -263,7 +261,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"long", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -277,7 +274,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ubyte", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -291,7 +287,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ushort", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -305,7 +300,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"uinteger", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -319,7 +313,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ulong", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         integer = (char*)malloc(snprintf(NULL, 0, "%li", f->integer)+1);
         sprintf(integer, "%li", f->integer);
@@ -333,7 +326,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"float", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         floating = (char*)malloc(snprintf(NULL, 0, "%f", f->singlefloat)+1);
         sprintf(floating, "%f", f->singlefloat);
@@ -347,7 +339,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"float", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         floating = (char*)malloc(snprintf(NULL, 0, "%f", f->doublefloat)+1);
         sprintf(floating, "%f", f->doublefloat);
@@ -360,7 +351,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"string", (xmlChar*)f->string);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         return;
         }
@@ -386,7 +376,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         if(f->typeobj != NULL && f->typeobj->type_id != NULL) {
             include_type_id = 0;
@@ -398,6 +387,21 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
             xmlAddChild(node, e);
             Minimal_serialiseValue(doc, root, e, f->values[i], memo, 0, 0, include_type_id);
         }
+        return;
+        }
+    case M_SUM:
+        {
+        char* sumpos;
+        xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"sum", (xmlChar*)f->string);
+        xmlAddChild(parent, node);
+        AddTypeName(node);
+        AddSumPos(node);
+        AddId(node);
+        sumpos = (char*)malloc(snprintf(NULL, 0, "%li", (unsigned long)f->sum_pos)+1);
+        sprintf(sumpos, "%li", (unsigned long)f->sum_pos);
+        xmlNewProp(node, (xmlChar*)"val", (xmlChar*)sumpos);
+        free(sumpos);
+        Minimal_serialiseValue(doc, root, node, f->value, memo, 0, 0, include_type_id);
         return;
         }
     case M_FUNCTION:
@@ -413,7 +417,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"ptr", NULL);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         ptrval = (char*)malloc(snprintf(NULL, 0, "%li", (unsigned long)f->integer)+1);
         sprintf(ptrval, "%li", (unsigned long)f->ptr);
@@ -439,7 +442,6 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
         xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"tsid", (xmlChar*)f->string);
         xmlAddChild(parent, node);
         AddTypeName(node);
-        AddSumPos(node);
         AddId(node);
         }
         break;
@@ -595,7 +597,6 @@ void Minimal_serialiseFunction(xmlDocPtr doc, xmlNodePtr parent, MinimalValue f,
     xmlNewProp(node, (xmlChar*)"name", (xmlChar*)f->func_name);
     xmlAddChild(parent, node);
     AddTypeName(node);
-    AddSumPos(node);
     AddId(node);
 
     type_spec = xmlNewDocNode(doc, NULL, (xmlChar*)"type", NULL);

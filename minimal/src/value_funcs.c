@@ -131,6 +131,8 @@ unsigned char Minimal_Value_ge(MinimalValue op1, MinimalValue op2) {
             }
             return 0;
         }
+    case M_SUM:
+        return Minimal_Value_ge(op1->value, op2->value);
     case M_FUNCTION:
         return (unsigned long)op1 > (unsigned long)op2;
     case M_POINTER:
@@ -199,6 +201,8 @@ unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2) {
             }
             return 0;
         }
+    case M_SUM:
+        return Minimal_Value_eq(op1->value, op2->value);
     case M_FUNCTION:
         return (unsigned long)op1 == (unsigned long)op2;
     case M_POINTER:
