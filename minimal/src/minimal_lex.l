@@ -41,6 +41,8 @@ OPERATOR   [+-\/%\^*]
 EQUAL      [=]
 OPENB      [(]
 CLOSEB     [)]
+OPENSQB    [\[]
+CLOSESQB   [\]]
 IF         "if"
 THEN       "then"
 ELSE       "else"
@@ -80,6 +82,8 @@ TEST_OP    [><]|"=="|">="|"<="
 {EQUAL} { return YY_EQ; }
 {OPENB} { return YY_OPENB; }
 {CLOSEB} { return YY_CLOSEB; }
+{OPENSQB} { return YY_OPENSQB; }
+{CLOSESQB} { return YY_CLOSESQB; }
 {TEST_OP} { yylval = Minimal_SyntaxTree_createID(yytext); return YY_TESTOP; }
 
 {WHITESPACE} { }

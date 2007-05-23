@@ -31,7 +31,7 @@ void yyerror(char* s) {
 }
 %}
 
-%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_IF YY_THEN YY_ELSE YY_ENDIF YY_TESTOP
+%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_OPENSQB YY_CLOSESQB YY_IF YY_THEN YY_ELSE YY_ENDIF YY_TESTOP
 
 %% /* Grammar rules and actions follow */
 
@@ -193,6 +193,7 @@ definition: YY_ID parameter_list YY_EQ expr {
 
 expr: value { $$ = $1; }
     | YY_OPENB expr YY_CLOSEB { $$ = $2; }
+    | expr YY_OPENSQB expr YY_CLOSESQB { $$ = Minimal_SyntaxTree_createIndex($1, $3); }
     | expr YY_OPERATOR expr   { $$ = Minimal_SyntaxTree_createOperator($2, $1, $3); }
     | function_call           { $$ = $1; }
     | tuple                   { $$ = $1; }

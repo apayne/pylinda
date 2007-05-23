@@ -47,7 +47,7 @@ MinimalValue Minimal_Value_sub(MinimalValue op1, MinimalValue op2) {
     } else if(Minimal_isFloat(op1) && Minimal_isFloat(op2)) {
         return Minimal_float(Minimal_getFloat(op1) - Minimal_getFloat(op2));
     } else {
-        fprintf(stderr, "Error: Incompatible types for add %i and %i.\n", op1->type, op2->type);
+        fprintf(stderr, "Error: Incompatible types for sub %i and %i.\n", op1->type, op2->type);
         return NULL;
     }
 }
@@ -58,7 +58,7 @@ MinimalValue Minimal_Value_mul(MinimalValue op1, MinimalValue op2) {
     } else if(Minimal_isFloat(op1) && Minimal_isFloat(op2)) {
         return Minimal_float(Minimal_getFloat(op1) * Minimal_getFloat(op2));
     } else {
-        fprintf(stderr, "Error: Incompatible types for add %i and %i.\n", op1->type, op2->type);
+        fprintf(stderr, "Error: Incompatible types for mul %i and %i.\n", op1->type, op2->type);
         return NULL;
     }
 }
@@ -69,7 +69,7 @@ MinimalValue Minimal_Value_div(MinimalValue op1, MinimalValue op2) {
     } else if(Minimal_isFloat(op1) && Minimal_isFloat(op2)) {
         return Minimal_float(Minimal_getFloat(op1) / Minimal_getFloat(op2));
     } else {
-        fprintf(stderr, "Error: Incompatible types for add %i and %i.\n", op1->type, op2->type);
+        fprintf(stderr, "Error: Incompatible types for div %i and %i.\n", op1->type, op2->type);
         return NULL;
     }
 }
@@ -87,15 +87,9 @@ unsigned char Minimal_Value_ge(MinimalValue op1, MinimalValue op2) {
         } else {
             return 0;
         }
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         return op1->integer > op2->integer;
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         return op1->uinteger > op2->uinteger;
     case M_FLOAT:
         return op1->singlefloat > op2->singlefloat;
@@ -157,15 +151,9 @@ unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2) {
         } else {
             return 0;
         }
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         return op1->integer == op2->integer;
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         return op1->uinteger == op2->uinteger;
     case M_FLOAT:
         return op1->singlefloat == op2->singlefloat;
@@ -212,4 +200,20 @@ unsigned char Minimal_Value_eq(MinimalValue op1, MinimalValue op2) {
     }
     }
     return 0;
+}
+
+MinimalValue Minimal_getItem(MinimalValue v, long index) {
+    if(v->type == M_TUPLE) {
+        if(index < 0 || index > Minimal_getTupleSize(v)-1) {
+            fprintf(stderr, "Error: invalid index (%li).\n", index);
+            return NULL;
+        } else {
+            MinimalValue r = Minimal_tupleGet(v, index);
+            Minimal_addReference(r);
+            return r;
+        }
+    } else {
+        fprintf(stderr, "Error: invalid type for index (%i).\n", v->type);
+        return NULL;
+    }
 }

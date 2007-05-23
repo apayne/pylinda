@@ -79,14 +79,8 @@ struct MinimalValue_t {
     enum {
         M_NIL,
         M_BOOLEAN,
-        M_BYTE,
-        M_SHORT,
         M_INTEGER,
-        M_LONG,
-        M_UBYTE,
-        M_USHORT,
         M_UINTEGER,
-        M_ULONG,
         M_FLOAT,
         M_DOUBLE,
         M_STRING,
@@ -205,6 +199,8 @@ EXPORT void Minimal_tupleAdd(MinimalValue tuple, MinimalValue value);
 EXPORT void Minimal_tupleSet(MinimalValue tuple, int pos, MinimalValue value);
 EXPORT MinimalValue Minimal_tupleGet(MinimalValue tuple, int pos);
 
+EXPORT MinimalValue Minimal_getItem(MinimalValue v, long index);
+
 EXPORT unsigned char Minimal_isPtr(MinimalValue v);
 EXPORT MinimalValue Minimal_ptr(MinimalValue ptr);
 EXPORT MinimalValue Minimal_getPtr(MinimalValue v);
@@ -247,7 +243,8 @@ struct Minimal_SyntaxTree_t {
         ST_TUPLE,
         ST_POINTER,
         ST_IFEXPR,
-        ST_BRACKET
+        ST_BRACKET,
+        ST_INDEX
     } type;
     char* type_id;
     union {
@@ -295,6 +292,10 @@ struct Minimal_SyntaxTree_t {
             Minimal_SyntaxTree _else;
         };
         char* ptr;
+        struct {
+            Minimal_SyntaxTree expr;
+            Minimal_SyntaxTree index;
+        };
     };
 };
 

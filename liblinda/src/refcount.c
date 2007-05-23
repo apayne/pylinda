@@ -30,14 +30,8 @@ void Linda_scanValueForTSRef(LindaValue v, LindaValue ref, LindaValue** scanned)
     switch(v->type) {
     case M_NIL:
     case M_BOOLEAN:
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
     case M_FLOAT:
     case M_DOUBLE:
     case M_STRING:

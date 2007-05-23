@@ -86,6 +86,8 @@ void Minimal_getTypeList2(Minimal_SyntaxTree type, MinimalLayer typemap, Minimal
         Minimal_getTypeList2(type->branches[0], typemap, list);
         Minimal_getTypeList2(type->branches[1], typemap, list);
         break;
+    case ST_PARAMETER_LIST:
+        break;
     case ST_PRODUCT_TYPE:
         {
         int i;

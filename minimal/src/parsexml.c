@@ -180,9 +180,12 @@ Minimal_SyntaxTree Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         cur_node = node->children;
         while(cur_node) {
             if(cur_node->type == XML_ELEMENT_NODE && strcmp((char*)cur_node->name, "param") == 0) {
-                xmlChar* name = xmlGetProp(node, (xmlChar*)"name");
-                if(tree == NULL) {
-                    tree = Minimal_SyntaxTree_createParameterList1(Minimal_SyntaxTree_createID((char*)cur_node));
+                xmlChar* name = xmlGetProp(cur_node, (xmlChar*)"name");
+                if(name == NULL) {
+                    fprintf(stderr, "Warning: Got a parameter without a name...\n");
+                    name = (xmlChar*)malloc(1);
+                } else if(tree == NULL) {
+                    tree = Minimal_SyntaxTree_createParameterList1(Minimal_SyntaxTree_createID((char*)name));
                 } else {
                     tree = Minimal_SyntaxTree_createParameterList2(tree, Minimal_SyntaxTree_createID((char*)name));
                 }
@@ -535,33 +538,25 @@ MinimalValue Minimal_xmlToValue2(xmlNodePtr node, ValueMemo* memo, MinimalLayer 
             }
         }
     } else if(strcmp((char*)(node->name), "function") == 0) {
-        Minimal_SyntaxTree type = NULL;
         Minimal_SyntaxTree params = NULL;
         Minimal_SyntaxTree code = NULL;
         xmlChar* name;
         xmlNode* cur_node = node->children;
         while(cur_node) {
-            if(cur_node->type == XML_ELEMENT_NODE && type == NULL && strcmp((char*)cur_node->name, "type") == 0) {
-                type = Minimal_xmlToSyntaxTree(cur_node);
-            } else if(cur_node->type == XML_ELEMENT_NODE && params == NULL && strcmp((char*)cur_node->name, "parameter_list") == 0) {
+            if(cur_node->type == XML_ELEMENT_NODE && params == NULL && strcmp((char*)cur_node->name, "parameter_list") == 0) {
                 params = Minimal_xmlToSyntaxTree(cur_node);
             } else if(cur_node->type == XML_ELEMENT_NODE && code == NULL && strcmp((char*)cur_node->name, "code") == 0) {
                 code = Minimal_xmlToSyntaxTree(cur_node);
             }
             cur_node = cur_node->next;
         }
-        if(type == NULL) {
-            fprintf(stderr, "Error: Didn't get a type in function.\n"); return NULL;
-        } else if(params == NULL) {
+        if(params == NULL) {
             fprintf(stderr, "Error: Didn't get parameters in function.\n"); return NULL;
         } else if(code == NULL) {
             fprintf(stderr, "Error: Didn't get code in function.\n"); return NULL;
         }
         name = xmlGetProp(node, (xmlChar*)"name");
-        value = Minimal_function2((char*)name, type, params, code);
-        Minimal_delReference(type);
-        Minimal_delReference(params);
-        Minimal_delReference(code);
+        value = Minimal_function2((char*)name, NULL, params, code);
         free(name);
     } else if(strcmp((char*)(node->name), "tsid") == 0) {
         xmlNodePtr cur_node = node->children;

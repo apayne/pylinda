@@ -80,6 +80,15 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createBracket(Minimal_SyntaxTree b) {
     return tree;
 }
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createIndex(Minimal_SyntaxTree expr, Minimal_SyntaxTree index) {
+    Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
+    tree->type = ST_INDEX;
+    tree->type_id = NULL;
+    tree->expr = expr;
+    tree->index = index;
+    return tree;
+}
+
 Minimal_SyntaxTree Minimal_SyntaxTree_createTuple(int size) {
     Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
     tree->type = ST_TUPLE;
@@ -548,6 +557,11 @@ Minimal_SyntaxTree Minimal_SyntaxTree_copy(Minimal_SyntaxTree tree) {
         ntree->type = ST_BRACKET;
         Minimal_addReference(tree->type_def);
         ntree->type_def = tree->type_def;
+    case ST_INDEX:
+        ntree->type = ST_BRACKET;
+        Minimal_addReference(tree->expr);
+        ntree->expr = tree->expr;
+        ntree->index = tree->index;
     }
     return NULL;
 }
@@ -634,6 +648,10 @@ void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_Sy
         break;
     case ST_BRACKET:
         Minimal_addToCyclicGarbageList(list, ptr->type_def);
+        break;
+    case ST_INDEX:
+        Minimal_addToCyclicGarbageList(list, ptr->expr);
+        Minimal_addToCyclicGarbageList(list, ptr->index);
         break;
     }
 }
@@ -816,6 +834,12 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree t1, Minimal_SyntaxTree t2) {
         }
     case ST_BRACKET:
         return Minimal_SyntaxTree_cmp(t1->type_def, t2->type_def);
+    case ST_INDEX:
+        if(Minimal_SyntaxTree_cmp(t1->expr, t2->expr)) {
+           return Minimal_SyntaxTree_cmp(t1->expr, t2->expr);
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->index, t2->index);
+        }
     }
     return 0;
 }
@@ -923,6 +947,10 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree tree) {
         break;
     case ST_BRACKET:
         Minimal_delReference(tree->type_def);
+        break;
+    case ST_INDEX:
+        Minimal_delReference(tree->expr);
+        Minimal_delReference(tree->index);
         break;
     }
 }

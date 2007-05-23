@@ -60,33 +60,33 @@ unsigned char Minimal_getBool(MinimalValue v) {
 }
 
 unsigned char Minimal_isByte(MinimalValue v) {
-    return v->type == M_BYTE;
+    return v->type == M_INTEGER;
 }
 unsigned char Minimal_isShort(MinimalValue v) {
-    return v->type == M_SHORT;
+    return v->type == M_INTEGER;
 }
 unsigned char Minimal_isInt(MinimalValue v) {
     return v->type == M_INTEGER;
 }
 unsigned char Minimal_isLong(MinimalValue v) {
-    return v->type == M_LONG;
+    return v->type == M_INTEGER;
 }
 unsigned char Minimal_isUByte(MinimalValue v) {
-    return v->type == M_UBYTE;
+    return v->type == M_UINTEGER;
 }
 unsigned char Minimal_isUShort(MinimalValue v) {
-    return v->type == M_USHORT;
+    return v->type == M_UINTEGER;
 }
 unsigned char Minimal_isUInt(MinimalValue v) {
     return v->type == M_UINTEGER;
 }
 unsigned char Minimal_isULong(MinimalValue v) {
-    return v->type == M_ULONG;
+    return v->type == M_UINTEGER;
 }
 
 MinimalValue Minimal_byte(char i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_BYTE;
+    v->type = M_INTEGER;
     v->integer = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_byteType);
@@ -94,7 +94,7 @@ MinimalValue Minimal_byte(char i) {
 }
 MinimalValue Minimal_short(short i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_SHORT;
+    v->type = M_INTEGER;
     v->integer = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_shortType);
@@ -110,7 +110,7 @@ MinimalValue Minimal_int(int i) {
 }
 MinimalValue Minimal_long(long i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_LONG;
+    v->type = M_INTEGER;
     v->integer = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_longType);
@@ -119,7 +119,7 @@ MinimalValue Minimal_long(long i) {
 
 MinimalValue Minimal_ubyte(unsigned char i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_BYTE;
+    v->type = M_UINTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_ubyteType);
@@ -127,7 +127,7 @@ MinimalValue Minimal_ubyte(unsigned char i) {
 }
 MinimalValue Minimal_ushort(unsigned short i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_SHORT;
+    v->type = M_UINTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_ushortType);
@@ -135,7 +135,7 @@ MinimalValue Minimal_ushort(unsigned short i) {
 }
 MinimalValue Minimal_uint(unsigned int i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_INTEGER;
+    v->type = M_UINTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_uintType);
@@ -143,7 +143,7 @@ MinimalValue Minimal_uint(unsigned int i) {
 }
 MinimalValue Minimal_ulong(unsigned long i) {
     MinimalValue v = Minimal_newReference(MINIMAL_VALUE, MinimalValue, struct MinimalValue_t);
-    v->type = M_LONG;
+    v->type = M_UINTEGER;
     v->uinteger = i;
     v->typeobj = NULL;
     Minimal_setType(v, Minimal_ulongType);
@@ -570,15 +570,9 @@ unsigned char Minimal_isTrue(MinimalValue value) {
         return 0;
     case M_BOOLEAN:
         return value->boolean;
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         return value->integer != 0;
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         return value->uinteger != 0;
     case M_FLOAT:
         return value->singlefloat != 0.0;
@@ -626,20 +620,14 @@ char* Minimal_Value_string(MinimalValue v) {
             strcpy(r, "False");
             return r;
         }
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         {
         int size = snprintf(r, 0, "%li", v->integer);
         r = (char*)malloc(size + 1);
         sprintf(r, "%li", v->integer);
         return r;
         }
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         {
         int size = snprintf(r, 0, "%li", v->uinteger);
         r = (char*)malloc(size + 1);
@@ -742,14 +730,8 @@ void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v)
     switch(v->type) {
     case M_NIL:
     case M_BOOLEAN:
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
     case M_FLOAT:
     case M_DOUBLE:
     case M_STRING:
@@ -831,16 +813,10 @@ MinimalValue Minimal_copy_internal(MinimalValue v, MinimalValue** memo) {
     case M_BOOLEAN:
         nv->boolean = v->boolean;
         break;
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         nv->integer = v->integer;
         break;
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         nv->uinteger = v->uinteger;
         break;
     case M_FLOAT:
@@ -925,14 +901,8 @@ void Minimal_Value_free(MinimalValue v) {
         break;
     case M_BOOLEAN:
         break;
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         break;
     case M_FLOAT:
     case M_DOUBLE:

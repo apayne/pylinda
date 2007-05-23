@@ -91,7 +91,7 @@ def __getTypeReferences(type, refs=None):
         refs.append(type.id_type_id)
         return refs
     elif type.isFunctionType():
-        return __getTypeReferences(type.arg, getTypeReferences(type.result, refs))
+        return __getTypeReferences(type.arg, refs) + __getTypeReferences(type.result, refs)
     else:
         raise SystemError, str(type)
 

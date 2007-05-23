@@ -161,10 +161,7 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         if(self->val->integer < other->val->integer) {
             return -1;
         } else if(self->val->integer > other->val->integer) {
@@ -172,10 +169,7 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         } else {
             return 0;
         }
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         if(self->val->uinteger < other->val->uinteger) {
             return -1;
         } else if(self->val->uinteger > other->val->uinteger) {
@@ -922,7 +916,7 @@ static int linda_Value_nonzero(linda_ValueObject* self) {
         } else {
             return 1;
         }
-    } else if(self->val->type == M_INTEGER || self->val->type == M_LONG) {
+    } else if(self->val->type == M_INTEGER) {
         if(self->val->integer == 0) {
             return 0;
         } else {
@@ -987,20 +981,14 @@ static long linda_ValueHash(linda_ValueObject* self) {
         } else {
             return PyObject_Hash(Py_False);
         }
-    case M_BYTE:
-    case M_SHORT:
     case M_INTEGER:
-    case M_LONG:
         {
         PyObject* r = PyInt_FromLong(self->val->integer);
         long hash = PyObject_Hash(r);
         Py_DecRef(r);
         return hash;
         }
-    case M_UBYTE:
-    case M_USHORT:
     case M_UINTEGER:
-    case M_ULONG:
         {
         PyObject* r = PyInt_FromLong(self->val->integer);
         long hash = PyObject_Hash(r);
@@ -1086,6 +1074,30 @@ static long linda_ValueHash(linda_ValueObject* self) {
     return -1;
 }
 
+PyObject* linda_ValueCall(linda_ValueObject* self, PyObject* args, PyObject* kwargs) {
+    LindaValue largs;
+    LindaValue r;
+    PyObject* result;
+
+    if(!Linda_isFunction(self->val)) {
+        PyErr_SetString(PyExc_TypeError, "Not a function.");
+        return NULL;
+    }
+
+    largs = PyO2Value(args);
+
+    printf("%s\n", Minimal_Value_string(largs));
+
+    r = Linda_apply(self->val, largs);
+
+    result = Value2PyO(r);
+
+    Linda_delReference(largs);
+    Linda_delReference(r);
+
+    return result;
+}
+
 PyNumberMethods linda_ValueNum = {
         (binaryfunc)linda_Value_add,  /* binaryfunc nb_add; */
         (binaryfunc)linda_Value_sub,  /* binaryfunc nb_subtract; */
@@ -1150,7 +1162,7 @@ PyTypeObject linda_ValueType = {
     &linda_ValueSeq,           /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     (hashfunc)linda_ValueHash, /*tp_hash */
-    0,                         /*tp_call*/
+    (ternaryfunc)linda_ValueCall, /*tp_call*/
     (reprfunc)linda_Value_str, /*tp_str*/
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/

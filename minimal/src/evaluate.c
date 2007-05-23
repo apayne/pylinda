@@ -33,13 +33,14 @@ MinimalValue Minimal_apply(MinimalValue func, MinimalValue args) {
     int i;
     MinimalValue r;
 
-    if(func->type != M_FUNCTION) { fprintf(stderr, "Error: Minimal_eval didn't get function for function call.\n"); return NULL; }
+    if(func->type != M_FUNCTION) { fprintf(stderr, "Error: Minimal_apply didn't get function for function call.\n"); return NULL; }
     new_layer = Minimal_createLayer2(func->layer);
     param = func->parameter_list;
     for(i=0; i < args->size; i++) {
         MinimalValue param_val = Minimal_tupleGet(args, i);
         Minimal_addReference(param_val);
         Minimal_addName(new_layer->map, param->var_name, param_val);
+        printf("%s %i %s\n", param->var_name, param_val->type, Minimal_Value_string(param_val));
 
         param = param->next_var;
     }
@@ -148,10 +149,20 @@ MinimalValue Minimal_evaluate(Minimal_SyntaxTree tree, MinimalLayer layer) {
         }
         Minimal_delReference(t);
         return r;
+        }
     case ST_BRACKET:
         {
         return Minimal_evaluate(tree->type_def, layer);
         }
+    case ST_INDEX:
+        {
+        MinimalValue val = Minimal_evaluate(tree->expr, layer);
+        MinimalValue index = Minimal_evaluate(tree->index, layer);
+
+        MinimalValue r = Minimal_getItem(val, Minimal_getLong(index));
+        Minimal_delReference(val);
+        Minimal_delReference(index);
+        return r;
         }
     case ST_TYPE_FUNCTION:
     case ST_PARAMETER_LIST:

@@ -43,6 +43,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createNil();
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
 Minimal_SyntaxTree Minimal_SyntaxTree_createBracket(Minimal_SyntaxTree v1);
+Minimal_SyntaxTree Minimal_SyntaxTree_createIndex(Minimal_SyntaxTree expr, Minimal_SyntaxTree index);
 Minimal_SyntaxTree Minimal_SyntaxTree_createSequence();
 Minimal_SyntaxTree Minimal_SyntaxTree_createSequence2(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
 Minimal_SyntaxTree Minimal_SyntaxTree_addToSequence(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
