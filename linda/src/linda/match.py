@@ -112,19 +112,17 @@ def compare_types(t1, t2, checked=None):
             return None
         for perm in all_perms(range(len(t2))):
             funcs = []
-            print perm
             for i in range(len(perm)):
                 f = compare_types(t1e[i][0], t2e[perm[i]][0], checked)
                 if f is None:
                     break
                 else:
                     funcs.append(checked[(t1e[i][0], t2e[perm[i]][0])])
-                    print funcs
-                    print t2e[perm[i]][1]
                     for pos in t2e[perm[i]][1][::-1]:
                         funcs[-1].append(("CREATESUM", perm[i]))
             if len(funcs) == len(perm):
                 code.append(("SUMCASE", funcs))
+        code.append(("SETTYPEID", t2.type_id))
         return lambda x: convertValue(checked[(t1, t2)], x)
 
 #def compare_types(t1, t2, checked=None):

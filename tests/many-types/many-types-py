@@ -5,9 +5,16 @@ import linda
 
 linda.connect()
 
+if int(sys.argv[1]) == 0:
+    type = "Nil"
+else:
+    type = "int -> " * int(sys.argv[1]) + "int"
+
 t = []
 start = time.time()
 for i in range(1000):
-    t.append(linda.Type("t :: int + %i;" % (int(sys.argv[1]), )))
+#    t.append(linda.Type("t :: int * %i;" % (int(sys.argv[1]), )))
+#    t.append(linda.Type("t :: int + %i;" % (int(sys.argv[1]), )))
+    t.append(linda.Type("t :: %s;" % (type, )))
 
 print "%i\t%f" % (int(sys.argv[1]), time.time()-start, )

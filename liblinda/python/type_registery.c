@@ -43,6 +43,7 @@ void LindaPython_registerType(PyObject* type, PyObject* _class, PyObject* _to, P
 }
 
 PyObject* LindaPython_lookupConvertTo(PyObject* type) {
+    if(Linda_is_server) { return NULL; }
     PyObject* t = PyDict_GetItem(dict_to, type);
     if(t == NULL) {
         return t;
@@ -51,6 +52,7 @@ PyObject* LindaPython_lookupConvertTo(PyObject* type) {
 }
 
 PyObject* LindaPython_lookupConvertFrom(PyObject* type) {
+    if(Linda_is_server) { return NULL; }
     PyObject* t = PyDict_GetItem(dict_from, type);
     if(t == NULL) {
         return t;
@@ -59,6 +61,7 @@ PyObject* LindaPython_lookupConvertFrom(PyObject* type) {
 }
 
 LindaValue LindaPython_lookupType(PyObject* type) {
+    if(Linda_is_server) { return NULL; }
     PyObject* t = PyDict_GetItem(dict_to, type);
     if(t == NULL) {
         return NULL;

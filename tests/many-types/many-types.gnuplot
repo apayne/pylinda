@@ -14,9 +14,10 @@ set grid xtics
 set grid ytics
 
 set ylabel "Seconds"
-set xlabel "Tuple Size (Elements)"
+set xlabel "Type Size"
 
 #set title "Time Taken To In 10,000 tuples"
 
 plot "many-types.txt" using 1:2 title "Product Types" with lines, \
-     "many-types.txt" using 1:3 title "Sum Types" with lines
+     "many-types.txt" using 1:3 title "Sum Types" with lines, \
+     "many-types.txt" using 1:4 title "Function Types" with lines

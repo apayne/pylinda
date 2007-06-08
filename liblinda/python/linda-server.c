@@ -244,6 +244,33 @@ static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
     Linda_delReference(l);
     return o;
 }
+
+static PyObject* LindaServerPython_Sum(PyObject* self, PyObject* args) {
+    PyObject* o;
+    PyObject* value = NULL;
+    int sumpos;
+    LindaValue v;
+    PyObject* type = NULL;
+
+    if(!PyArg_ParseTuple(args, "Oi|O", &value, &sumpos, &type)) {
+        return NULL;
+    }
+
+    v = Linda_sum(PyO2Value(value), sumpos);
+
+    if(type != NULL && PyObject_IsInstance(type, (PyObject*)&linda_ValueType)) {
+        Linda_setType(v, ((linda_ValueObject*)type)->val);
+    } else if(type != NULL) {
+        PyErr_SetString(PyExc_TypeError, "PyO2Value: Invalid type object.\n");
+        Linda_delReference(v);
+        return NULL;
+    }
+
+    o = Value2PyO(v);
+
+    Linda_delReference(v);
+    return o;
+}
 #endif
 
 static PyMethodDef LindaServerMethods[] = {
@@ -263,7 +290,8 @@ static PyMethodDef LindaServerMethods[] = {
     {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
     {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "."},
 #ifdef TYPES
-    {"Ptr",  LindaServerPython_Ptr, METH_VARARGS, "Set the id of this node."},
+    {"Ptr",  LindaServerPython_Ptr, METH_VARARGS, ""},
+    {"Sum",  LindaServerPython_Sum, METH_VARARGS, ""},
     {"TypeFromId", linda_TypeFromId, METH_VARARGS, ""},
 #endif
     {NULL, NULL, 0, NULL}        /* Sentinel */

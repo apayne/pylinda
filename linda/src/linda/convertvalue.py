@@ -20,6 +20,7 @@ import _linda_server
 
 def convertValue(code, val):
     regs = [val]
+    print "convert", val
     for c in code:
         if c[0] == "SETTYPEID":
             regs[-1].type_id = c[1]
@@ -34,11 +35,12 @@ def convertValue(code, val):
         elif c[0] == "CONSTRUCT":
             regs = [construct(regs[::-1], c[1])]
         elif c[0] == "SUMCASE":
-            regs[-1] = [convertValue(c[1][regs[-1].sum_pos], regs[-1])]
+            regs[-1] = convertValue(c[1][regs[-1].sum_pos], regs[-1].value)
         elif c[0] == "CREATESUM":
             regs[-1] = _linda_server.Sum(regs[-1], c[1])
         else:
             raise SystemError, c[0]
+    print "got", regs[-1]
     return regs[-1]
 
 def explode(reg):

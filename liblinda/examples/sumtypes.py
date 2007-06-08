@@ -17,4 +17,4 @@ print r, r[0].sum_pos
 
 r = linda.uts._rd((t2, ))
 
-print r, rp[0].sum_pos
+print r, r[0].sum_pos
