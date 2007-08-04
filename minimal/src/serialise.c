@@ -508,6 +508,14 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
         Minimal_serialiseCode(doc, p, tree->op2);
         return;
         }
+    case ST_INDEX:
+        {
+        xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"index", NULL);
+        xmlAddChild(parent, p);
+        Minimal_serialiseCode(doc, p, tree->expr);
+        Minimal_serialiseCode(doc, p, tree->index);
+        return;
+        }
     default:
         fprintf(stderr, "Error: Unknown syntax tree id in Minimal_serializeCode (%i).\n", tree->type);
         return;

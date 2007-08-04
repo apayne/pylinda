@@ -225,6 +225,25 @@ Minimal_SyntaxTree Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         tree = Minimal_SyntaxTree_createOperator(Minimal_SyntaxTree_createID((char*)op), op1, op2);
         free(op);
         return tree;
+    } else if(strcmp((char*)(node->name), "index") == 0) {
+        xmlNode* cur_node;
+        Minimal_SyntaxTree tree;
+        Minimal_SyntaxTree op = NULL;
+        Minimal_SyntaxTree index = NULL;
+
+        cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                if(op == NULL) {
+                    op = Minimal_xmlToSyntaxTree(cur_node);
+                } else {
+                    index = Minimal_xmlToSyntaxTree(cur_node);
+                }
+            }
+            cur_node = cur_node->next;
+        }
+        tree = Minimal_SyntaxTree_createIndex(op, index);
+        return tree;
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Syntax Trees (%s).\n", node->name);
         return NULL;
