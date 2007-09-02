@@ -224,6 +224,21 @@ static PyObject* linda_TypeFromId(PyObject* self, PyObject* args) {
     return o;
 }
 
+static PyObject* LindaServerPython_Function(PyObject* self, PyObject* args) {
+    char* code;
+    PyObject* o;
+    LindaValue l;
+
+    if(!PyArg_ParseTuple(args, "s", &code)) {
+        return NULL;
+    }
+
+    l = Linda_function(code);
+    o = Value2PyO(l);
+    Linda_delReference(l);
+    return o;
+}
+
 static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
     PyObject* obj;
     LindaValue v;
@@ -290,6 +305,7 @@ static PyMethodDef LindaServerMethods[] = {
     {"socket_close",  LindaServerPython_sddisconnect, METH_VARARGS, "Close a socket."},
     {"setnodeid",  LindaServerPython_setnodeid, METH_VARARGS, "."},
 #ifdef TYPES
+    {"Function",  LindaServerPython_Function, METH_VARARGS, ""},
     {"Ptr",  LindaServerPython_Ptr, METH_VARARGS, ""},
     {"Sum",  LindaServerPython_Sum, METH_VARARGS, ""},
     {"TypeFromId", linda_TypeFromId, METH_VARARGS, ""},

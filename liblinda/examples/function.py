@@ -21,7 +21,7 @@ print nf(4)
 
 print "func2"
 f2 = linda.Function("""
-double2 :: int * 1 -> int * 1;
+double2 :: (int * 1) -> (int * 1);
 double2 x = 2 * x[0];
 """)
 
@@ -32,6 +32,6 @@ linda.uts._out((f2, ))
 (nf2, ) = linda.uts._rd((f2.type, ))
 print nf2((8, ))
 
-t = linda.Type("f2 :: int * (int * 0) -> int * (int * 0);")
-nf2 = linda.uts._in((t, ))
+t = linda.Type("f2 :: (int * ()) -> (int * ());")
+(nf2, ) = linda.uts._in((t, ))
 print nf2((10, ()))

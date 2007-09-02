@@ -249,6 +249,8 @@ static int linda_Value_cmp(linda_ValueObject* self, linda_ValueObject* other) {
         }
     case M_SYNTAX_TREE:
         return Minimal_SyntaxTree_cmp(self->val->syntax_tree, other->val->syntax_tree);
+    case M_BUILT_IN_FUNC:
+        return strcmp(self->val->built_in_name, other->val->built_in_name);
     }
     return 0;
 }
@@ -615,6 +617,12 @@ static PyObject* linda_Value_getresult(linda_ValueObject *self, void *closure) {
     return o;
 }
 
+static PyObject* linda_Value_getfunc_name(linda_ValueObject *self, void *closure) {
+    if(!Linda_isFunction(self->val)) { PyErr_SetString(PyExc_TypeError, "getFunc_Name - Not a function."); return NULL; }
+
+    return PyString_FromString(self->val->func_name);
+}
+
 #ifdef TYPES
 static PyObject* linda_Value_gettypemap(linda_ValueObject *self, void *closure) {
     linda_TypeMapObject* map;
@@ -782,6 +790,7 @@ static PyGetSetDef value_getseters[] = {
     {"string", (getter)linda_Value_getstring, (setter)NULL, "", NULL},
     {"arg", (getter)linda_Value_getarg, (setter)NULL, "", NULL},
     {"result", (getter)linda_Value_getresult, (setter)NULL, "", NULL},
+    {"func_name", (getter)linda_Value_getfunc_name, (setter)NULL, "", NULL},
     {"tsid", (getter)linda_Value_gettsid, (setter)NULL, "", NULL},
 #ifdef TYPES
     {"type", (getter)linda_Value_gettype, (setter)linda_Value_settype, "", NULL},
@@ -819,6 +828,9 @@ static PyObject* linda_Value_item(linda_ValueObject *self, Py_ssize_t index) {
         {
         if(self->val->type_spec->type != ST_PRODUCT_TYPE && self->val->type_spec->type != ST_SUM_TYPE) {
             PyErr_SetString(PyExc_TypeError, "Not a product or sum type.");
+            return NULL;
+        } else if(index >= self->val->type_spec->length) {
+            PyErr_SetString(PyExc_IndexError, "Index out of range for type.");
             return NULL;
         }
         LindaValue val = Minimal_typeSpec(self->val->type_name, self->val->type_spec->branches[index]);
@@ -1066,6 +1078,13 @@ static long linda_ValueHash(linda_ValueObject* self) {
     case M_SYNTAX_TREE:
         {
         PyObject* r = PyInt_FromLong((long)(self->val));
+        long hash = PyObject_Hash(r);
+        Py_DecRef(r);
+        return hash;
+        }
+    case M_BUILT_IN_FUNC:
+        {
+        PyObject* r = PyString_FromString(self->val->built_in_name);
         long hash = PyObject_Hash(r);
         Py_DecRef(r);
         return hash;

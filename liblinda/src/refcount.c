@@ -37,6 +37,7 @@ void Linda_scanValueForTSRef(LindaValue v, LindaValue ref, LindaValue** scanned)
     case M_STRING:
     case M_TYPE:
     case M_FUNCTION:
+    case M_BUILT_IN_FUNC:
         break;
     case M_TSREF:
         tdata = Linda_get_thread_data();
