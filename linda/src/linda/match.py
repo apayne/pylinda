@@ -127,6 +127,12 @@ def compare_types(t1, t2, checked=None):
                 code.append(("SUMCASE", funcs))
         code.append(("SETTYPEID", t2.type_id))
         return lambda x: convertValue(checked[(t1, t2)], x)
+    elif t1.isPtrType() and t2.isPtrType():
+        f = compare_types(t1.ptrtype, t2.ptrtype, checked)
+        if f is None:
+            return
+        code.append(("PTRCONV", checked[(t1.ptrtype, t2.ptrtype)]))
+        return lambda x: convertValue(checked[(t1, t2)], x)
     elif t1.isFunctionType() and t2.isFunctionType():
         print "got functions", t1, t2
         arg = compare_types(t1.arg, t2.arg, checked)

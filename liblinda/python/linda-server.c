@@ -249,12 +249,16 @@ static PyObject* LindaServerPython_Ptr(PyObject* self, PyObject* args) {
         return NULL;
     }
 
-    v = PyO2Value(obj);
-    if(v == NULL) {
-        return NULL;
-    }
+    if(obj == Py_None) {
+        l = Linda_ptr(NULL);
+    } else {
+        v = PyO2Value(obj);
+        if(v == NULL) {
+            return NULL;
+        }
 
-    l = Linda_ptr(v);
+        l = Linda_ptr(v);
+    }
     o = Value2PyO(l);
     Linda_delReference(l);
     return o;

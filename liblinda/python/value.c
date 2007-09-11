@@ -1105,8 +1105,6 @@ PyObject* linda_ValueCall(linda_ValueObject* self, PyObject* args, PyObject* kwa
 
     largs = PyO2Value(args);
 
-    printf("%s\n", Minimal_Value_string(largs));
-
     r = Linda_apply(self->val, largs);
 
     result = Value2PyO(r);
@@ -1213,8 +1211,9 @@ LindaValue PyO2Value(PyObject* obj) {
         return ((linda_ValueObject*)obj)->val;
     } else {
         PyObject* o = PyObject_CallFunctionObjArgs((PyObject*)&linda_ValueType, obj, NULL);
+        if(PyErr_Occurred()) { return NULL; }
 #ifdef TYPES
-        if(o == NULL) {
+        if(o == NULL && !Linda_is_server) {
             PyObject* func = NULL;
             PyObject* type;
             PyErr_Clear();

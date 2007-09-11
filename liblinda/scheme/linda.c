@@ -168,10 +168,11 @@ static SCM _wrap_Linda_make_type(SCM s_0, SCM s_1, SCM s_2) {
 
     free(typespec);
 
-    return func;
+    return smob;
 }
 
 static SCM _wrap_Linda_call_type(SCM s_0, SCM s_1) {
+    return scm_from_int32(0);
 }
 
 static SCM _wrap_Linda_port(SCM s_0) {

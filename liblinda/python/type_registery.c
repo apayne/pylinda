@@ -26,8 +26,8 @@
 
 PyObject* Linda_module;
 
-PyObject* dict_to;
-PyObject* dict_from;
+PyObject* dict_to = NULL;
+PyObject* dict_from = NULL;
 
 void LindaPython_registerType(PyObject* type, PyObject* _class, PyObject* _to, PyObject* _from) {
     PyObject* t = PyTuple_New(2);
