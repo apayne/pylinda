@@ -77,7 +77,7 @@ def doesMatch_types(tup, templ):
         tup_e = lookupType(tup.type.type_id)
         iso = lookupIso(tup_e, templ_e)
         if iso is None:
-            print "failed to match", tup, tup.type, templ,
+            print "failed to match", tup, tup.type, templ
             raise NoTupleMatch
         v = iso(tup)
         return v
