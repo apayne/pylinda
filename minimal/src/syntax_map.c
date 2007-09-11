@@ -67,7 +67,12 @@ void Minimal_addName(Minimal_NameValueMap* map, char* name, MinimalValue tree) {
 }
 
 MinimalValue Minimal_getName(MinimalLayer layer, char* name) {
-    return Minimal_getName2(layer->map, name);
+    MinimalValue v = NULL;
+    while(v == NULL && layer != NULL) {
+        v = Minimal_getName2(layer->map, name);
+        layer = layer->parent;
+    }
+    return v;
 }
 
 MinimalValue Minimal_getName2(Minimal_NameValueMap* map, char* name) {

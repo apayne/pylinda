@@ -78,6 +78,8 @@ void Minimal_init() {
     Minimal_tupleSpaceType = Minimal_type("tupleSpacetype :: tuplespace;");
 
     Minimal_Nil = Minimal_nil();
+
+    Minimal_initBuiltInFuncs();
 }
 
 void Minimal_finalise() {

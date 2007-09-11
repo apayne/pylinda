@@ -37,11 +37,13 @@
 
 void Minimal_Layer_init();
 void Minimal_Layer_finalise();
+void Minimal_initBuiltInFuncs();
 
 Minimal_SyntaxTree Minimal_SyntaxTree_createBlank();
 Minimal_SyntaxTree Minimal_SyntaxTree_createNil();
 Minimal_SyntaxTree Minimal_SyntaxTree_createID(char* id);
 Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i);
+Minimal_SyntaxTree Minimal_SyntaxTree_createString(char* s);
 Minimal_SyntaxTree Minimal_SyntaxTree_createBracket(Minimal_SyntaxTree v1);
 Minimal_SyntaxTree Minimal_SyntaxTree_createIndex(Minimal_SyntaxTree expr, Minimal_SyntaxTree index);
 Minimal_SyntaxTree Minimal_SyntaxTree_createSequence();
@@ -65,6 +67,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList2(Minimal_SyntaxTree v1
 Minimal_SyntaxTree Minimal_SyntaxTree_createArgumentList1(Minimal_SyntaxTree v1);
 Minimal_SyntaxTree Minimal_SyntaxTree_createArgumentList2(Minimal_SyntaxTree v1, Minimal_SyntaxTree v2);
 Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionCall(Minimal_SyntaxTree func, Minimal_SyntaxTree args);
+Minimal_SyntaxTree Minimal_SyntaxTree_createLet(Minimal_SyntaxTree var, Minimal_SyntaxTree expr, Minimal_SyntaxTree code);
 
 EXPORT int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree t1, Minimal_SyntaxTree t2);
 

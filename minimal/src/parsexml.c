@@ -138,6 +138,12 @@ Minimal_SyntaxTree Minimal_xmlToSyntaxTree(xmlNodePtr node) {
         i = atoi((char*)val);
         free(val);
         return Minimal_SyntaxTree_createInteger(i);
+    } else if(strcmp((char*)(node->name), "string") == 0) {
+        Minimal_SyntaxTree v;
+        xmlChar* val = xmlGetProp(node, (xmlChar*)"val");
+        v = Minimal_SyntaxTree_createString((char*)val);
+        free(val);
+        return v;
     } else if(strcmp((char*)(node->name), "type") == 0) {
         xmlChar* name;
         xmlNode* cur_node;
@@ -243,6 +249,88 @@ Minimal_SyntaxTree Minimal_xmlToSyntaxTree(xmlNodePtr node) {
             cur_node = cur_node->next;
         }
         tree = Minimal_SyntaxTree_createIndex(op, index);
+        return tree;
+    } else if(strcmp((char*)(node->name), "let") == 0) {
+        xmlNode* cur_node;
+        Minimal_SyntaxTree tree;
+        Minimal_SyntaxTree var = NULL;
+        Minimal_SyntaxTree letexpr = NULL;
+        Minimal_SyntaxTree code = NULL;
+
+        cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                if(var == NULL) {
+                    var = Minimal_xmlToSyntaxTree(cur_node);
+                } else if(letexpr == NULL) {
+                    letexpr = Minimal_xmlToSyntaxTree(cur_node);
+                } else {
+                    code = Minimal_xmlToSyntaxTree(cur_node);
+                }
+            }
+            cur_node = cur_node->next;
+        }
+        tree = Minimal_SyntaxTree_createLet(var, letexpr, code);
+        return tree;
+    } else if(strcmp((char*)(node->name), "funccall") == 0) {
+        xmlNode* cur_node;
+        Minimal_SyntaxTree tree;
+        Minimal_SyntaxTree func = NULL;
+        Minimal_SyntaxTree args = NULL;
+
+        cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                if(func == NULL) {
+                    func = Minimal_xmlToSyntaxTree(cur_node);
+                } else {
+                    args = Minimal_xmlToSyntaxTree(cur_node);
+                }
+            }
+            cur_node = cur_node->next;
+        }
+        tree = Minimal_SyntaxTree_createFunctionCall(func, args);
+        return tree;
+    } else if(strcmp((char*)(node->name), "argument_list") == 0) {
+        xmlNode* cur_node;
+        Minimal_SyntaxTree tree;
+        Minimal_SyntaxTree arg = NULL;
+        Minimal_SyntaxTree next_arg = NULL;
+
+        cur_node = node->children;
+        while(cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                if(arg == NULL) {
+                    arg = Minimal_xmlToSyntaxTree(cur_node);
+                } else {
+                    next_arg = Minimal_xmlToSyntaxTree(cur_node);
+                }
+            }
+            cur_node = cur_node->next;
+        }
+        if(next_arg == NULL) {
+             tree = Minimal_SyntaxTree_createArgumentList1(arg);
+        } else {
+             tree = Minimal_SyntaxTree_createArgumentList2(arg, next_arg);
+        }
+        return tree;
+    } else if(strcmp((char*)(node->name), "tuple") == 0) {
+        xmlNode* cur_node;
+        Minimal_SyntaxTree tree;
+
+        xmlChar* size_str = xmlGetProp(node, (xmlChar*)"size");
+        int size = atoi((char*)size_str);
+        free(size_str);
+
+        tree = Minimal_SyntaxTree_createProductType();
+
+        cur_node = node->children;
+        while(tree->size < size && cur_node) {
+            if(cur_node->type == XML_ELEMENT_NODE) {
+                Minimal_SyntaxTree_addToProductType(tree, Minimal_xmlToSyntaxTree(cur_node));
+            }
+            cur_node = cur_node->next;
+        }
         return tree;
     } else {
         fprintf(stderr, "Error: Not a Minimal XML tag for Syntax Trees (%s).\n", node->name);

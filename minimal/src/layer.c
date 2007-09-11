@@ -28,6 +28,7 @@ MinimalLayer Minimal_defaultLayer;
 static MinimalLayer Minimal_currentLayer;
 
 void Minimal_Layer_init() {
+    Minimal_defaultLayer = NULL;
     Minimal_defaultLayer = Minimal_createLayer();
     Minimal_defaultLayer->name = (char*)malloc(strlen("__default__")+1);
     strcpy(Minimal_defaultLayer->name, "__default__");
@@ -117,7 +118,12 @@ void Minimal_Layer_addTree(MinimalLayer layer, Minimal_SyntaxTree tree) {
 MinimalLayer Minimal_createLayer() {
     MinimalLayer layer = Minimal_newReference(MINIMAL_LAYER, MinimalLayer, struct MinimalLayer_t);
     layer->name = NULL;
-    layer->parent = NULL;
+    if(Minimal_defaultLayer == NULL) {
+        layer->parent = NULL;
+    } else {
+        Minimal_addReference(Minimal_defaultLayer);
+        layer->parent = Minimal_defaultLayer;
+    }
     layer->map = Minimal_newReference(MINIMAL_MAP, Minimal_NameValueMap*, struct Minimal_NameValueMap_t);
     Minimal_SyntaxMap_init(layer->map);
     return layer;

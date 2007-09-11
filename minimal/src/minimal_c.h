@@ -90,7 +90,8 @@ struct MinimalValue_t {
         M_SUM,
         M_FUNCTION,
         M_POINTER,
-        M_SYNTAX_TREE
+        M_SYNTAX_TREE,
+        M_BUILT_IN_FUNC,
     } type;
     MinimalValue typeobj;
     union {
@@ -128,6 +129,11 @@ struct MinimalValue_t {
             MinimalValue ptr;
         };
         Minimal_SyntaxTree syntax_tree;
+        struct {
+            char* built_in_name;
+            int arg_count;
+            void* func_ptr;
+        };
     };
 };
 
@@ -230,6 +236,7 @@ struct Minimal_SyntaxTree_t {
         ST_NIL,
         ST_IDENTIFIER,
         ST_INTEGER,
+        ST_STRING,
         ST_SEQENTIAL_DEFS,
         ST_TYPE_SPEC,
         ST_TYPE_FUNCTION,
@@ -244,7 +251,8 @@ struct Minimal_SyntaxTree_t {
         ST_POINTER,
         ST_IFEXPR,
         ST_BRACKET,
-        ST_INDEX
+        ST_INDEX,
+        ST_LET
     } type;
     char* type_id;
     union {
@@ -295,6 +303,11 @@ struct Minimal_SyntaxTree_t {
         struct {
             Minimal_SyntaxTree expr;
             Minimal_SyntaxTree index;
+        };
+        struct {
+            Minimal_SyntaxTree var;
+            Minimal_SyntaxTree letexpr;
+            Minimal_SyntaxTree code;
         };
     };
 };

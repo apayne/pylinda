@@ -109,6 +109,7 @@ void Minimal_addTypesToList(Minimal_TypeList* list, MinimalValue v) {
     case M_POINTER:
     case M_TSREF:
     case M_SYNTAX_TREE:
+    case M_BUILT_IN_FUNC:
         break;
     }
 }
@@ -364,6 +365,13 @@ void Minimal_serialiseValue(xmlDocPtr doc, xmlNodePtr root, xmlNodePtr parent, M
     case M_SYNTAX_TREE:
         fprintf(stderr, "Error: Should never get here. (%s:%i)\n", __FILE__, __LINE__);
         break;
+    case M_BUILT_IN_FUNC:
+        {
+        xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"builtin", (xmlChar*)f->built_in_name);
+        AddTypeName(node);
+        AddId(node);
+        }
+        break;
     }
 }
 
@@ -482,6 +490,10 @@ void Minimal_serialiseParameterList(xmlDocPtr doc, xmlNodePtr parent, struct Min
 
 void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_SyntaxTree_t* tree) {
     switch(tree->type) {
+    case ST_BLANK:
+        {
+        return;
+        }
     case ST_IDENTIFIER:
         {
         xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"id", NULL);
@@ -499,6 +511,13 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
         xmlNewProp(node, (xmlChar*)"val", (xmlChar*)integer);
         return;
         }
+    case ST_STRING:
+        {
+        xmlNodePtr node = xmlNewDocNode(doc, NULL, (xmlChar*)"string", NULL);
+        xmlAddChild(parent, node);
+        xmlNewProp(node, (xmlChar*)"val", (xmlChar*)tree->string);
+        return;
+        }
     case ST_OPERATOR:
         {
         xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"operator", NULL);
@@ -514,6 +533,49 @@ void Minimal_serialiseCode(xmlDocPtr doc, xmlNodePtr parent, struct Minimal_Synt
         xmlAddChild(parent, p);
         Minimal_serialiseCode(doc, p, tree->expr);
         Minimal_serialiseCode(doc, p, tree->index);
+        return;
+        }
+    case ST_LET:
+        {
+        xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"let", NULL);
+        xmlAddChild(parent, p);
+        Minimal_serialiseCode(doc, p, tree->var);
+        Minimal_serialiseCode(doc, p, tree->letexpr);
+        Minimal_serialiseCode(doc, p, tree->code);
+        return;
+        }
+    case ST_FUNCTION_CALL:
+        {
+        xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"funccall", NULL);
+        xmlAddChild(parent, p);
+        Minimal_serialiseCode(doc, p, tree->function);
+        Minimal_serialiseCode(doc, p, tree->arguments);
+        return;
+        }
+    case ST_ARGUMENT_LIST:
+        {
+        xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"argument_list", NULL);
+        xmlAddChild(parent, p);
+        Minimal_serialiseCode(doc, p, tree->argument);
+        if(tree->next_arg != NULL) {
+            Minimal_serialiseCode(doc, p, tree->next_arg);
+        }
+        return;
+        }
+    case ST_TUPLE:
+        {
+        int i;
+        char* integer;
+
+        xmlNodePtr p = xmlNewDocNode(doc, NULL, (xmlChar*)"tuple", NULL);
+        integer = (char*)malloc(snprintf(NULL, 0, "%i", tree->size)+1);
+        sprintf(integer, "%i", tree->size);
+        xmlNewProp(p, (xmlChar*)"size", (xmlChar*)integer);
+        free(integer);
+        xmlAddChild(parent, p);
+        for(i=0; i<tree->size; i++) {
+            Minimal_serialiseCode(doc, p, tree->tuple[i]);
+        }
         return;
         }
     default:

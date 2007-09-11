@@ -31,7 +31,8 @@
 CDEFINE    [#].*"\n"
 DIGIT      [0-9]
 ID         [a-zA-Z][a-zA-Z0-9]*
-DELIM      [" "\n\t]
+STRING     [\"][^\n\"]*[\"]
+DELIM      [ \n\t]
 WHITESPACE {DELIM}+
 ARROW      "->"
 TYPESPEC   "::"
@@ -47,6 +48,7 @@ IF         "if"
 THEN       "then"
 ELSE       "else"
 ENDIF      "endif"
+LET        "let"
 TEST_OP    [><]|"=="|">="|"<="
 
 %%
@@ -54,6 +56,12 @@ TEST_OP    [><]|"=="|">="|"<="
 {DIGIT}+ {
         yylval = Minimal_SyntaxTree_createInteger(atoi(yytext));
         return YY_INTEGER;
+         }
+
+{STRING} {
+        yytext[strlen(yytext)-1] = '\0';
+        yylval = Minimal_SyntaxTree_createString(&(yytext[1]));
+        return YY_STRING;
          }
 
 {ID} {
@@ -65,6 +73,8 @@ TEST_OP    [><]|"=="|">="|"<="
             return YY_ELSE;
         } else if(strcmp(yytext, "endif") == 0) {
             return YY_ENDIF;
+        } else if(strcmp(yytext, "let") == 0) {
+            return YY_LET;
         } else {
             yylval = Minimal_SyntaxTree_createID(yytext);
             return YY_ID;

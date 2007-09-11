@@ -55,10 +55,20 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createInteger(int i) {
     return tree;
 }
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createString(char* s) {
+    printf("create string. %s\n", s);
+    Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
+    tree->type = ST_STRING;
+    tree->type_id = NULL;
+    tree->string = malloc(strlen(s)+1);
+    strcpy(tree->string, s);
+    return tree;
+}
+
 Minimal_SyntaxTree Minimal_SyntaxTree_createOperator(Minimal_SyntaxTree op, Minimal_SyntaxTree expr1, Minimal_SyntaxTree expr2) {
     Minimal_SyntaxTree tree;
     if(op->type != ST_IDENTIFIER) {
-        fprintf(stderr, "Invalid type of operator to Minimal_SyntaxTree_createOperator\n");
+        fprintf(stderr, "Invalid type of operator to Minimal_SyntaxTree_createOperator %i\n", op->type);
         return NULL;
     }
     tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
@@ -300,11 +310,21 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionCall(Minimal_SyntaxTree func
     return tree;
 }
 
+Minimal_SyntaxTree Minimal_SyntaxTree_createLet(Minimal_SyntaxTree var, Minimal_SyntaxTree expr, Minimal_SyntaxTree code) {
+    Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
+    tree->type = ST_LET;
+    tree->var = var;
+    tree->letexpr = expr;
+    tree->code = code;
+
+    return tree;
+}
+
 Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionDef(Minimal_SyntaxTree name, Minimal_SyntaxTree args, Minimal_SyntaxTree expr) {
     Minimal_SyntaxTree tree = Minimal_newReference(MINIMAL_SYNTAXTREE, Minimal_SyntaxTree, struct Minimal_SyntaxTree_t);
     tree->type = ST_FUNCTION_DEF;
     tree->type_id = NULL;
-    tree->func_name = malloc(sizeof(name->string)+1);
+    tree->func_name = malloc(strlen(name->string)+1);
     strcpy(tree->func_name, name->string);
     Minimal_delReference(name);
     tree->type_spec = NULL;
@@ -314,8 +334,8 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createFunctionDef(Minimal_SyntaxTree name,
 }
 
 void Minimal_SyntaxTree_addToTuple(Minimal_SyntaxTree tuple, Minimal_SyntaxTree tree) {
-    if(tuple->type != M_SYNTAX_TREE || tuple->type != ST_TUPLE) {
-        fprintf(stderr, "Invalid type of operator to Minimal_SyntaxTree_createOperator\n");
+    if(tuple->type != M_SYNTAX_TREE && tuple->type != ST_TUPLE) {
+        fprintf(stderr, "Invalid type to Minimal_SyntaxTree_addToTuple %i\n", tuple->type);
         return;
     }
     if(tuple->size == 0) {
@@ -357,12 +377,10 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createArgumentList2(Minimal_SyntaxTree s1,
         ptr->next_arg = Minimal_SyntaxTree_createArgumentList1(s2);
         return s1;
     } else if(s2->type == ST_ARGUMENT_LIST) {
-        Minimal_SyntaxTree ptr = s2;
-        while(ptr->next_arg != NULL) { ptr = ptr->next_arg; }
-        ptr->next_arg = Minimal_SyntaxTree_createArgumentList1(s1);
-        return s2;
+        Minimal_SyntaxTree ptr = Minimal_SyntaxTree_createArgumentList1(s1);
+        return Minimal_SyntaxTree_createArgumentList2(ptr, s2);
     } else {
-        return Minimal_SyntaxTree_createParameterList2(Minimal_SyntaxTree_createArgumentList1(s1), s2);
+        return Minimal_SyntaxTree_createArgumentList2(Minimal_SyntaxTree_createArgumentList1(s1), s2);
     }
 }
 Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList1(Minimal_SyntaxTree s1) {
@@ -374,7 +392,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createParameterList1(Minimal_SyntaxTree s1
         tree->type_id = NULL;
         tree->var_name = malloc(strlen(s1->string)+1);
         strcpy(tree->var_name, s1->string);
-        Minimal_delReference(s1);
+        /*Minimal_delReference(s1);*/
         tree->next_var = NULL;
         return tree;
     }
@@ -410,6 +428,7 @@ Minimal_SyntaxTree Minimal_SyntaxTree_createPointer(Minimal_SyntaxTree v1) {
     Minimal_delReference(v1);
     return tree;
 }
+
 Minimal_SyntaxTree Minimal_SyntaxTree_copy(Minimal_SyntaxTree tree) {
     Minimal_SyntaxTree ntree = NULL;
     if(tree == NULL) { return NULL; }
@@ -435,6 +454,11 @@ Minimal_SyntaxTree Minimal_SyntaxTree_copy(Minimal_SyntaxTree tree) {
     case ST_INTEGER:
         ntree->type = ST_INTEGER;
         ntree->integer = tree->integer;
+        return ntree;
+    case ST_STRING:
+        ntree->type = ST_STRING;
+        ntree->string = malloc(strlen(tree->string)+1);
+        strcpy(ntree->string, tree->string);
         return ntree;
     case ST_SEQENTIAL_DEFS:
         {
@@ -486,6 +510,15 @@ Minimal_SyntaxTree Minimal_SyntaxTree_copy(Minimal_SyntaxTree tree) {
         ntree->function = tree->function;
         Minimal_addReference(tree->arguments);
         ntree->arguments = tree->arguments;
+        return ntree;
+    case ST_LET:
+        ntree->type = ST_LET;
+        Minimal_addReference(tree->var);
+        ntree->var = tree->var;
+        Minimal_addReference(tree->letexpr);
+        ntree->letexpr = tree->letexpr;
+        Minimal_addReference(tree->code);
+        ntree->code = tree->code;
         return ntree;
     case ST_ARGUMENT_LIST:
         ntree->type = ST_ARGUMENT_LIST;
@@ -573,6 +606,7 @@ void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_Sy
     case ST_NIL:
     case ST_IDENTIFIER:
     case ST_INTEGER:
+    case ST_STRING:
         break;
     case ST_SEQENTIAL_DEFS:
         {
@@ -606,6 +640,11 @@ void Minimal_SyntaxTree_getReferences(struct CyclicGarbageList* list, Minimal_Sy
     case ST_FUNCTION_CALL:
         Minimal_addToCyclicGarbageList(list, ptr->function);
         Minimal_addToCyclicGarbageList(list, ptr->arguments);
+        break;
+    case ST_LET:
+        Minimal_addToCyclicGarbageList(list, ptr->var);
+        Minimal_addToCyclicGarbageList(list, ptr->letexpr);
+        Minimal_addToCyclicGarbageList(list, ptr->code);
         break;
     case ST_ARGUMENT_LIST:
         Minimal_addToCyclicGarbageList(list, ptr->argument);
@@ -684,6 +723,8 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree t1, Minimal_SyntaxTree t2) {
         } else if(t1->integer > t2->integer) {
             return 1;
         }
+    case ST_STRING:
+        return strcmp(t1->string, t2->string);
     case ST_SEQENTIAL_DEFS:
         {
         int i;
@@ -751,6 +792,16 @@ int Minimal_SyntaxTree_cmp(Minimal_SyntaxTree t1, Minimal_SyntaxTree t2) {
             return Minimal_SyntaxTree_cmp(t1->function, t2->function);
         } else {
             return Minimal_SyntaxTree_cmp(t1->arguments, t2->arguments);
+        }
+    case ST_LET:
+        if(Minimal_SyntaxTree_cmp(t1->var, t2->var)) {
+            if(Minimal_SyntaxTree_cmp(t1->letexpr, t2->letexpr)) {
+                return Minimal_SyntaxTree_cmp(t1->code, t2->code);
+            } else {
+                return Minimal_SyntaxTree_cmp(t1->letexpr, t2->letexpr);
+            }
+        } else {
+            return Minimal_SyntaxTree_cmp(t1->var, t2->var);
         }
     case ST_ARGUMENT_LIST:
         if(Minimal_SyntaxTree_cmp(t1->argument, t2->argument) != 0) {
@@ -859,6 +910,9 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree tree) {
         break;
     case ST_INTEGER:
         break;
+    case ST_STRING:
+        free(tree->string);
+        break;
     case ST_SEQENTIAL_DEFS:
         {
         int i;
@@ -898,6 +952,11 @@ void Minimal_SyntaxTree_free(Minimal_SyntaxTree tree) {
     case ST_FUNCTION_CALL:
         Minimal_delReference(tree->function);
         Minimal_delReference(tree->arguments);
+        break;
+    case ST_LET:
+        Minimal_delReference(tree->var);
+        Minimal_delReference(tree->letexpr);
+        Minimal_delReference(tree->code);
         break;
     case ST_ARGUMENT_LIST:
         Minimal_delReference(tree->argument);

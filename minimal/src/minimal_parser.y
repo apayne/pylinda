@@ -31,7 +31,7 @@ void yyerror(char* s) {
 }
 %}
 
-%token YY_ID YY_INTEGER YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_OPENSQB YY_CLOSESQB YY_IF YY_THEN YY_ELSE YY_ENDIF YY_TESTOP
+%token YY_ID YY_INTEGER YY_STRING YY_TYPESPEC YY_FUNCTION YY_OPERATOR YY_SEMICOLON YY_COMMA YY_EQ YY_OPENB YY_CLOSEB YY_OPENSQB YY_CLOSESQB YY_IF YY_THEN YY_ELSE YY_ENDIF YY_TESTOP YY_LET
 
 %% /* Grammar rules and actions follow */
 
@@ -98,6 +98,7 @@ typespec: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                     $$ = $1;
                   }
                 }
+        | YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createProductType(); }
         | typespec YY_FUNCTION typespec {
                         $$ = Minimal_SyntaxTree_createFunction($1, $3);
                         }
@@ -192,6 +193,7 @@ definition: YY_ID parameter_list YY_EQ expr {
 
 
 expr: value { $$ = $1; }
+    | YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
     | YY_OPENB expr YY_CLOSEB { $$ = $2; }
     | expr YY_OPENSQB expr YY_CLOSESQB { $$ = Minimal_SyntaxTree_createIndex($1, $3); }
     | expr YY_OPERATOR expr   { $$ = Minimal_SyntaxTree_createOperator($2, $1, $3); }
@@ -199,6 +201,7 @@ expr: value { $$ = $1; }
     | tuple                   { $$ = $1; }
     | if_expr                 { $$ = $1; }
     | test_expr               { $$ = $1; }
+    | let_expr                { $$ = $1; }
 ;
 
 value: YY_ID { if(strcmp($1->string, "Nil") == 0) {
@@ -209,6 +212,7 @@ value: YY_ID { if(strcmp($1->string, "Nil") == 0) {
                   }
              }
      | YY_INTEGER { $$ = $1; }
+     | YY_STRING { $$ = $1; }
 ;
 
 parameter_list: { $$ = Minimal_SyntaxTree_createBlank(); }
@@ -221,23 +225,20 @@ parameter_list: { $$ = Minimal_SyntaxTree_createBlank(); }
                                      }
 ;
 
-function_call: expr YY_OPENB argument_list YY_CLOSEB {
+function_call: expr YY_OPENB YY_CLOSEB {
+        $$ = Minimal_SyntaxTree_createFunctionCall($1, NULL);
+    }
+             | expr YY_OPENB argument_list YY_CLOSEB {
         $$ = Minimal_SyntaxTree_createFunctionCall($1, $3);
     }
 ;
 
-argument_list: { $$ = Minimal_SyntaxTree_createBlank(); }
-              | argument_list expr { if($1->type == ST_BLANK) {
-                                        $$ = Minimal_SyntaxTree_createArgumentList1($2);
-                                        Minimal_delReference($1);
-                                       } else {
-                                        $$ = Minimal_SyntaxTree_createArgumentList2($1, $2);
-                                       }
+argument_list: expr { printf("expr\n"); $$ = Minimal_SyntaxTree_createArgumentList1($1); }
+              | expr YY_COMMA argument_list { printf("arg list\n"); $$ = Minimal_SyntaxTree_createArgumentList2($1, $3);
                                      }
 ;
 
-tuple: YY_OPENB YY_CLOSEB { $$ = Minimal_SyntaxTree_createTuple(0); }
-     | expr YY_COMMA tuple2 { int i;
+tuple: expr YY_COMMA tuple2 { int i;
                               $$ = Minimal_SyntaxTree_createTuple(1);
                               Minimal_SyntaxTree_setTuple($$, 0, $1);
                               for(i=0; i<$3->size; i++) {
@@ -267,5 +268,8 @@ if_expr: YY_IF expr YY_THEN expr YY_ELSE expr YY_ENDIF {
 test_expr: expr YY_TESTOP expr { $$ = Minimal_SyntaxTree_createOperator($2, $1, $3); }
 ;
 
+let_expr: YY_LET YY_ID YY_EQ expr expr { $$ = Minimal_SyntaxTree_createLet($2, $4, $5); }
+//                                         Minimal_delReference($1); Minimal_delReference($3); }
+;
 
 %%

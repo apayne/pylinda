@@ -593,6 +593,8 @@ unsigned char Minimal_isTrue(MinimalValue value) {
         return value->ptr != NULL;
     case M_SYNTAX_TREE:
         return 1;
+    case M_BUILT_IN_FUNC:
+        return 1;
     }
     return 0;
 }
@@ -716,6 +718,10 @@ char* Minimal_Value_string(MinimalValue v) {
         r = (char*)malloc(strlen("<Syntax Tree>")+1);
         strcpy(r, "<Syntax Tree>");
         return r;
+    case M_BUILT_IN_FUNC:
+        r = (char*)malloc(strlen("<Built In Func>")+1);
+        strcpy(r, "<Built In Func>");
+        return r;
     }
     return "";
 }
@@ -736,6 +742,7 @@ void Minimal_Value_getReferences(struct CyclicGarbageList* list, MinimalValue v)
     case M_DOUBLE:
     case M_STRING:
     case M_TSREF:
+    case M_BUILT_IN_FUNC:
         break;
     case M_FUNCTION:
         Minimal_addToCyclicGarbageList(list, (MinimalValue)v->layer);
@@ -880,6 +887,11 @@ MinimalValue Minimal_copy_internal(MinimalValue v, MinimalValue** memo) {
     case M_POINTER:
         nv->ptr = Minimal_copy_internal(v->ptr, memo);
         break;
+    case M_BUILT_IN_FUNC:
+        nv->built_in_name = v->built_in_name;
+        nv->arg_count = v->arg_count;
+        nv->func_ptr = v->func_ptr;
+        break;
     default:
         fprintf(stderr, "Unknown value type in Minimal_copy (%i)\n", v->type);
         Minimal_delReference(nv);
@@ -951,6 +963,8 @@ void Minimal_Value_free(MinimalValue v) {
         break;
     case M_SYNTAX_TREE:
         Minimal_delReference(v->syntax_tree);
+        break;
+    case M_BUILT_IN_FUNC:
         break;
     }
 }
