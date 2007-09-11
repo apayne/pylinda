@@ -102,6 +102,8 @@ unsigned char Linda_connect(int port) {
     Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
 
+    printf("Connecting to %i\n", port);
+
     Linda_init();
 
     if(tdata->sd != 0) { return 1; }
@@ -195,6 +197,14 @@ void Linda_disconnect() {
 void Linda_out(LindaValue ts, LindaValue t) {
     Message* m;
     Linda_thread_data* tdata = Linda_get_thread_data();
+    if(ts == NULL) {
+        fprintf(stderr, "Out: Got NULL instead of a tuplespace.\n");
+        return;
+    }
+    if(t == NULL) {
+        fprintf(stderr, "Out: Got NULL instead of a tuple.\n");
+        return;
+    }
     Linda_addReference(t);
     Linda_scanTuple(t, ts);
 #ifdef TYPES

@@ -19,6 +19,7 @@ else:
     libdir = [".", "/home/andrew/lib"]
     libs = []
     pylib = ["python%i.%i" % (sys.version_info[0], sys.version_info[1]), "readline"]
+    schemelib = []
 
 debug = int(ARGUMENTS.get("debug", "1"))
 types = int(ARGUMENTS.get("types", "1"))
@@ -62,6 +63,7 @@ Export("cppenv")
 clientobjs, serverobjs = SConscript("src/SConscript")
 cppclientobjs = SConscript("cpp/SConscript")
 pyclientobjs, pyserverobjs = SConscript("python/SConscript")
+schemeobjs = SConscript("scheme/SConscript")
 
 linda = env.SharedLibrary(target = "linda", source = clientobjs, LIBS=["minimal", "xml2", "fl"] + libs)
 cppenv.SharedLibrary(target = "linda++", source = cppclientobjs, LIBS=["linda", "minimal", "xml2", "fl"] + libs)
@@ -69,6 +71,8 @@ linda_server = env.SharedLibrary(target = "linda-server", source = serverobjs, L
 
 pylinda = env.SharedLibrary(target = "_linda", source = pyclientobjs, SHLIBPREFIX='', LIBS=["linda", "minimal", "xml2", "fl"] + pylib)
 pylinda_server = env.SharedLibrary(target = "_linda_server", source = pyserverobjs, SHLIBPREFIX='', LIBS=["linda-server", "minimal", "xml2"] + libs + pylib)
+
+env.SharedLibrary(target = "linda-guile", source = schemeobjs, LIBS=["linda", "minimal", "xml2", "fl"] + schemelib)
 
 env.Depends(pylinda, linda)
 env.Depends(pylinda_server, linda_server)
