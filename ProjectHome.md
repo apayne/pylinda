@@ -1,0 +1,1 @@
+PyLinda is a simple implementation of a linda system, however it also includes several of the more recently proposed extensions to Linda in the form of multiple tuple spaces, garbage collection, sane non-blocking primitives and bulk tuple operations.
